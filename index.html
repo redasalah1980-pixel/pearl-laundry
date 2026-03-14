@@ -3195,7 +3195,14 @@ function updateEntStats(m, day) {
   let dQR = 0, dKG = 0, depQR = 0, depKG = 0, depPCS = 0;
   const _statPR = loadPR(CY);
   DEPT_KEYS.forEach(d => MASTER[d].forEach((_, i) => {
-    const v = getVal(CY, m, d, i, day - 1);
+    // For the active department, read live input values from DOM (not saved cache)
+    let v;
+    if (d === entDept) {
+      const inp = document.getElementById('qi_' + i);
+      v = inp ? (Math.max(0, parseInt(inp.value) || 0)) : getVal(CY, m, d, i, day - 1);
+    } else {
+      v = getVal(CY, m, d, i, day - 1);
+    }
     dQR += v * (_statPR[d]?.[i]?.[1] ?? MASTER[d][i][1]); dKG += v * (_statPR[d]?.[i]?.[2] ?? MASTER[d][i][2]);
     if (d === entDept) { depQR += v * (_statPR[d]?.[i]?.[1] ?? MASTER[d][i][1]); depKG += v * (_statPR[d]?.[i]?.[2] ?? MASTER[d][i][2]); depPCS += v; }
   }));
