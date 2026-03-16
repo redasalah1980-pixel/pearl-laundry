@@ -1743,27 +1743,21 @@ function loadDB(y) {
     // Try localStorage first (fast, offline fallback)
     try { _DB[y] = JSON.parse(_STORE.getItem(lsKey(y)) || '{}'); }
     catch(e) { _DB[y] = {}; }
-    // Then sync from Firebase in background
+    // Then sync from Firebase in background using timestamp-safe merge
     if (window._fbLoadKey) {
       window._fbLoadKey(fbDataPath(y)).then(function(fbData) {
         if (fbData && typeof fbData === 'object' && Object.keys(fbData).length > 0) {
           var localNow = _DB[y] || {};
-          var localKeys2 = Object.keys(localNow).length;
-          var fbKeys2 = Object.keys(fbData).length;
-          var merged2;
-          if (localKeys2 >= fbKeys2) {
-            // Local has same or more — keep local, push to Firebase
-            merged2 = localNow;
-            if (localKeys2 > fbKeys2) window._fbSaveKey(fbDataPath(y), merged2);
-          } else {
-            merged2 = Object.assign({}, localNow, fbData);
-          }
+          var merged2 = mergeDataSafe(localNow, fbData);
           _DB[y] = merged2;
           try { _STORE.setItem(lsKey(y), JSON.stringify(merged2)); } catch(e) {}
-          // Refresh current view if same year
+          // If local had newer data, push merged back to Firebase
+          var needsPush = Object.keys(merged2).some(function(k) {
+            return !fbData[k] || (localNow[k] !== undefined && localNow['_ts_' + k] > (fbData['_ts_' + k] || 0));
+          });
+          if (needsPush && window._fbSaveKey) window._fbSaveKey(fbDataPath(y), merged2);
           if (y == CY) { try { renderDash(); } catch(e){} try { renderEntry(); } catch(e){} }
         } else if (!fbData) {
-          // Firebase empty — push local up
           var localNow2 = _DB[y] || {};
           if (Object.keys(localNow2).length > 0 && window._fbSaveKey) {
             window._fbSaveKey(fbDataPath(y), localNow2);
@@ -1775,6 +1769,38 @@ function loadDB(y) {
   return _DB[y];
 }
 
+// ── Timestamp-safe merge: for each data key, the version with the newer timestamp wins ──
+function mergeDataSafe(local, remote) {
+  var merged = {};
+  // Collect all non-timestamp keys from both
+  var allKeys = {};
+  Object.keys(local).forEach(function(k)  { if (!k.startsWith('_ts_')) allKeys[k] = 1; });
+  Object.keys(remote).forEach(function(k) { if (!k.startsWith('_ts_')) allKeys[k] = 1; });
+  Object.keys(allKeys).forEach(function(k) {
+    var localTs  = local['_ts_' + k]  || 0;
+    var remoteTs = remote['_ts_' + k] || 0;
+    var hasLocal  = local[k]  !== undefined;
+    var hasRemote = remote[k] !== undefined;
+    if (hasLocal && hasRemote) {
+      // Both have it — newer timestamp wins
+      if (localTs >= remoteTs) {
+        merged[k] = local[k];
+        merged['_ts_' + k] = localTs;
+      } else {
+        merged[k] = remote[k];
+        merged['_ts_' + k] = remoteTs;
+      }
+    } else if (hasLocal) {
+      merged[k] = local[k];
+      if (localTs) merged['_ts_' + k] = localTs;
+    } else {
+      merged[k] = remote[k];
+      if (remoteTs) merged['_ts_' + k] = remoteTs;
+    }
+  });
+  return merged;
+}
+
 function saveDB(y) {
   // Save to localStorage (instant)
   try { _STORE.setItem(lsKey(y), JSON.stringify(_DB[y] || {})); } catch(e) {}
@@ -1784,6 +1810,22 @@ function saveDB(y) {
       if (!ok) toast('⚠️ Cloud sync failed — data saved locally', 'err');
     });
   }
+}
+
+// ── Stamp a save timestamp on all keys being written ──
+function stampTimestamps(y, m, dept, day) {
+  var db = _DB[y] || {};
+  var now = Date.now();
+  var prefix = m + '-' + dept + '-';
+  var dayKey = day - 1;
+  // Stamp timestamp for every item in this dept/day save
+  if (MASTER[dept]) {
+    MASTER[dept].forEach(function(_, i) {
+      var key = m + '-' + dept + '-' + i + '-' + dayKey;
+      db['_ts_' + key] = now;
+    });
+  }
+  _DB[y] = db;
 }
 
 function loadPR(y) {
@@ -1911,32 +1953,18 @@ function attachFbListener(y) {
       var fbData = snap.val();
       if (fbData && typeof fbData === 'object' && Object.keys(fbData).length > 0) {
         var local = _DB[y] || {};
-        var localKeys = Object.keys(local).length;
-        var fbKeys    = Object.keys(fbData).length;
-
-        // SAFE MERGE: keep whichever has MORE data entries.
-        // If local has more keys → local wins, push local up to Firebase.
-        // If Firebase has more keys → Firebase wins, update local.
-        // If equal keys → merge both so no entry is ever lost.
-        var merged;
-        if (localKeys > fbKeys) {
-          // Local is ahead — push local to Firebase, keep local
-          merged = local;
-          window._fbSaveKey(fbDataPath(y), merged);
-        } else if (fbKeys > localKeys) {
-          // Firebase is ahead — use Firebase
-          merged = fbData;
-        } else {
-          // Equal — merge both (union of all keys, Firebase value wins on conflict)
-          merged = Object.assign({}, local, fbData);
-          // If merge has more keys than either, save merged back to Firebase
-          if (Object.keys(merged).length > fbKeys) {
-            window._fbSaveKey(fbDataPath(y), merged);
-          }
-        }
-
+        // TIMESTAMP-SAFE MERGE: each key's newer timestamp wins — no rollback possible
+        var merged = mergeDataSafe(local, fbData);
         var mergedStr = JSON.stringify(merged);
         var localStr  = JSON.stringify(local);
+        // If local had newer data push merged back to Firebase to protect it
+        var localHasNewer = Object.keys(local).some(function(k) {
+          if (k.startsWith('_ts_')) return false;
+          return (local['_ts_' + k] || 0) > (fbData['_ts_' + k] || 0);
+        });
+        if (localHasNewer && window._fbSaveKey) {
+          window._fbSaveKey(fbDataPath(y), merged);
+        }
         if (mergedStr !== localStr) {
           _DB[y] = merged;
           try { _STORE.setItem(lsKey(y), mergedStr); } catch(e) {}
@@ -1945,7 +1973,6 @@ function attachFbListener(y) {
           try { renderMonthly(); } catch(e) {}
         }
       } else if (snap.val() === null) {
-        // Firebase is empty — push local data up if we have any
         var local2 = _DB[y] || {};
         if (Object.keys(local2).length > 0) {
           window._fbSaveKey(fbDataPath(y), local2);
@@ -3285,6 +3312,8 @@ function saveDay() {
     const inp = document.getElementById('qi_' + i);
     if (inp) setVal(CY, m, entDept, i, day - 1, Math.max(0, parseInt(inp.value) || 0));
   });
+  // Stamp timestamps so this save always wins over older Firebase data
+  stampTimestamps(CY, m, entDept, day);
   commitSave(CY);
   toast('✔ Saved — ' + entDept + ' day ' + day + ' ' + MONTH_NAMES[m-1], 'ok');
   setTimeout(autoCloudBackup, 2000);
