@@ -7896,27 +7896,47 @@ var _mobDayClip = null;
 function isMobile() { return window.innerWidth <= 768; }
 
 function initMobileApp() {
-  if (!isMobile()) return;
-  // Hide desktop, show mobile
-  document.getElementById('pg-app').style.display = 'none';
-  var mob = document.getElementById('mob-app');
-  mob.style.display = 'flex';
-  // Populate year selector
-  var ys = document.getElementById('mob-year-sel');
-  if (ys) { ys.innerHTML = ''; for (var y=2025;y<=2035;y++){var o=document.createElement('option');o.value=y;o.textContent=y;if(y===CY)o.selected=true;ys.appendChild(o);} }
-  // Populate month selectors
-  mobPopulateMonths('mob-dash-month', new Date().getMonth()+1);
-  mobPopulateMonths('mob-ent-month', new Date().getMonth()+1);
-  mobPopulateMonths('mob-fin-month', new Date().getMonth()+1);
-  // Set default dept
-  _mobEntDept = DEPT_KEYS[0];
-  // Build entry day selector
-  mobBuildDays();
-  // Render dashboard
-  mobRenderDash();
-  mobRenderEntry();
-  // Update live status
-  mobUpdateLiveStatus();
+  try {
+    if (!isMobile()) return;
+    // Hide desktop, show mobile
+    var desk = document.getElementById('pg-app');
+    var mob = document.getElementById('mob-app');
+    if (!desk || !mob) return;
+    desk.style.display = 'none';
+    mob.style.display = 'flex';
+    // Populate year selector
+    var ys = document.getElementById('mob-year-sel');
+    if (ys) {
+      ys.innerHTML = '';
+      for (var y=2025;y<=2035;y++) {
+        var o=document.createElement('option');
+        o.value=y; o.textContent=y;
+        if(y===CY) o.selected=true;
+        ys.appendChild(o);
+      }
+    }
+    // Populate month selectors
+    var curM = new Date().getMonth()+1;
+    mobPopulateMonths('mob-dash-month', curM);
+    mobPopulateMonths('mob-ent-month', curM);
+    mobPopulateMonths('mob-fin-month', curM);
+    // Set default dept
+    if (DEPT_KEYS && DEPT_KEYS.length > 0) _mobEntDept = DEPT_KEYS[0];
+    // Build entry day selector
+    mobBuildDays();
+    // Render
+    try { mobRenderDash(); } catch(e) { console.warn('mobRenderDash error:', e); }
+    try { mobRenderEntry(); } catch(e) { console.warn('mobRenderEntry error:', e); }
+    // Update live status
+    mobUpdateLiveStatus();
+  } catch(e) {
+    console.error('initMobileApp error:', e);
+    // Fallback — show desktop if mobile init fails
+    var desk2 = document.getElementById('pg-app');
+    var mob2 = document.getElementById('mob-app');
+    if (desk2) desk2.style.display = 'flex';
+    if (mob2) mob2.style.display = 'none';
+  }
 }
 
 function mobUpdateLiveStatus() {
@@ -7994,6 +8014,7 @@ function mobGoto(tabName) {
 
 // ── Mobile Dashboard ──────────────────────────────────────────
 function mobRenderDash() {
+  try {
   var m = parseInt(document.getElementById('mob-dash-month')?.value || new Date().getMonth()+1);
   var tot = monthTotals(CY, m);
   var nd = dim(CY, m);
@@ -8080,6 +8101,7 @@ function mobRenderDash() {
     });
     dtbl.innerHTML = html || '<div style="padding:16px;text-align:center;color:#94a3b8;font-size:13px">No data for this month</div>';
   }
+  } catch(e) { console.warn('mobRenderDash error:', e); }
 }
 
 function mobSaveTarget() {
@@ -8162,7 +8184,7 @@ function mobRenderEntry() {
     tbl.innerHTML = html || '<div style="padding:16px;text-align:center;color:#94a3b8">No items</div>';
   }
 
-  mobUpdateStats(m, day);
+  try { mobUpdateStats(m, day); } catch(e) {}
 }
 
 function mobSetDept(dept) {
@@ -8266,6 +8288,7 @@ function mobClearDay() {
 
 // ── Mobile Finance ────────────────────────────────────────────
 function mobRenderFinance() {
+  try {
   var m = parseInt(document.getElementById('mob-fin-month')?.value || new Date().getMonth()+1);
   var nd = dim(CY, m);
   // Carry from prev month
@@ -8320,6 +8343,7 @@ function mobRenderFinance() {
     '</tr></tbody></table>';
     tbl.innerHTML=html;
   }
+  } catch(e) { console.warn('mobRenderFinance error:', e); }
 }
 
 // Hook into doLogin to init mobile
