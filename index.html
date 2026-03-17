@@ -3144,7 +3144,7 @@ function showTab(name) {
     if (allowed.indexOf(name) === -1) { toast('🔒 You do not have access to this tab.', 'err'); return; }
   }
   curTab = name;
-  const tabs = ['dashboard', 'entry', 'monthly', 'report', 'finance', 'prices', 'analytics', 'guide', 'backup'];
+  const tabs = ['dashboard', 'entry', 'monthly', 'report', 'finance', 'benchmark', 'prices', 'analytics', 'guide', 'backup'];
   document.querySelectorAll('.tn-tab').forEach((t, i) => t.classList.toggle('on', tabs[i] === name));
   document.querySelectorAll('.pg').forEach(p => p.classList.remove('on'));
   document.getElementById('tab-' + name)?.classList.add('on');
