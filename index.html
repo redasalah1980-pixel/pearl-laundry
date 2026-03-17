@@ -1047,134 +1047,173 @@ var _fbDB = null;
     <!-- SUB-TAB 2: TOOLS                                           -->
     <!-- ══════════════════════════════════════════════════════════ -->
     <div id="ptab-tools" style="display:none">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px">
 
-        <!-- Copy from Year -->
-        <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:20px">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
-            <div style="width:32px;height:32px;background:#eff6ff;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px">📋</div>
-            <div>
-              <div style="font-size:13px;font-weight:800;color:#0d1b2e">Copy Prices from Another Year</div>
-              <div style="font-size:11px;color:#94a3b8">Duplicate a full year's price list into another year</div>
-            </div>
-          </div>
-          <div style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap">
-            <div>
-              <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">FROM YEAR</div>
-              <select id="pcopy-from" style="padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;min-width:90px"></select>
-            </div>
-            <div style="font-size:18px;color:#94a3b8;padding-bottom:4px">→</div>
-            <div>
-              <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">INTO YEAR</div>
-              <select id="pcopy-to" style="padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;min-width:90px"></select>
-            </div>
-            <div>
-              <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">DEPARTMENT</div>
-              <select id="pcopy-dept" style="padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;min-width:140px">
-                <option value="ALL">All Departments</option>
-              </select>
-            </div>
-          </div>
-          <div style="margin-top:12px;display:flex;align-items:center;gap:10px">
-            <button onclick="applyCopyPrices()" style="padding:8px 18px;background:#0284c7;color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer" onmouseover="this.style.background='#0369a1'" onmouseout="this.style.background='#0284c7'">📋 Copy Prices</button>
-            <div id="pcopy-msg" style="font-size:12px;font-weight:600;color:#16a34a"></div>
+      <!-- ══ PRICE CHANGE MANAGER ══ -->
+      <div style="background:#fff;border:2px solid #0d1b2e;border-radius:16px;padding:24px;margin-bottom:20px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+          <div style="width:36px;height:36px;background:#0d1b2e;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px">🎛</div>
+          <div>
+            <div style="font-size:15px;font-weight:800;color:#0d1b2e">Price Change Manager</div>
+            <div style="font-size:11px;color:#94a3b8">Copy prices from any year, apply a % adjustment, set an effective date range — all in one step with full preview before applying</div>
           </div>
         </div>
 
-        <!-- Bulk Adjust -->
-        <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:20px">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
-            <div style="width:32px;height:32px;background:#f0fdf4;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px">📊</div>
-            <div>
-              <div style="font-size:13px;font-weight:800;color:#0d1b2e">Bulk Price Adjustment by %</div>
-              <div style="font-size:11px;color:#94a3b8">Increase or decrease all prices at once. Negative = decrease.</div>
-            </div>
+        <!-- Info tip -->
+        <div style="font-size:12px;color:#1d4ed8;background:#eff6ff;border-radius:8px;padding:10px 14px;margin-bottom:18px">
+          💡 <strong>Safe by design:</strong> Data already entered is never affected. The effective date range controls exactly which period gets new prices. A full preview shows before/after prices before you confirm.
+        </div>
+
+        <!-- Row 1: Source & Target -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;margin-bottom:16px">
+          <div>
+            <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:5px;letter-spacing:.8px">MODE</div>
+            <select id="pcm-mode" onchange="pcmUpdateUI()" style="padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;width:100%">
+              <option value="adjust">📊 Adjust Current Prices by %</option>
+              <option value="copy">📋 Copy from Another Year + % Adjust</option>
+            </select>
           </div>
-          <div style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap">
-            <div>
-              <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">YEAR</div>
-              <select id="padj-year" style="padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;min-width:90px"></select>
-            </div>
-            <div>
-              <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">DEPARTMENT</div>
-              <select id="padj-dept" style="padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;min-width:140px">
-                <option value="ALL">All Departments</option>
-              </select>
-            </div>
-            <div>
-              <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">ADJUST %</div>
-              <div style="display:flex;align-items:center;gap:5px">
-                <input id="padj-pct" type="number" step="0.1" placeholder="e.g. -3.5" style="padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;width:110px;outline:none" oninput="previewPadj()">
-                <span style="font-size:14px;font-weight:700;color:#64748b">%</span>
-              </div>
-            </div>
+          <div id="pcm-source-wrap">
+            <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:5px;letter-spacing:.8px">SOURCE YEAR</div>
+            <select id="pcm-source-year" style="padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;width:100%"></select>
           </div>
-          <div style="margin-top:10px">
-            <div id="padj-preview" style="font-size:11.5px;font-weight:600;color:#64748b;padding:7px 10px;background:#f8fafc;border-radius:7px;min-height:32px;line-height:1.5;margin-bottom:10px">Enter % to preview changes</div>
-            <button onclick="applyPadj()" style="padding:8px 18px;background:var(--navy);color:var(--gold);border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer" onmouseover="this.style.background='var(--navy2)'" onmouseout="this.style.background='var(--navy)'">✅ Apply Adjustment</button>
+          <div>
+            <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:5px;letter-spacing:.8px">TARGET YEAR</div>
+            <select id="pcm-target-year" style="padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;width:100%"></select>
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:5px;letter-spacing:.8px">DEPARTMENT</div>
+            <select id="pcm-dept" style="padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;width:100%">
+              <option value="ALL">All Departments</option>
+            </select>
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:5px;letter-spacing:.8px">ADJUST %</div>
+            <div style="display:flex;align-items:center;gap:5px">
+              <input id="pcm-pct" type="number" step="0.1" placeholder="e.g. +3.5 or -5" style="padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-weight:600;color:#1a2332;width:100%;outline:none" oninput="pcmPreview()">
+              <span style="font-size:13px;font-weight:700;color:#64748b">%</span>
+            </div>
+            <div style="font-size:10px;color:#94a3b8;margin-top:3px">Leave 0 to copy prices only</div>
           </div>
         </div>
 
-        <!-- Import from Excel -->
-        <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:20px">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
-            <div style="width:32px;height:32px;background:#f0fdf4;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px">📥</div>
+        <!-- Row 2: Date range -->
+        <div style="background:#f8fafc;border-radius:10px;padding:14px 16px;margin-bottom:16px">
+          <div style="font-size:11px;font-weight:800;color:#0d1b2e;margin-bottom:10px;letter-spacing:.5px">📅 EFFECTIVE DATE RANGE <span style="font-weight:400;color:#94a3b8;font-size:10px">(controls which period uses the new prices)</span></div>
+          <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap">
             <div>
-              <div style="font-size:13px;font-weight:800;color:#0d1b2e">Import Prices from Excel</div>
-              <div style="font-size:11px;color:#94a3b8">Upload .xlsx to update prices/weights · <a href="#" onclick="downloadPriceTemplate();return false;" style="color:#0284c7;font-weight:700;text-decoration:none">⬇️ Download template</a></div>
+              <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">FROM MONTH</div>
+              <select id="pcm-from-month" onchange="pcmSyncDates()" style="padding:8px 10px;border:1.5px solid #c4b5fd;border-radius:8px;font-size:13px;font-weight:600;color:#7c3aed;background:#faf5ff;min-width:130px">
+                <option value="">— Pick month —</option>
+                <option value="1">January</option><option value="2">February</option><option value="3">March</option>
+                <option value="4">April</option><option value="5">May</option><option value="6">June</option>
+                <option value="7">July</option><option value="8">August</option><option value="9">September</option>
+                <option value="10">October</option><option value="11">November</option><option value="12">December</option>
+              </select>
+            </div>
+            <div>
+              <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">FROM DATE</div>
+              <input type="date" id="pcm-from-date" style="padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-weight:600;color:#1a2332;outline:none" oninput="pcmPreview()">
+            </div>
+            <div style="font-size:16px;color:#94a3b8;padding-bottom:6px">→</div>
+            <div>
+              <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">TO MONTH</div>
+              <select id="pcm-to-month" onchange="pcmSyncDates()" style="padding:8px 10px;border:1.5px solid #c4b5fd;border-radius:8px;font-size:13px;font-weight:600;color:#7c3aed;background:#faf5ff;min-width:130px">
+                <option value="">— End of year —</option>
+                <option value="1">January</option><option value="2">February</option><option value="3">March</option>
+                <option value="4">April</option><option value="5">May</option><option value="6">June</option>
+                <option value="7">July</option><option value="8">August</option><option value="9">September</option>
+                <option value="10">October</option><option value="11">November</option><option value="12">December</option>
+              </select>
+            </div>
+            <div>
+              <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">TO DATE <span style="font-weight:400;color:#94a3b8">(optional)</span></div>
+              <input type="date" id="pcm-to-date" style="padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-weight:600;color:#1a2332;outline:none" oninput="pcmPreview()">
             </div>
           </div>
-          <div style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+        </div>
+
+        <!-- Preview area -->
+        <div id="pcm-preview-wrap" style="display:none;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:14px 16px;margin-bottom:16px">
+          <div style="font-size:11px;font-weight:800;color:#0d1b2e;margin-bottom:10px;letter-spacing:.5px">🔍 PREVIEW — Review before applying</div>
+          <div id="pcm-preview-content"></div>
+        </div>
+
+        <!-- Action buttons -->
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <button onclick="pcmPreview()" style="padding:9px 20px;background:#f8fafc;border:1.5px solid #e2e8f0;color:#0d1b2e;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">🔍 Preview</button>
+          <button onclick="pcmApply()" style="padding:9px 24px;background:linear-gradient(135deg,#0d1b2e,#1e3a5f);color:#c9a84c;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer" onmouseover="this.style.opacity='.9'" onmouseout="this.style.opacity='1'">✅ Apply & Save Schedule</button>
+          <div id="pcm-msg" style="font-size:12px;font-weight:600;color:#16a34a"></div>
+        </div>
+      </div>
+
+      <!-- Import from Excel & CSV (kept as separate smaller cards) -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:18px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+            <div style="width:30px;height:30px;background:#f0fdf4;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:15px">📥</div>
             <div>
-              <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">UPDATE YEAR</div>
-              <select id="pxl-year" style="padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;min-width:90px"></select>
+              <div style="font-size:12px;font-weight:800;color:#0d1b2e">Import Prices from Excel</div>
+              <div style="font-size:10px;color:#94a3b8"><a href="#" onclick="downloadPriceTemplate();return false;" style="color:#0284c7;font-weight:700;text-decoration:none">⬇️ Download template</a></div>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+            <div>
+              <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:3px">YEAR</div>
+              <select id="pxl-year" style="padding:6px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:12px;font-weight:600;color:#1a2332;background:#fff;min-width:80px"></select>
             </div>
             <div>
-              <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">MODE</div>
-              <select id="pxl-mode" style="padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;min-width:180px">
+              <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:3px">MODE</div>
+              <select id="pxl-mode" style="padding:6px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:12px;font-weight:600;color:#1a2332;background:#fff;min-width:160px">
                 <option value="prices">Prices Only (QR)</option>
                 <option value="both">Prices + Weight (QR &amp; KG)</option>
               </select>
             </div>
-            <div>
-              <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">FILE</div>
-              <label style="display:inline-flex;align-items:center;gap:8px;padding:8px 14px;background:#f0fdf4;border:1.5px solid #16a34a;border-radius:7px;font-size:12px;font-weight:700;color:#15803d;cursor:pointer">
-                📂 Choose File
-                <input type="file" id="pxl-file" accept=".xlsx" style="display:none" onchange="previewPriceXL(this)">
-              </label>
-            </div>
           </div>
-          <div id="pxl-filename" style="font-size:12px;font-weight:600;color:#64748b;margin-bottom:8px"></div>
-          <div id="pxl-preview" style="display:none;margin-bottom:12px"></div>
-          <div style="display:flex;gap:10px;align-items:center">
-            <button id="pxl-apply-btn" onclick="applyPriceXL()" style="display:none;padding:8px 20px;background:#0284c7;color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer">✅ Apply Prices</button>
-            <div id="pxl-msg" style="font-size:12px;font-weight:600;color:#16a34a"></div>
+          <label style="display:inline-flex;align-items:center;gap:8px;padding:7px 14px;background:#f0fdf4;border:1.5px solid #16a34a;border-radius:7px;font-size:12px;font-weight:700;color:#15803d;cursor:pointer">
+            📂 Choose File
+            <input type="file" id="pxl-file" accept=".xlsx" style="display:none" onchange="previewPriceXL(this)">
+          </label>
+          <div id="pxl-filename" style="font-size:11px;color:#64748b;margin-top:6px"></div>
+          <div id="pxl-preview" style="display:none;margin-top:8px"></div>
+          <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
+            <button id="pxl-apply-btn" onclick="applyPriceXL()" style="display:none;padding:7px 16px;background:#0284c7;color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer">✅ Apply</button>
+            <div id="pxl-msg" style="font-size:11px;font-weight:600;color:#16a34a"></div>
           </div>
         </div>
 
-        <!-- Import from CSV -->
-        <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:20px">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
-            <div style="width:32px;height:32px;background:#eff6ff;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px">📤</div>
+        <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:18px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+            <div style="width:30px;height:30px;background:#eff6ff;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:15px">📤</div>
             <div>
-              <div style="font-size:13px;font-weight:800;color:#0d1b2e">Export / Import CSV</div>
-              <div style="font-size:11px;color:#94a3b8">Export prices to CSV or import back after editing</div>
+              <div style="font-size:12px;font-weight:800;color:#0d1b2e">Export / Import CSV</div>
+              <div style="font-size:10px;color:#94a3b8">Export prices to CSV, edit, import back</div>
             </div>
           </div>
-          <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;flex-direction:column;gap:8px">
             <div style="display:flex;gap:8px;flex-wrap:wrap">
-              <button class="btn-import" onclick="exportPricesExcel('price')" style="padding:9px 16px;font-size:12px">📥 Export Prices Only</button>
-              <button class="btn-import" onclick="exportPricesExcel('both')" style="padding:9px 16px;font-size:12px">📥 Export Prices + KG</button>
+              <button class="btn-import" onclick="exportPricesExcel('price')" style="padding:7px 12px;font-size:11px">📥 Prices Only</button>
+              <button class="btn-import" onclick="exportPricesExcel('both')" style="padding:7px 12px;font-size:11px">📥 Prices + KG</button>
             </div>
             <div>
               <input type="file" id="import-prices-file" accept=".csv" style="display:none" onchange="importPricesFromCSV(this)">
-              <button class="btn-import" onclick="document.getElementById('import-prices-file').click()" style="padding:9px 16px;font-size:12px;background:#f0fdf4;border-color:#16a34a;color:#15803d">📤 Import Prices from CSV</button>
-              <div style="font-size:11px;color:#94a3b8;margin-top:6px">Upload a .csv file in the same format as the export. Items matched by name.</div>
+              <button class="btn-import" onclick="document.getElementById('import-prices-file').click()" style="padding:7px 12px;font-size:11px;background:#f0fdf4;border-color:#16a34a;color:#15803d">📤 Import CSV</button>
             </div>
           </div>
         </div>
-
       </div>
+
+      <!-- Hidden legacy selects kept for backward compat -->
+      <div style="display:none">
+        <select id="pcopy-from"></select>
+        <select id="pcopy-to"></select>
+        <select id="pcopy-dept"><option value="ALL">All Departments</option></select>
+        <div id="pcopy-msg"></div>
+        <select id="padj-year"></select>
+        <select id="padj-dept"><option value="ALL">All Departments</option></select>
+        <input id="padj-pct" type="number">
+        <div id="padj-preview"></div>
+      </div>
+
     </div>
 
     <!-- ══════════════════════════════════════════════════════════ -->
@@ -4732,6 +4771,133 @@ function renderFinance() {
 //  PRICES
 // ════════════════════════════════════════════════════════════════
 // ── Bulk Price Adjustment ─────────────────────────────────────
+// ── Price Change Manager ─────────────────────────────────────
+function pcmUpdateUI() {
+  var mode = document.getElementById('pcm-mode')?.value;
+  var sw = document.getElementById('pcm-source-wrap');
+  if (sw) sw.style.display = mode === 'copy' ? 'block' : 'none';
+}
+
+function pcmSyncDates() {
+  var yr = parseInt(document.getElementById('pcm-target-year')?.value) || CY;
+  var fm = document.getElementById('pcm-from-month')?.value;
+  var tm = document.getElementById('pcm-to-month')?.value;
+  if (fm) {
+    var mm = String(fm).padStart(2,'0');
+    document.getElementById('pcm-from-date').value = yr + '-' + mm + '-01';
+  }
+  if (tm) {
+    var tmm = String(tm).padStart(2,'0');
+    var lastDay = new Date(yr, parseInt(tm), 0).getDate();
+    document.getElementById('pcm-to-date').value = yr + '-' + tmm + '-' + String(lastDay).padStart(2,'0');
+  }
+  pcmPreview();
+}
+
+function pcmGetNewPrices() {
+  var mode     = document.getElementById('pcm-mode')?.value || 'adjust';
+  var sourceYr = parseInt(document.getElementById('pcm-source-year')?.value) || CY;
+  var targetYr = parseInt(document.getElementById('pcm-target-year')?.value) || CY;
+  var dept     = document.getElementById('pcm-dept')?.value || 'ALL';
+  var pct      = parseFloat(document.getElementById('pcm-pct')?.value) || 0;
+  var factor   = 1 + pct / 100;
+  var depts    = dept === 'ALL' ? DEPT_KEYS : [dept];
+  // Get base prices
+  var basePR = mode === 'copy' ? loadPR(sourceYr) : loadPR(targetYr);
+  var newPrices = {};
+  depts.forEach(function(d) {
+    var base = basePR[d] || MASTER[d];
+    newPrices[d] = base.map(function(item) {
+      var newP = pct !== 0 ? Math.round(item[1] * factor * 10000) / 10000 : item[1];
+      return [item[0], newP, item[2]];
+    });
+  });
+  return { newPrices: newPrices, depts: depts, targetYr: targetYr, dept: dept, pct: pct, mode: mode };
+}
+
+function pcmPreview() {
+  var fromDate = document.getElementById('pcm-from-date')?.value;
+  var toDate   = document.getElementById('pcm-to-date')?.value;
+  var wrap = document.getElementById('pcm-preview-wrap');
+  var content2 = document.getElementById('pcm-preview-content');
+  if (!fromDate) { if (wrap) wrap.style.display = 'none'; return; }
+  var res = pcmGetNewPrices();
+  if (!res) return;
+  // Show period summary
+  var periodStr = fromDate + (toDate ? ' → ' + toDate : ' → end of year');
+  var html = '<div style="margin-bottom:10px;font-size:12px;color:#0d1b2e"><strong>Effective period:</strong> ' + periodStr + '</div>';
+  // Show sample prices per dept (first 3 items)
+  html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px">';
+  res.depts.forEach(function(d) {
+    var targetPR = loadPR(res.targetYr);
+    html += '<div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:8px;padding:10px">';
+    html += '<div style="font-size:11px;font-weight:800;color:#0d1b2e;margin-bottom:8px">' + (DEPT_ICONS[d]||'') + ' ' + d + '</div>';
+    html += '<table style="width:100%;border-collapse:collapse;font-size:11px">';
+    html += '<tr style="background:#f8fafc"><td style="padding:4px 8px;font-weight:700;color:#64748b">ITEM</td><td style="padding:4px 8px;text-align:right;font-weight:700;color:#64748b">BEFORE</td><td style="padding:4px 8px;text-align:right;font-weight:700;color:#64748b">AFTER</td></tr>';
+    var items = res.newPrices[d] || [];
+    items.slice(0,4).forEach(function(item, i) {
+      var oldP = (targetPR[d] && targetPR[d][i]) ? targetPR[d][i][1] : MASTER[d][i][1];
+      var newP = item[1];
+      var changed = Math.abs(newP - oldP) > 0.0001;
+      html += '<tr><td style="padding:4px 8px;color:#1a2332">' + item[0] + '</td>';
+      html += '<td style="padding:4px 8px;text-align:right;color:#64748b">' + oldP.toFixed(4) + '</td>';
+      html += '<td style="padding:4px 8px;text-align:right;font-weight:700;color:' + (changed ? (newP > oldP ? '#16a34a' : '#dc2626') : '#64748b') + '">' + newP.toFixed(4) + '</td></tr>';
+    });
+    if (items.length > 4) html += '<tr><td colspan="3" style="padding:4px 8px;color:#94a3b8;font-style:italic">+ ' + (items.length - 4) + ' more items</td></tr>';
+    html += '</table></div>';
+  });
+  html += '</div>';
+  if (res.pct !== 0) {
+    var dir = res.pct > 0 ? '+' : '';
+    html += '<div style="margin-top:10px;padding:8px 12px;background:#f0fdf4;border-radius:7px;font-size:12px;color:#15803d;font-weight:600">✅ ' + dir + res.pct + '% adjustment · ' + res.depts.length + ' department(s) · Schedule will be saved from ' + fromDate + (toDate ? ' to ' + toDate : ' onwards') + '</div>';
+  }
+  content2.innerHTML = html;
+  wrap.style.display = 'block';
+}
+
+function pcmApply() {
+  var fromDate = document.getElementById('pcm-from-date')?.value;
+  var toDate   = document.getElementById('pcm-to-date')?.value;
+  var msg      = document.getElementById('pcm-msg');
+  if (!fromDate) { msg.style.color='#dc2626'; msg.textContent='⚠️ Set an effective From Date first'; return; }
+  var res = pcmGetNewPrices();
+  if (!res) return;
+  // If mode is copy, also update the target year price list
+  if (res.mode === 'copy') {
+    var targetPR = loadPR(res.targetYr);
+    res.depts.forEach(function(d) { targetPR[d] = res.newPrices[d]; });
+    savePR(res.targetYr, targetPR);
+    if (res.targetYr === CY) PRICES = targetPR;
+  }
+  // Save as schedule entry for from-date
+  _PRICE_SCHEDULE = _PRICE_SCHEDULE.filter(function(e) {
+    return !(e.effectiveDate === fromDate && e.year === res.targetYr && e.dept === res.dept);
+  });
+  _PRICE_SCHEDULE.push({ effectiveDate: fromDate, year: res.targetYr, dept: res.dept, prices: res.newPrices, savedAt: new Date().toISOString(), pct: res.pct });
+  // If to-date set, save the PREVIOUS prices back as a schedule from to-date+1
+  if (toDate) {
+    var nextDay = new Date(toDate);
+    nextDay.setDate(nextDay.getDate() + 1);
+    var nextDateStr = nextDay.toISOString().slice(0,10);
+    var prevPR = res.mode === 'copy' ? loadPR(parseInt(document.getElementById('pcm-target-year')?.value) || CY) : loadPR(res.targetYr);
+    var prevSnap = {};
+    res.depts.forEach(function(d) { prevSnap[d] = (prevPR[d] || MASTER[d]).map(function(item){ return [...item]; }); });
+    _PRICE_SCHEDULE = _PRICE_SCHEDULE.filter(function(e) {
+      return !(e.effectiveDate === nextDateStr && e.year === res.targetYr && e.dept === res.dept);
+    });
+    _PRICE_SCHEDULE.push({ effectiveDate: nextDateStr, year: res.targetYr, dept: res.dept, prices: prevSnap, savedAt: new Date().toISOString(), note: 'Auto-restored after range end' });
+  }
+  _PRICE_SCHEDULE.sort(function(a,b){ return a.effectiveDate.localeCompare(b.effectiveDate); });
+  savePriceSchedule();
+  var dir = res.pct > 0 ? '+' : '';
+  msg.style.color = '#16a34a';
+  msg.textContent = '✅ Applied! ' + (res.pct !== 0 ? dir + res.pct + '% · ' : '') + 'Schedule saved from ' + fromDate + (toDate ? ' to ' + toDate : ' onwards');
+  setTimeout(function(){ msg.textContent = ''; }, 6000);
+  renderPriceScheduleList();
+  try { renderDash(); } catch(e) {}
+  try { renderEntry(); } catch(e) {}
+}
+
 function previewPadj() {
   var pct = parseFloat(document.getElementById('padj-pct').value);
   var dept = document.getElementById('padj-dept').value;
@@ -5091,6 +5257,20 @@ function renderPriceTable() {
   // Populate import-prices year select
   var pxlYear = document.getElementById('pxl-year');
   if (pxlYear) buildYearOpts(pxlYear, CY);
+
+  // Populate Price Change Manager selects
+  var pcmSY = document.getElementById('pcm-source-year');
+  var pcmTY = document.getElementById('pcm-target-year');
+  var pcmD  = document.getElementById('pcm-dept');
+  if (pcmSY) buildYearOpts(pcmSY, CY);
+  if (pcmTY) buildYearOpts(pcmTY, CY);
+  if (pcmD && pcmD.options.length === 1) {
+    DEPT_KEYS.forEach(function(d){ var o=document.createElement('option'); o.value=d; o.textContent=d; pcmD.appendChild(o); });
+  }
+  // Set default from-date to today
+  var pcmFD = document.getElementById('pcm-from-date');
+  if (pcmFD && !pcmFD.value) pcmFD.value = new Date().toISOString().slice(0,10);
+  pcmUpdateUI();
 
   // Build price-tabs with ALL tab first
   var ptEl = document.getElementById('price-tabs');
