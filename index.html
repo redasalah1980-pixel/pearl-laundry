@@ -2160,12 +2160,54 @@ function getVal(y, m, d, i, day) {
   return db[m + '-' + d + '-' + i + '-' + day] || 0;
 }
 
+// Get locked price saved with data (returns null if not set)
+function getLockedPrice(y, m, d, i, day) {
+  const db = loadDB(y);
+  var v = db[m + '-' + d + '-' + i + '-' + day + '-p'];
+  return (v !== undefined && v !== null) ? v : null;
+}
+
+// Get locked KG saved with data (returns null if not set)
+function getLockedKg(y, m, d, i, day) {
+  const db = loadDB(y);
+  var v = db[m + '-' + d + '-' + i + '-' + day + '-k'];
+  return (v !== undefined && v !== null) ? v : null;
+}
+
+// Get the price to use for revenue calculation — locked price wins, then schedule, then current
+function getPriceForCalc(d, i, y, m, day) {
+  var locked = getLockedPrice(y, m, d, i, day - 1);
+  if (locked !== null) return locked;
+  return getPriceForDate(d, i, y, m, day);
+}
+function getKgForCalc(d, i, y, m, day) {
+  var locked = getLockedKg(y, m, d, i, day - 1);
+  if (locked !== null) return locked;
+  return getKgForDate(d, i, y, m, day);
+}
+
 // FIX: setVal writes to cache and marks dirty, saveDay() commits to localStorage
 function setVal(y, m, d, i, day, v) {
   const db = loadDB(y);
   const key = m + '-' + d + '-' + i + '-' + day;
-  if (v === 0) delete db[key];
-  else db[key] = v;
+  if (v === 0) {
+    delete db[key];
+    delete db[key + '-p'];
+    delete db[key + '-k'];
+  } else {
+    db[key] = v;
+  }
+  _dirty = true;
+}
+
+// Lock price+kg at save time
+function lockPriceAtSave(y, m, d, i, day) {
+  const db = loadDB(y);
+  const key = m + '-' + d + '-' + i + '-' + day;
+  if (db[key] && db[key] > 0) {
+    db[key + '-p'] = getPriceForDate(d, i, y, m, day + 1);
+    db[key + '-k'] = getKgForDate(d, i, y, m, day + 1);
+  }
   _dirty = true;
 }
 
@@ -2219,8 +2261,11 @@ function attachFbListener(y) {
 // Start listener when Firebase is ready
 window.addEventListener('fb-ready', function() {
   attachFbListener(CY);
+  loadPriceSchedule();
   // Auto-push any existing local data up to Firebase
   setTimeout(pushLocalDataToFirebase, 2000);
+  // One-time migration: stamp locked prices on existing data
+  setTimeout(migrateLockedPrices, 3000);
 });
 
 // ── Monthly export menu toggle ────────────────────────────────
@@ -2454,12 +2499,11 @@ function f4(n) { return (+n).toFixed(4); }
 // FIX: dayTotals now uses cached reads — fast
 function dayTotals(y, m, day) {
   let qr = 0, kg = 0;
-  // Always use date+year aware pricing so historical years use their own prices
   DEPT_KEYS.forEach(d => MASTER[d].forEach((_, i) => {
     const v = getVal(y, m, d, i, day - 1);
     if (v > 0) {
-      qr += v * getPriceForDate(d, i, y, m, day);
-      kg += v * getKgForDate(d, i, y, m, day);
+      qr += v * getPriceForCalc(d, i, y, m, day);
+      kg += v * getKgForCalc(d, i, y, m, day);
     }
   }));
   return { qr, kg };
@@ -2477,8 +2521,8 @@ function monthTotals(y, m) {
         const v = getVal(y, m, d, i, day);
         if (v > 0) {
           // Use date-aware pricing so schedules are respected
-          const pr = getPriceForDate(d, i, y, m, day + 1);
-          const kw = getKgForDate(d, i, y, m, day + 1);
+          const pr = getPriceForCalc(d, i, y, m, day + 1);
+          const kw = getKgForCalc(d, i, y, m, day + 1);
           dq += v * pr;
           dk += v * kw;
           dp += v;
@@ -3458,7 +3502,8 @@ function renderEntry() {
   const m = parseInt(document.getElementById('ent-month')?.value || 1);
   const day = parseInt(document.getElementById('ent-day')?.value || 1);
   entDept = document.getElementById('ent-dept')?.value || DEPT_KEYS[0];
-  updateEntStats(m, day); renderEntryTable();
+  renderEntryTable();
+  updateEntStats(m, day);
 }
 
 function updateEntStats(m, day) {
@@ -3469,12 +3514,15 @@ function updateEntStats(m, day) {
     let v;
     if (d === entDept) {
       const inp = document.getElementById('qi_' + i);
-      v = inp ? (Math.max(0, parseInt(inp.value) || 0)) : getVal(CY, m, d, i, day - 1);
+      // Only use DOM input if it exists AND has a value — otherwise use saved data
+      v = (inp && inp.closest('#entry-wrap')) ? (Math.max(0, parseInt(inp.value) || 0)) : getVal(CY, m, d, i, day - 1);
     } else {
       v = getVal(CY, m, d, i, day - 1);
     }
-    dQR += v * (_statPR[d]?.[i]?.[1] ?? MASTER[d][i][1]); dKG += v * (_statPR[d]?.[i]?.[2] ?? MASTER[d][i][2]);
-    if (d === entDept) { depQR += v * (_statPR[d]?.[i]?.[1] ?? MASTER[d][i][1]); depKG += v * (_statPR[d]?.[i]?.[2] ?? MASTER[d][i][2]); depPCS += v; }
+    const _ep = getPriceForCalc(d, i, CY, m, day);
+    const _ek = getKgForCalc(d, i, CY, m, day);
+    dQR += v * _ep; dKG += v * _ek;
+    if (d === entDept) { depQR += v * _ep; depKG += v * _ek; depPCS += v; }
   }));
   const dn = DAY_NAMES[new Date(CY, m-1, day).getDay()];
   document.getElementById('ent-stats').innerHTML = `
@@ -3555,6 +3603,8 @@ function saveDay() {
     const inp = document.getElementById('qi_' + i);
     if (inp) setVal(CY, m, entDept, i, day - 1, Math.max(0, parseInt(inp.value) || 0));
   });
+  // Lock prices at save time — permanent protection
+  MASTER[entDept].forEach((_, i) => lockPriceAtSave(CY, m, entDept, i, day - 1));
   // Stamp timestamps so this save always wins over older Firebase data
   stampTimestamps(CY, m, entDept, day);
   commitSave(CY);
@@ -4461,7 +4511,7 @@ function financeExportExcel() {
     var recvD = new Date(CY, m-1, d); var postD = new Date(CY, m-1, d+1);
     var dTot = 0;
     var dQRs = DEPT_KEYS.map(function(dept, di) {
-      var v = 0; MASTER[dept].forEach(function(_, i) { v += getVal(CY, m, dept, i, d-1) * getPriceForDate(dept, i, CY, m, d); });
+      var v = 0; MASTER[dept].forEach(function(_, i) { v += getVal(CY, m, dept, i, d-1) * getPriceForCalc(dept, i, CY, m, d); });
       dTot += v; dTots[di] += v; return v;
     });
     mTot += dTot;
@@ -4720,7 +4770,7 @@ function renderFinance() {
     let dTot = 0;
     const dQRs = DEPT_KEYS.map(function(dept, di) {
       let v = 0;
-      MASTER[dept].forEach(function(_, i) { v += getVal(CY, m, dept, i, d - 1) * getPriceForDate(dept, i, CY, m, d); });
+      MASTER[dept].forEach(function(_, i) { v += getVal(CY, m, dept, i, d - 1) * getPriceForCalc(dept, i, CY, m, d); });
       dTot += v; dTots[di] += v; return v;
     });
     mPostedTot += dTot;
@@ -4740,7 +4790,7 @@ function renderFinance() {
     let dTot = 0;
     const dQRs = DEPT_KEYS.map(function(dept) {
       let v = 0;
-      MASTER[dept].forEach(function(_, i) { v += getVal(CY, m, dept, i, nd - 1) * getPriceForDate(dept, i, CY, m, nd); });
+      MASTER[dept].forEach(function(_, i) { v += getVal(CY, m, dept, i, nd - 1) * getPriceForCalc(dept, i, CY, m, nd); });
       dTot += v; return v;
     });
     rows += '<tr style="opacity:.55;font-style:italic">' +
