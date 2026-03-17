@@ -553,6 +553,7 @@ table.price-t tr:hover td{background:var(--grey3)}
 }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script>
@@ -709,6 +710,7 @@ var _fbDB = null;
       <div class="tn-tab" onclick="showTab('monthly')">📅 Monthly</div>
       <div class="tn-tab" onclick="showTab('report')">📄 Report</div>
       <div class="tn-tab" onclick="showTab('finance')">🏦 Finance</div>
+      <div class="tn-tab" onclick="showTab('benchmark')">🎯 Benchmark</div>
       <div class="tn-tab" onclick="showTab('prices')">⚙️ Prices</div>
       <div class="tn-tab" onclick="showTab('analytics')">📈 Analytics</div>
       <div class="tn-tab" onclick="showTab('guide')">📖 Guide</div>
@@ -923,6 +925,72 @@ var _fbDB = null;
   </div>
   </div>
 
+  <!-- BENCHMARK -->
+  <div class="pg" id="tab-benchmark">
+    <div class="ph"><h1>🎯 Benchmark</h1><p>Compare daily laundry revenue &amp; KG against occupancy — understand business performance per occupied room</p></div>
+
+    <!-- Controls -->
+    <div class="ctrl" style="flex-wrap:wrap;gap:10px;align-items:flex-end">
+      <div class="ctrl-group"><div class="ctrl-label">Month</div>
+        <select id="bench-month" onchange="renderBenchmark()"></select></div>
+      <div style="display:flex;flex-direction:column;gap:3px">
+        <div style="font-size:10px;font-weight:700;color:#64748b;letter-spacing:.8px">TOTAL ROOMS IN HOTEL</div>
+        <input type="number" id="bench-total-rooms" min="1" max="9999" placeholder="e.g. 200"
+          style="padding:7px 12px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;width:120px;outline:none"
+          onchange="saveBenchSettings();renderBenchmark()">
+      </div>
+      <button onclick="renderBenchmark()" style="padding:8px 18px;background:var(--navy);color:var(--gold);border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;align-self:flex-end">🔄 Refresh</button>
+      <button onclick="exportBenchmarkExcel()" style="padding:8px 18px;background:#f0fdf4;border:1.5px solid #16a34a;color:#15803d;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;align-self:flex-end">⬇️ Export Excel</button>
+    </div>
+
+    <!-- Occupancy Entry Panel -->
+    <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:18px 20px;margin-top:16px;margin-bottom:18px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+        <div>
+          <div style="font-size:13px;font-weight:800;color:#0d1b2e">📋 Enter Daily Occupancy %</div>
+          <div style="font-size:11px;color:#94a3b8;margin-top:2px">Enter the occupancy percentage for each day — the system calculates all benchmarks automatically</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button onclick="fillBenchOcc()" style="padding:7px 14px;background:#eff6ff;border:1.5px solid #3b82f6;color:#1d4ed8;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer">📋 Fill Same %</button>
+          <button onclick="clearBenchOcc()" style="padding:7px 14px;background:#fff5f5;border:1.5px solid #fca5a5;color:#dc2626;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer">🗑 Clear All</button>
+          <button onclick="saveBenchOcc()" style="padding:7px 14px;background:#16a34a;color:#fff;border:none;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer">💾 Save Occupancy</button>
+        </div>
+      </div>
+      <div id="bench-occ-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px"></div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div id="bench-summary-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-bottom:18px"></div>
+
+    <!-- Charts row -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px">
+      <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:18px">
+        <div style="font-size:12px;font-weight:800;color:#0d1b2e;margin-bottom:12px">📈 Daily Revenue vs Occupancy %</div>
+        <canvas id="bench-chart-rev" height="200"></canvas>
+      </div>
+      <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:18px">
+        <div style="font-size:12px;font-weight:800;color:#0d1b2e;margin-bottom:12px">⚖️ Daily KG vs Occupancy %</div>
+        <canvas id="bench-chart-kg" height="200"></canvas>
+      </div>
+    </div>
+
+    <!-- Day-by-day table -->
+    <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:18px;margin-bottom:18px;overflow-x:auto">
+      <div style="font-size:12px;font-weight:800;color:#0d1b2e;margin-bottom:14px">📊 Day-by-Day Benchmark Table</div>
+      <div id="bench-table-wrap"></div>
+    </div>
+
+    <!-- Department breakdown -->
+    <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:18px;margin-bottom:18px">
+      <div style="font-size:12px;font-weight:800;color:#0d1b2e;margin-bottom:14px">🏢 Department Revenue per Occupied Room</div>
+      <div id="bench-dept-wrap"></div>
+    </div>
+
+  <div style="text-align:center;padding:18px 0 10px;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;margin-top:32px;letter-spacing:0.3px">
+    © Reda Salah · All Rights Reserved
+  </div>
+  </div>
+
   <!-- PRICES -->
   <div class="pg" id="tab-prices">
     <div class="ph"><h1>⚙️ Prices &amp; Weights</h1><p>Manage unit prices (QR) and weights (KG) per department — changes affect all revenue and KG calculations</p></div>
@@ -1085,41 +1153,39 @@ var _fbDB = null;
 
     <div class="dept-tabs" id="price-tabs"></div>
     <div id="price-wrap"></div>
-    <div style="margin-top:14px;display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap">
-      <div>
-        <button class="btn-save green" onclick="savePrices()">💾 Save Prices &amp; Weights</button>
-        <div style="font-size:11px;color:#6b7a8d;margin-top:4px;padding-left:2px">Saves both price (QR) and KG for this department</div>
+
+    <!-- ── PRICE TABLE ACTION BAR ── -->
+    <div style="margin-top:16px;background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:16px 20px">
+
+      <!-- Row 1: Primary actions -->
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-bottom:14px;border-bottom:1.5px solid #f1f5f9;margin-bottom:14px">
+        <button class="btn-save green" onclick="savePrices()" style="font-size:13px;padding:10px 22px">💾 Save Prices &amp; Weights</button>
+        <div style="font-size:11px;color:#94a3b8">Saves price (QR) and weight (KG) for current department</div>
+        <div style="margin-left:auto;display:flex;gap:8px">
+          <button class="btn-bulk" onclick="openAddItem()" style="background:#eff6ff;border-color:#3b82f6;color:#1d4ed8">➕ Add Item</button>
+          <button class="btn-bulk" onclick="openAddDept()" style="background:#fdf4ff;border-color:#a855f7;color:#7e22ce">🏢 Add Department</button>
+          <button class="btn-clear" onclick="resetPrices()">↩ Reset to Default</button>
+        </div>
       </div>
-      <div>
-        <button class="btn-clear" onclick="resetPrices()">↩ Reset to Default</button>
-        <div style="font-size:11px;color:#6b7a8d;margin-top:4px;padding-left:2px">Restores original prices &amp; weights for this department</div>
-      </div>
-      <div>
-        <button class="btn-bulk" onclick="openAddItem()" style="background:#eff6ff;border-color:#3b82f6;color:#1d4ed8">➕ Add Item</button>
-        <div style="font-size:11px;color:#6b7a8d;margin-top:4px;padding-left:2px">Add new item to this department</div>
-      </div>
-      <div>
-        <button class="btn-bulk" onclick="openAddDept()" style="background:#fdf4ff;border-color:#a855f7;color:#7e22ce">🏢 Add Department</button>
-        <div style="font-size:11px;color:#6b7a8d;margin-top:4px;padding-left:2px">Create a new department with items</div>
-      </div>
-      <div>
-        <button class="btn-import" onclick="exportPricesExcel('price')" style="padding:9px 18px;font-weight:700">📥 Export Prices</button>
-        <div style="font-size:11px;color:#6b7a8d;margin-top:4px;padding-left:2px">Price (QR) only</div>
-      </div>
-      <div>
-        <button class="btn-import" onclick="exportPricesExcel('both')" style="padding:9px 18px;font-weight:700">📥 Export Prices &amp; KG</button>
-        <div style="font-size:11px;color:#6b7a8d;margin-top:4px;padding-left:2px">Price + Weight (KG)</div>
-      </div>
-      <div>
-        <input type="file" id="import-prices-file" accept=".csv" style="display:none" onchange="importPricesFromCSV(this)">
-        <button class="btn-import" onclick="document.getElementById('import-prices-file').click()" style="padding:9px 18px;font-weight:700;background:#f0fdf4;border-color:#16a34a;color:#15803d">📤 Import Prices CSV</button>
-        <div style="font-size:11px;color:#6b7a8d;margin-top:4px;padding-left:2px">Update prices from .csv file</div>
-      </div>
-      <div style="margin-left:auto">
-        <button class="btn-bulk" onclick="printPricesPDF()" style="background:#fff7ed;border-color:#ea580c;color:#c2410c;font-weight:700;padding:9px 20px">
-          🖨️ Save / Share PDF
-        </button>
-        <div style="font-size:11px;color:#6b7a8d;margin-top:4px;padding-left:2px">Export all prices &amp; weights as PDF</div>
+
+      <!-- Row 2: Export / Import -->
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <div style="font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:1px;margin-right:4px">EXPORT / IMPORT</div>
+        <button class="btn-import" onclick="exportPricesExcel('price')" style="padding:8px 14px;font-size:12px">📥 Prices Only (CSV)</button>
+        <button class="btn-import" onclick="exportPricesExcel('both')" style="padding:8px 14px;font-size:12px">📥 Prices + Weight (CSV)</button>
+        <div>
+          <input type="file" id="import-prices-file" accept=".csv" style="display:none" onchange="importPricesFromCSV(this)">
+          <button class="btn-import" onclick="document.getElementById('import-prices-file').click()" style="padding:8px 14px;font-size:12px;background:#f0fdf4;border-color:#16a34a;color:#15803d">📤 Import CSV</button>
+        </div>
+        <div style="margin-left:auto;position:relative">
+          <button onclick="togglePricePDFMenu(event)" style="background:#fff7ed;border:1.5px solid #ea580c;color:#c2410c;border-radius:7px;font-weight:700;padding:8px 18px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:6px">🖨️ Print / PDF <span style="font-size:10px;opacity:.7">▾</span></button>
+          <div id="price-pdf-menu" style="display:none;position:absolute;top:calc(100% + 5px);right:0;background:#fff;border:1.5px solid #e2e8f0;border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,.14);z-index:700;min-width:200px;overflow:hidden">
+            <div style="padding:7px 13px;font-size:10px;font-weight:800;letter-spacing:1.5px;color:#94a3b8;text-transform:uppercase;background:#f8fafc;border-bottom:1px solid #e2e8f0">Choose Content</div>
+            <button onclick="closePricePDFMenu();printPricesPDF('both')" style="display:flex;align-items:center;gap:9px;width:100%;text-align:left;padding:11px 15px;border:none;background:none;font-size:13px;font-weight:600;color:#1a2332;cursor:pointer;border-bottom:1px solid #f1f5f9" onmouseover="this.style.background='#fff7ed'" onmouseout="this.style.background='none'">💰⚖️ Prices + Weight</button>
+            <button onclick="closePricePDFMenu();printPricesPDF('price')" style="display:flex;align-items:center;gap:9px;width:100%;text-align:left;padding:11px 15px;border:none;background:none;font-size:13px;font-weight:600;color:#1a2332;cursor:pointer;border-bottom:1px solid #f1f5f9" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='none'">💰 Prices Only (QR)</button>
+            <button onclick="closePricePDFMenu();printPricesPDF('kg')" style="display:flex;align-items:center;gap:9px;width:100%;text-align:left;padding:11px 15px;border:none;background:none;font-size:13px;font-weight:600;color:#1a2332;cursor:pointer" onmouseover="this.style.background='#f0fdf4'" onmouseout="this.style.background='none'">⚖️ Weight Only (KG)</button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -3065,6 +3131,7 @@ function refreshTab() {
   else if (curTab === 'report') renderReport();
   else if (curTab === 'finance') renderFinance();
   else if (curTab === 'prices') renderPriceTable();
+  else if (curTab === 'benchmark') initBenchmark();
   else if (curTab === 'analytics') renderAnalytics();
   else if (curTab === 'guide') renderGuide();
 }
@@ -4906,18 +4973,18 @@ function renderPriceTable() {
         globalIdx++;
         rows += '<tr style="background:' + (globalIdx % 2 === 0 ? '#f8fafc' : '#fff') + '">' +
           '<td style="color:var(--grey);font-weight:600;width:40px;text-align:center">' + (i+1) + '</td>' +
-          '<td style="font-weight:500">' + getN(dept, i) + '</td>' +
-          '<td><input type="number" step="0.0001" min="0" class="pi" id="pp_' + dept.replace(/\s/g,'_') + '_' + i + '" value="' + getP(dept, i) + '" onchange="saveAllPriceField(\'' + dept + '\',' + i + ',\'p\',this.value)"></td>' +
-          '<td><input type="number" step="0.001" min="0" class="pi" id="pk_' + dept.replace(/\s/g,'_') + '_' + i + '" value="' + getK(dept, i) + '" onchange="saveAllPriceField(\'' + dept + '\',' + i + ',\'k\',this.value)"></td>' +
+          '<td style="font-weight:500;color:#1a2332">' + getN(dept, i) + '</td>' +
+          '<td><input type="number" step="0.0001" min="0" class="pi" id="pp_' + dept.replace(/\s/g,'_') + '_' + i + '" value="' + getP(dept, i).toFixed(4) + '" onchange="saveAllPriceField(\'' + dept + '\',' + i + ',\'p\',this.value)" style="background:#fffde7"></td>' +
+          '<td><input type="number" step="0.001" min="0" class="pi" id="pk_' + dept.replace(/\s/g,'_') + '_' + i + '" value="' + getK(dept, i).toFixed(3) + '" onchange="saveAllPriceField(\'' + dept + '\',' + i + ',\'k\',this.value)" style="background:#eff6ff"></td>' +
           '<td style="text-align:center;color:#94a3b8;font-size:11px">—</td>' +
         '</tr>';
       });
     });
     document.getElementById('price-wrap').innerHTML =
-      '<div class="card"><div style="font-size:11px;color:#6b7a8d;padding:8px 14px;background:#fffbeb;border-bottom:1px solid #fde68a">📝 All departments — changes save instantly when you edit a field</div>' +
+      '<div class="card"><div style="font-size:11px;color:#6b7a8d;padding:8px 14px;background:#fffbeb;border-bottom:1px solid #fde68a;display:flex;align-items:center;gap:12px">📝 All departments — changes save instantly when you click away from a field &nbsp;·&nbsp; <span style="color:#92400e">🟡 Yellow = Price (QR)</span> &nbsp;·&nbsp; <span style="color:#1e40af">🔵 Blue = Weight (KG)</span></div>' +
       '<div class="tscroll"><table class="price-t">' +
       '<thead><tr><th style="width:40px;text-align:center">#</th><th>Item</th>' +
-      '<th>💰 Unit Price (QR)</th><th>⚖️ Weight (KG / Piece)</th><th style="width:40px"></th></tr></thead>' +
+      '<th style="background:#fffde7;color:#92400e">💰 Unit Price (QR)</th><th style="background:#dbeafe;color:#1e40af">⚖️ Weight (KG / Piece)</th><th style="width:40px"></th></tr></thead>' +
       '<tbody>' + rows + '</tbody></table></div></div>';
   } else {
     // Per-dept editable view with move buttons
@@ -4928,9 +4995,9 @@ function renderPriceTable() {
       var downDisabled = i === n - 1 ? 'opacity:.3;pointer-events:none' : '';
       rows += '<tr id="ptr_' + i + '">' +
         '<td style="color:var(--grey);font-weight:600;width:40px;text-align:center">' + (i+1) + '</td>' +
-        '<td style="font-weight:500">' + getN(priceDept, i) + '</td>' +
-        '<td><input type="number" step="0.0001" min="0" class="pi" id="pp_' + i + '" value="' + getP(priceDept, i) + '"></td>' +
-        '<td><input type="number" step="0.001" min="0" class="pi" id="pk_' + i + '" value="' + getK(priceDept, i) + '"></td>' +
+        '<td style="font-weight:500;color:#1a2332">' + getN(priceDept, i) + '</td>' +
+        '<td><input type="number" step="0.0001" min="0" class="pi" id="pp_' + i + '" value="' + getP(priceDept, i).toFixed(4) + '" style="background:#fffde7"></td>' +
+        '<td><input type="number" step="0.001" min="0" class="pi" id="pk_' + i + '" value="' + getK(priceDept, i).toFixed(3) + '" style="background:#eff6ff"></td>' +
         '<td style="white-space:nowrap;text-align:center;width:72px">' +
           '<button onclick="movePriceItem(' + i + ',-1)" title="Move Up" style="' + upDisabled + 'background:#f0f4f8;border:1px solid #d1d5db;border-radius:5px;padding:3px 8px;font-size:13px;cursor:pointer;margin-right:3px">▲</button>' +
           '<button onclick="movePriceItem(' + i + ',+1)" title="Move Down" style="' + downDisabled + 'background:#f0f4f8;border:1px solid #d1d5db;border-radius:5px;padding:3px 8px;font-size:13px;cursor:pointer">▼</button>' +
@@ -4939,8 +5006,8 @@ function renderPriceTable() {
     document.getElementById('price-wrap').innerHTML =
       '<div class="card"><div class="tscroll"><table class="price-t">' +
       '<thead><tr><th style="width:40px;text-align:center">#</th><th>Item</th>' +
-      '<th>💰 Unit Price (QR)<div style="font-size:9px;font-weight:400;opacity:.7;margin-top:2px">Used to calculate revenue</div></th>' +
-      '<th>⚖️ Weight (KG / Piece)<div style="font-size:9px;font-weight:400;opacity:.7;margin-top:2px">Used to calculate total KG</div></th>' +
+      '<th style="background:#fffde7;color:#92400e">💰 Unit Price (QR)<div style="font-size:9px;font-weight:400;opacity:.7;margin-top:2px">Used to calculate revenue</div></th>' +
+      '<th style="background:#dbeafe;color:#1e40af">⚖️ Weight (KG / Piece)<div style="font-size:9px;font-weight:400;opacity:.7;margin-top:2px">Used to calculate total KG</div></th>' +
       '<th style="width:72px;text-align:center">Order</th></tr></thead>' +
       '<tbody>' + rows + '</tbody></table></div></div>';
   }
@@ -5122,8 +5189,29 @@ function importPricesFromCSV(input) {
   reader.readAsText(file, 'UTF-8');
 }
 
-function printPricesPDF() {
-  // Build a full-page print view with ALL departments
+function togglePricePDFMenu(e) {
+  e.stopPropagation();
+  var m = document.getElementById('price-pdf-menu');
+  if (!m) return;
+  var open = m.style.display !== 'none';
+  document.querySelectorAll('[id$="-menu"]').forEach(function(el){ el.style.display='none'; });
+  m.style.display = open ? 'none' : 'block';
+  if (!open) {
+    var close = function(){ m.style.display='none'; document.removeEventListener('click',close); };
+    setTimeout(function(){ document.addEventListener('click', close); }, 10);
+  }
+}
+function closePricePDFMenu() {
+  var m = document.getElementById('price-pdf-menu');
+  if (m) m.style.display = 'none';
+}
+
+function printPricesPDF(mode) {
+  mode = mode || 'both'; // 'both' | 'price' | 'kg'
+  var showPrice = mode === 'both' || mode === 'price';
+  var showKg    = mode === 'both' || mode === 'kg';
+  var modeLabel = mode === 'both' ? 'Prices & Weights' : mode === 'price' ? 'Prices Only (QR)' : 'Weight Only (KG)';
+
   var printWin = window.open('', '_blank', 'width=900,height=700');
   var now = new Date();
   var dateStr = now.toLocaleDateString('en-GB', {day:'2-digit',month:'long',year:'numeric'});
@@ -5138,8 +5226,8 @@ function printPricesPDF() {
       return '<tr>' +
         '<td style="padding:7px 12px;border-bottom:1px solid #f1f5f9;font-size:12px">' + (i+1) + '</td>' +
         '<td style="padding:7px 12px;border-bottom:1px solid #f1f5f9;font-size:12px;font-weight:500">' + name + '</td>' +
-        '<td style="padding:7px 12px;border-bottom:1px solid #f1f5f9;font-size:12px;text-align:right;color:#1d4ed8;font-family:monospace">' + price.toFixed(4) + '</td>' +
-        '<td style="padding:7px 12px;border-bottom:1px solid #f1f5f9;font-size:12px;text-align:right;color:#166534;font-family:monospace">' + kg.toFixed(3) + '</td>' +
+        (showPrice ? '<td style="padding:7px 12px;border-bottom:1px solid #f1f5f9;font-size:12px;text-align:right;color:#1d4ed8;font-family:monospace">' + price.toFixed(4) + '</td>' : '') +
+        (showKg    ? '<td style="padding:7px 12px;border-bottom:1px solid #f1f5f9;font-size:12px;text-align:right;color:#166534;font-family:monospace">' + kg.toFixed(3) + '</td>' : '') +
       '</tr>';
     }).join('');
 
@@ -5153,8 +5241,8 @@ function printPricesPDF() {
           '<thead><tr style="background:#f8fafc">' +
             '<th style="padding:8px 12px;text-align:left;font-size:11px;color:#6b7a8d;font-weight:700;border-bottom:2px solid #e2e8f0;width:40px">#</th>' +
             '<th style="padding:8px 12px;text-align:left;font-size:11px;color:#6b7a8d;font-weight:700;border-bottom:2px solid #e2e8f0">ITEM NAME</th>' +
-            '<th style="padding:8px 12px;text-align:right;font-size:11px;color:#1d4ed8;font-weight:700;border-bottom:2px solid #e2e8f0;width:120px">PRICE (QR)</th>' +
-            '<th style="padding:8px 12px;text-align:right;font-size:11px;color:#166534;font-weight:700;border-bottom:2px solid #e2e8f0;width:120px">WEIGHT (KG)</th>' +
+            (showPrice ? '<th style="padding:8px 12px;text-align:right;font-size:11px;color:#1d4ed8;font-weight:700;border-bottom:2px solid #e2e8f0;width:120px">PRICE (QR)</th>' : '') +
+            (showKg    ? '<th style="padding:8px 12px;text-align:right;font-size:11px;color:#166534;font-weight:700;border-bottom:2px solid #e2e8f0;width:120px">WEIGHT (KG)</th>' : '') +
           '</tr></thead>' +
           '<tbody>' + rows + '</tbody>' +
         '</table>' +
@@ -5162,7 +5250,7 @@ function printPricesPDF() {
   });
 
   var html2 = '<!DOCTYPE html><html><head><meta charset="utf-8">' +
-    '<title>Reda Salah · Laundry Management System — Prices & Weights</title>' +
+    '<title>Reda Salah · Laundry Management System — ' + modeLabel + '</title>' +
     '<style>' +
       'body{margin:0;padding:28px 32px;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;background:#f8fafc;color:#1a2332}' +
       '.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;padding-bottom:16px;border-bottom:2px solid #1a2332}' +
@@ -5173,8 +5261,8 @@ function printPricesPDF() {
     '</style></head><body>' +
     '<div class="header">' +
       '<div class="header-left">' +
-        '<h1>⚙️ Laundry Management System — Prices &amp; Weights</h1>' +
-        '<p>Complete price list and KG weights for all departments · Year ' + CY + '</p>' +
+        '<h1>⚙️ Laundry Management System — ' + modeLabel + '</h1>' +
+        '<p>' + (mode==='both'?'Complete price list and KG weights':mode==='price'?'Unit prices (QR) for all departments':'KG weights for all departments') + ' · Year ' + CY + '</p>' +
       '</div>' +
       '<div class="header-right">' +
         '<strong>Reda Salah</strong><br>' +
@@ -5334,6 +5422,329 @@ function buildLineChart(days, values, color) {
       }).join('') +
     '</svg>' +
   '</div>';
+}
+
+
+// ════════════════════════════════════════════════════════════════
+//  BENCHMARK TAB
+// ════════════════════════════════════════════════════════════════
+
+var _benchChartRev = null, _benchChartKg = null;
+
+function benchKey(y, m) { return 'pearl_bench_' + y + '_' + m; }
+function benchSettingsKey() { return 'pearl_bench_settings'; }
+
+function loadBenchOcc(y, m) {
+  try { return JSON.parse(_STORE.getItem(benchKey(y, m)) || '{}'); } catch(e) { return {}; }
+}
+function saveBenchOccData(y, m, data) {
+  try { _STORE.setItem(benchKey(y, m), JSON.stringify(data)); } catch(e) {}
+  if (window._fbSaveKey) window._fbSaveKey('pearl/benchmark/' + y + '/' + m, data);
+}
+function loadBenchSettings() {
+  try { return JSON.parse(_STORE.getItem(benchSettingsKey()) || '{}'); } catch(e) { return {}; }
+}
+function saveBenchSettings() {
+  var tr = parseInt(document.getElementById('bench-total-rooms')?.value) || 0;
+  var s = { totalRooms: tr };
+  try { _STORE.setItem(benchSettingsKey(), JSON.stringify(s)); } catch(e) {}
+  if (window._fbSaveKey) window._fbSaveKey('pearl/benchmark/settings', s);
+}
+
+function renderBenchmark() {
+  var m   = parseInt(document.getElementById('bench-month')?.value || new Date().getMonth() + 1);
+  var days = dim(CY, m);
+  var occ  = loadBenchOcc(CY, m);
+  var settings = loadBenchSettings();
+  var totalRooms = parseInt(document.getElementById('bench-total-rooms')?.value) || settings.totalRooms || 0;
+  if (document.getElementById('bench-total-rooms') && !document.getElementById('bench-total-rooms').value && settings.totalRooms)
+    document.getElementById('bench-total-rooms').value = settings.totalRooms;
+
+  // Build occupancy entry grid
+  var grid = document.getElementById('bench-occ-grid');
+  if (grid) {
+    var html = '';
+    for (var d = 1; d <= days; d++) {
+      var val = occ[d] !== undefined ? occ[d] : '';
+      var dn = DAY_NAMES[new Date(CY, m-1, d).getDay()].slice(0,3);
+      html += '<div style="display:flex;flex-direction:column;align-items:center;gap:3px">' +
+        '<div style="font-size:9px;font-weight:700;color:#94a3b8">' + dn + ' ' + d + '</div>' +
+        '<div style="display:flex;align-items:center;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:7px;overflow:hidden">' +
+        '<input type="number" min="0" max="100" step="0.1" value="' + val + '" id="bocc_' + d + '" ' +
+        'style="width:52px;padding:5px 4px;border:none;background:transparent;font-size:12px;font-weight:600;color:#1a2332;text-align:center;outline:none" ' +
+        'onchange="renderBenchmark()">' +
+        '<span style="font-size:10px;color:#94a3b8;padding-right:4px">%</span></div></div>';
+    }
+    grid.innerHTML = html;
+    // Restore saved values
+    for (var d2 = 1; d2 <= days; d2++) {
+      var inp = document.getElementById('bocc_' + d2);
+      if (inp && occ[d2] !== undefined) inp.value = occ[d2];
+    }
+  }
+
+  // Collect live data
+  var dayData = [];
+  var totalOccRooms = 0, totalRev = 0, totalKg = 0, totalRevPOR = 0, totalKgPOR = 0, porCount = 0;
+  for (var d3 = 1; d3 <= days; d3++) {
+    var occPct = parseFloat(document.getElementById('bocc_' + d3)?.value) || occ[d3] || 0;
+    var occRooms = totalRooms > 0 ? Math.round(totalRooms * occPct / 100) : null;
+    var dt = dayTotals(CY, m, d3);
+    var rev = dt.qr, kg = dt.kg;
+    // Per-dept revenue
+    var deptRevs = {};
+    DEPT_KEYS.forEach(function(dept) {
+      var dqr = 0;
+      MASTER[dept].forEach(function(_, i) {
+        var v = getVal(CY, m, dept, i, d3 - 1);
+        if (v > 0) dqr += v * getPriceForDate(dept, i, CY, m, d3);
+      });
+      deptRevs[dept] = dqr;
+    });
+    var revPOR = (occRooms && occRooms > 0 && rev > 0) ? rev / occRooms : null;
+    var kgPOR  = (occRooms && occRooms > 0 && kg > 0)  ? kg  / occRooms : null;
+    dayData.push({ d: d3, occPct: occPct, occRooms: occRooms, rev: rev, kg: kg, revPOR: revPOR, kgPOR: kgPOR, deptRevs: deptRevs });
+    if (rev > 0) { totalRev += rev; totalKg += kg; }
+    if (occPct > 0) totalOccRooms++;
+    if (revPOR !== null) { totalRevPOR += revPOR; porCount++; }
+    if (kgPOR  !== null) totalKgPOR  += kgPOR;
+  }
+
+  var avgOcc    = dayData.filter(function(x){ return x.occPct > 0; }).reduce(function(a,b){ return a + b.occPct; }, 0) / Math.max(1, dayData.filter(function(x){ return x.occPct > 0; }).length);
+  var avgRevPOR = porCount > 0 ? totalRevPOR / porCount : 0;
+  var avgKgPOR  = porCount > 0 ? totalKgPOR  / porCount : 0;
+
+  // Summary cards
+  var cards = document.getElementById('bench-summary-cards');
+  if (cards) {
+    var cardData = [
+      { icon: '📊', label: 'Avg Occupancy', val: avgOcc.toFixed(1) + '%', sub: 'Days with data', color: '#0284c7', bg: '#eff6ff' },
+      { icon: '💰', label: 'Total Revenue', val: f2(totalRev) + ' QR', sub: MONTH_NAMES[m-1] + ' ' + CY, color: '#16a34a', bg: '#f0fdf4' },
+      { icon: '⚖️', label: 'Total KG', val: totalKg.toFixed(2) + ' kg', sub: MONTH_NAMES[m-1] + ' ' + CY, color: '#d97706', bg: '#fffbeb' },
+      { icon: '🛏️', label: 'Revenue / Room', val: avgRevPOR > 0 ? f2(avgRevPOR) + ' QR' : '—', sub: 'Avg per occupied room', color: '#7c3aed', bg: '#f5f3ff' },
+      { icon: '📦', label: 'KG / Room', val: avgKgPOR > 0 ? avgKgPOR.toFixed(3) + ' kg' : '—', sub: 'Avg per occupied room', color: '#0891b2', bg: '#ecfeff' },
+      { icon: '📅', label: 'Days Tracked', val: dayData.filter(function(x){ return x.occPct > 0; }).length + ' / ' + days, sub: 'Occupancy entered', color: '#64748b', bg: '#f8fafc' }
+    ];
+    cards.innerHTML = cardData.map(function(c) {
+      return '<div style="background:' + c.bg + ';border:1.5px solid #e2e8f0;border-radius:12px;padding:16px">' +
+        '<div style="font-size:18px;margin-bottom:6px">' + c.icon + '</div>' +
+        '<div style="font-size:11px;font-weight:700;color:#64748b;letter-spacing:.8px;margin-bottom:4px">' + c.label.toUpperCase() + '</div>' +
+        '<div style="font-size:20px;font-weight:800;color:' + c.color + '">' + c.val + '</div>' +
+        '<div style="font-size:11px;color:#94a3b8;margin-top:2px">' + c.sub + '</div></div>';
+    }).join('');
+  }
+
+  // Charts
+  var labels = dayData.map(function(x){ return x.d; });
+  var occData = dayData.map(function(x){ return x.occPct || null; });
+  var revData  = dayData.map(function(x){ return x.rev > 0 ? parseFloat(x.rev.toFixed(2)) : null; });
+  var kgData   = dayData.map(function(x){ return x.kg  > 0 ? parseFloat(x.kg.toFixed(2))  : null; });
+
+  function buildChart(canvasId, chartRef, label1, data1, color1, label2, data2, color2, yLabel1, yLabel2) {
+    var ctx = document.getElementById(canvasId);
+    if (!ctx) return chartRef;
+    if (chartRef) { try { chartRef.destroy(); } catch(e){} }
+    return new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [
+          { type: 'bar', label: label1, data: data1, backgroundColor: color1 + '99', borderColor: color1, borderWidth: 1.5, yAxisID: 'y1', borderRadius: 3 },
+          { type: 'line', label: label2, data: data2, borderColor: color2, backgroundColor: color2 + '22', borderWidth: 2.5, pointRadius: 3, pointBackgroundColor: color2, yAxisID: 'y2', tension: 0.3, fill: false }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: true,
+        plugins: { legend: { position: 'top', labels: { font: { size: 11 }, boxWidth: 14 } } },
+        scales: {
+          y1: { type: 'linear', position: 'left', title: { display: true, text: yLabel1, font: { size: 10 } }, grid: { color: '#f1f5f9' } },
+          y2: { type: 'linear', position: 'right', title: { display: true, text: yLabel2, font: { size: 10 } }, grid: { drawOnChartArea: false }, ticks: { callback: function(v){ return v + '%'; } } },
+          x: { grid: { display: false }, ticks: { font: { size: 10 } } }
+        }
+      }
+    });
+  }
+
+  _benchChartRev = buildChart('bench-chart-rev', _benchChartRev, 'Revenue (QR)', revData, '#0284c7', 'Occupancy %', occData, '#f59e0b', 'Revenue (QR)', 'Occupancy %');
+  _benchChartKg  = buildChart('bench-chart-kg',  _benchChartKg,  'KG Washed',   kgData,  '#16a34a', 'Occupancy %', occData, '#f59e0b', 'KG', 'Occupancy %');
+
+  // Day-by-day table
+  var tw = document.getElementById('bench-table-wrap');
+  if (tw) {
+    var th = '<table style="width:100%;border-collapse:collapse;font-size:12px">' +
+      '<thead><tr style="background:#0d1b2e;color:#fff">' +
+      '<th style="padding:9px 10px;text-align:center;white-space:nowrap">Day</th>' +
+      '<th style="padding:9px 10px;text-align:center">Occ %</th>' +
+      (totalRooms > 0 ? '<th style="padding:9px 10px;text-align:center">Occ Rooms</th>' : '') +
+      '<th style="padding:9px 10px;text-align:right">Total Rev (QR)</th>' +
+      '<th style="padding:9px 10px;text-align:right">Total KG</th>' +
+      '<th style="padding:9px 10px;text-align:right">Rev/Room (QR)</th>' +
+      '<th style="padding:9px 10px;text-align:right">KG/Room</th>' +
+      '<th style="padding:9px 10px;text-align:right">Rooms Linen Rev</th>' +
+      '<th style="padding:9px 10px;text-align:right">Other Depts Rev</th>' +
+      '</tr></thead><tbody>';
+    dayData.forEach(function(row, idx) {
+      var bg = idx % 2 === 0 ? '#ffffff' : '#f8fafc';
+      var rlRev = row.deptRevs['Rooms Linen'] || 0;
+      var otherRev = row.rev - rlRev;
+      th += '<tr style="background:' + bg + (row.rev === 0 && row.occPct === 0 ? ';opacity:.45' : '') + '">' +
+        '<td style="padding:7px 10px;text-align:center;font-weight:700;color:#0d1b2e">' + DAY_NAMES[new Date(CY,m-1,row.d).getDay()].slice(0,3) + ' ' + row.d + '</td>' +
+        '<td style="padding:7px 10px;text-align:center">' + (row.occPct > 0 ? '<span style="background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:10px;font-weight:700">' + row.occPct.toFixed(1) + '%</span>' : '<span style="color:#cbd5e1">—</span>') + '</td>' +
+        (totalRooms > 0 ? '<td style="padding:7px 10px;text-align:center;color:#0369a1;font-weight:600">' + (row.occRooms !== null ? row.occRooms : '—') + '</td>' : '') +
+        '<td style="padding:7px 10px;text-align:right;font-weight:600;color:#15803d">' + (row.rev > 0 ? f2(row.rev) : '—') + '</td>' +
+        '<td style="padding:7px 10px;text-align:right;color:#d97706">' + (row.kg > 0 ? row.kg.toFixed(2) : '—') + '</td>' +
+        '<td style="padding:7px 10px;text-align:right;font-weight:700;color:#7c3aed">' + (row.revPOR !== null ? f2(row.revPOR) : '—') + '</td>' +
+        '<td style="padding:7px 10px;text-align:right;color:#0891b2">' + (row.kgPOR !== null ? row.kgPOR.toFixed(3) : '—') + '</td>' +
+        '<td style="padding:7px 10px;text-align:right;color:#1d4ed8">' + (rlRev > 0 ? f2(rlRev) : '—') + '</td>' +
+        '<td style="padding:7px 10px;text-align:right;color:#64748b">' + (otherRev > 0 ? f2(otherRev) : '—') + '</td>' +
+        '</tr>';
+    });
+    // Totals row
+    var totalRL = dayData.reduce(function(a,b){ return a + (b.deptRevs['Rooms Linen']||0); }, 0);
+    var totalOther = totalRev - totalRL;
+    th += '<tr style="background:#0d1b2e;color:#c9a84c;font-weight:800">' +
+      '<td style="padding:9px 10px;text-align:center">TOTAL</td>' +
+      '<td style="padding:9px 10px;text-align:center">' + avgOcc.toFixed(1) + '%</td>' +
+      (totalRooms > 0 ? '<td style="padding:9px 10px;text-align:center">—</td>' : '') +
+      '<td style="padding:9px 10px;text-align:right">' + f2(totalRev) + '</td>' +
+      '<td style="padding:9px 10px;text-align:right">' + totalKg.toFixed(2) + '</td>' +
+      '<td style="padding:9px 10px;text-align:right">' + (avgRevPOR > 0 ? f2(avgRevPOR) : '—') + '</td>' +
+      '<td style="padding:9px 10px;text-align:right">' + (avgKgPOR > 0 ? avgKgPOR.toFixed(3) : '—') + '</td>' +
+      '<td style="padding:9px 10px;text-align:right">' + (totalRL > 0 ? f2(totalRL) : '—') + '</td>' +
+      '<td style="padding:9px 10px;text-align:right">' + (totalOther > 0 ? f2(totalOther) : '—') + '</td>' +
+      '</tr></tbody></table>';
+    tw.innerHTML = th;
+  }
+
+  // Dept breakdown
+  var dw = document.getElementById('bench-dept-wrap');
+  if (dw) {
+    var deptTotals = {};
+    DEPT_KEYS.forEach(function(dept) { deptTotals[dept] = 0; });
+    dayData.forEach(function(row) {
+      DEPT_KEYS.forEach(function(dept) { deptTotals[dept] += (row.deptRevs[dept] || 0); });
+    });
+    var deptHtml = '<table style="width:100%;border-collapse:collapse;font-size:12px">' +
+      '<thead><tr style="background:#0d1b2e;color:#fff">' +
+      '<th style="padding:9px 12px;text-align:left">Department</th>' +
+      '<th style="padding:9px 12px;text-align:right">Total Revenue (QR)</th>' +
+      '<th style="padding:9px 12px;text-align:right">% of Total</th>' +
+      '<th style="padding:9px 12px;text-align:right">Avg Rev/Room/Day (QR)</th>' +
+      '</tr></thead><tbody>';
+    DEPT_KEYS.forEach(function(dept, idx) {
+      var dRev = deptTotals[dept];
+      var pct  = totalRev > 0 ? (dRev / totalRev * 100) : 0;
+      var rpr  = (avgRevPOR > 0 && dRev > 0 && porCount > 0) ? (dRev / porCount / (totalRooms > 0 ? (totalRooms * avgOcc / 100) : 1)) : null;
+      var bg2 = idx % 2 === 0 ? '#ffffff' : '#f8fafc';
+      deptHtml += '<tr style="background:' + bg2 + '">' +
+        '<td style="padding:8px 12px;font-weight:600;color:#0d1b2e">' + (DEPT_ICONS[dept]||'') + ' ' + dept + '</td>' +
+        '<td style="padding:8px 12px;text-align:right;font-weight:700;color:#15803d">' + (dRev > 0 ? f2(dRev) : '—') + '</td>' +
+        '<td style="padding:8px 12px;text-align:right">' +
+          (dRev > 0 ? '<div style="display:flex;align-items:center;justify-content:flex-end;gap:8px"><div style="background:#0284c7;height:6px;border-radius:3px;width:' + Math.min(80,pct) + 'px"></div><span style="font-weight:700;color:#0284c7">' + pct.toFixed(1) + '%</span></div>' : '—') +
+        '</td>' +
+        '<td style="padding:8px 12px;text-align:right;color:#7c3aed;font-weight:600">' + (rpr !== null && totalRooms > 0 ? f2(rpr) : '—') + '</td>' +
+        '</tr>';
+    });
+    deptHtml += '</tbody></table>';
+    dw.innerHTML = deptHtml;
+  }
+}
+
+function saveBenchOcc() {
+  var m = parseInt(document.getElementById('bench-month')?.value || new Date().getMonth() + 1);
+  var days = dim(CY, m);
+  var data = {};
+  for (var d = 1; d <= days; d++) {
+    var inp = document.getElementById('bocc_' + d);
+    if (inp && inp.value !== '') {
+      var v = parseFloat(inp.value);
+      if (!isNaN(v) && v >= 0 && v <= 100) data[d] = v;
+    }
+  }
+  saveBenchOccData(CY, m, data);
+  toast('✔ Occupancy saved for ' + MONTH_NAMES[m-1] + ' ' + CY, 'ok');
+  renderBenchmark();
+}
+
+function fillBenchOcc() {
+  var pct = prompt('Enter occupancy % to fill for all days (e.g. 85):');
+  if (!pct || isNaN(parseFloat(pct))) return;
+  var m = parseInt(document.getElementById('bench-month')?.value || new Date().getMonth() + 1);
+  var days = dim(CY, m);
+  for (var d = 1; d <= days; d++) {
+    var inp = document.getElementById('bocc_' + d);
+    if (inp) inp.value = parseFloat(pct);
+  }
+  renderBenchmark();
+}
+
+function clearBenchOcc() {
+  if (!confirm('Clear all occupancy data for this month?')) return;
+  var m = parseInt(document.getElementById('bench-month')?.value || new Date().getMonth() + 1);
+  saveBenchOccData(CY, m, {});
+  renderBenchmark();
+}
+
+function exportBenchmarkExcel() {
+  var m = parseInt(document.getElementById('bench-month')?.value || new Date().getMonth() + 1);
+  var days = dim(CY, m);
+  var occ = loadBenchOcc(CY, m);
+  var settings = loadBenchSettings();
+  var totalRooms = parseInt(document.getElementById('bench-total-rooms')?.value) || settings.totalRooms || 0;
+  var rows = [['Day','Date','Occ %','Occ Rooms','Total Rev (QR)','Total KG','Rev/Room (QR)','KG/Room','Rooms Linen Rev','Other Depts Rev']];
+  for (var d = 1; d <= days; d++) {
+    var occPct = parseFloat(document.getElementById('bocc_' + d)?.value) || occ[d] || 0;
+    var occRooms = totalRooms > 0 ? Math.round(totalRooms * occPct / 100) : '';
+    var dt2 = dayTotals(CY, m, d);
+    var rlRev2 = 0;
+    MASTER['Rooms Linen'].forEach(function(_, i) { rlRev2 += getVal(CY, m, 'Rooms Linen', i, d-1) * getPriceForDate('Rooms Linen', i, CY, m, d); });
+    var revPOR2 = (occRooms && occRooms > 0 && dt2.qr > 0) ? (dt2.qr / occRooms).toFixed(2) : '';
+    var kgPOR2  = (occRooms && occRooms > 0 && dt2.kg > 0)  ? (dt2.kg  / occRooms).toFixed(3) : '';
+    var dateStr2 = DAY_NAMES[new Date(CY,m-1,d).getDay()] + ' ' + d + ' ' + MONTH_NAMES[m-1];
+    rows.push([d, dateStr2, occPct||'', occRooms, dt2.qr > 0 ? dt2.qr.toFixed(2) : '', dt2.kg > 0 ? dt2.kg.toFixed(2) : '', revPOR2, kgPOR2, rlRev2 > 0 ? rlRev2.toFixed(2) : '', dt2.qr - rlRev2 > 0 ? (dt2.qr - rlRev2).toFixed(2) : '']);
+  }
+  var ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = rows[0].map(function(){ return { wch: 16 }; });
+  var wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Benchmark');
+  XLSX.writeFile(wb, 'Pearl_Benchmark_' + MONTH_NAMES[m-1] + '_' + CY + '.xlsx');
+}
+
+function initBenchmark() {
+  var bm = document.getElementById('bench-month');
+  if (bm && bm.options.length === 0) {
+    MONTH_NAMES.forEach(function(mn, i) {
+      var o = document.createElement('option');
+      o.value = i + 1; o.textContent = mn;
+      bm.appendChild(o);
+    });
+    bm.value = new Date().getMonth() + 1;
+  }
+  // Load saved total rooms
+  var settings = loadBenchSettings();
+  if (settings.totalRooms) {
+    var tr2 = document.getElementById('bench-total-rooms');
+    if (tr2 && !tr2.value) tr2.value = settings.totalRooms;
+  }
+  // Load occupancy from Firebase
+  var curM = parseInt(document.getElementById('bench-month')?.value || new Date().getMonth() + 1);
+  if (window._fbLoadKey) {
+    window._fbLoadKey('pearl/benchmark/' + CY + '/' + curM).then(function(fb) {
+      if (fb && typeof fb === 'object') {
+        try { _STORE.setItem(benchKey(CY, curM), JSON.stringify(fb)); } catch(e) {}
+      }
+      renderBenchmark();
+    });
+    window._fbLoadKey('pearl/benchmark/settings').then(function(fb) {
+      if (fb && fb.totalRooms) {
+        try { _STORE.setItem(benchSettingsKey(), JSON.stringify(fb)); } catch(e) {}
+        var tr3 = document.getElementById('bench-total-rooms');
+        if (tr3 && !tr3.value) { tr3.value = fb.totalRooms; }
+      }
+    });
+  } else {
+    renderBenchmark();
+  }
 }
 
 function renderAnalytics() {
@@ -5768,72 +6179,86 @@ function renderGuide() {
        'Each year has its own independent price list. Changing 2025 prices never affects 2026.',
        'Use department tabs to switch. Click <strong>🗂 All Items</strong> to see all departments in one scrollable list.',
        'Changes in <strong>🗂 All Items</strong> save automatically when you click away — no Save button needed.',
-       'Changes in individual department tabs require clicking ' + btn('💾 Save Prices & Weights','#16a34a','#fff') + '.'
+       'Changes in individual department tabs require clicking ' + btn('💾 Save Prices & Weights','#16a34a','#fff') + '.',
+       '<strong>Changing the price list never affects data already entered</strong> — quantities are always safe. Only the revenue calculation uses the price, and that is controlled by schedules.'
      ]) +
-     '<strong>Reorder items:</strong> Use the <strong>▲ ▼</strong> arrows — order changes everywhere in the system including Daily Entry, exports and reports.' +
+     '<strong>Reorder items:</strong> Use the <strong>▲ ▼</strong> arrows — order changes everywhere including Daily Entry, exports and reports.' +
      '<br><br><strong>➕ Add Item / 🏢 Add Department:</strong>' +
      ul([
        'Add new items to any department or create entirely new departments with custom emoji icons.',
        'Saved permanently and available in all tabs.'
      ]) +
-     '<strong>📋 Copy Prices from Another Year:</strong>' +
+
+     '<br><strong>📋 Copy Prices from Another Year:</strong>' +
      step([
-       'Set Copy From Year → Into Year → Department (or All Departments).',
-       'Click <strong>📋 Copy Prices</strong> — all prices and KG copy instantly.'
+       'Set <strong>Copy From Year</strong> → <strong>Into Year</strong> → Department (or All Departments).',
+       'Click ' + btn('📋 Copy Prices','#0284c7','#fff') + ' — all prices and KG values copy instantly.',
+       'This only changes the price list — it does not touch any entered data.'
      ]) +
-     '<strong>📊 Bulk Price Adjustment by %:</strong>' +
+
+     '<br><strong>📊 Bulk Price Adjustment by %:</strong>' +
      step([
-       'Set Year, Department, enter % value. Negative = decrease, positive = increase.',
-       'Live Preview shows item count and a sample before/after price.',
-       'Click <strong>✅ Apply Adjustment</strong> — only the selected year and department change.'
+       'Set Year, Department, enter a % value. Use negative for decrease (e.g. -3.5), positive for increase (e.g. +5).',
+       'The <strong>Live Preview</strong> shows how many items will change and a sample before/after price.',
+       'Click ' + btn('✅ Apply Adjustment','#0d1b2e','#c9a84c') + ' — only the selected year and department are affected.',
+       'Click ' + btn('💾 Save Prices & Weights','#16a34a','#fff') + ' to commit the change.'
      ]) +
      tip('Workflow for a new year: Copy prices from the previous year → apply a % adjustment. Example: Copy 2025 → 2026, then apply +5%.') +
-     '<strong>📅 Price Change Effective Date — Mid-Period Price Changes:</strong>' +
-     '<br><br>Use this when prices change mid-month. For example: today you enter data with old prices but new prices start tomorrow.' +
-     step([
-       'Edit your prices table to the <strong>new prices</strong> you want.',
-       'Scroll up to the <strong>📅 Price Change Effective Date</strong> section.',
-       'Set the <strong>Effective From Date</strong> (e.g. tomorrow\'s date).',
-       'Choose the <strong>Year</strong> and <strong>Department</strong> (or All Departments).',
-       'Click ' + btn('📅 Save as Scheduled Prices','#7c3aed','#fff') + '.'
-     ]) +
-     '<strong>How it works automatically:</strong>' +
+
+     '<br><strong>📅 Price Change Effective Date — How It Works:</strong>' +
+     '<br><br>This is the most important feature for mid-year price changes. It lets you set <strong>which date new prices take effect</strong>. Data before that date keeps old prices. Data from that date onwards uses new prices. Everything is automatic — no need to re-enter data.' +
+     '<br><br><strong>Key concept:</strong> You save a "snapshot" of the price table at a specific date. The system has a full history of price changes and applies the right one per day.' +
      ul([
-       'Data entered <strong>before</strong> the effective date uses the <strong>old prices</strong>.',
-       'Data entered <strong>from</strong> the effective date onwards uses the <strong>new prices</strong>.',
-       'All revenue calculations — Dashboard, Finance, Monthly, Analytics — all respect the date automatically.',
-       'You can add <strong>multiple schedules</strong> — e.g. one change in March, another in July.',
-       'Each schedule entry shows a ' + badge('UPCOMING','#dbeafe','#1d4ed8','#93c5fd') + ' or ' + badge('ACTIVE','#f1f5f9','#64748b','#e2e8f0') + ' or ' + badge('TODAY','#d1fae5','#065f46','#6ee7b7') + ' badge.',
-       'Delete any schedule entry at any time with the 🗑 button.'
+       'Data entered <strong>before</strong> the effective date → old prices used for revenue',
+       'Data entered <strong>from</strong> the effective date onwards → new prices used for revenue',
+       'All tabs update automatically — Dashboard, Finance, Monthly, Analytics',
+       'Multiple schedules allowed — e.g. Jan 1 for first prices, Apr 1 for new prices',
+       'Each schedule shows ' + badge('UPCOMING','#dbeafe','#1d4ed8','#93c5fd') + ' ' + badge('TODAY','#d1fae5','#065f46','#6ee7b7') + ' or ' + badge('ACTIVE','#f1f5f9','#64748b','#e2e8f0') + ' badge',
+       'Delete any schedule with the 🗑 button at any time'
      ]) +
-     warn('If no schedules are set, the system uses the current year\'s price list for all dates — same behaviour as before. Adding a schedule only affects dates from that date onwards.') +
-     tip('Example: Prices go up on March 15. Enter data for March 1–14 first, then update the price table and save a schedule for March 15. Days 1–14 keep old revenue, days 15+ use new prices — all automatically.') +
-     '<strong>Export & Import Price Lists (CSV):</strong>' +
+
+     '<br><strong>📅 Quick Month Pick (new):</strong>' +
+     ul([
+       'Use the <strong>Quick Month Pick</strong> dropdown to select a month — the date field auto-fills to the 1st of that month.',
+       'Example: Select <strong>April</strong> → date becomes 01/04/2026 automatically.',
+       'You can still manually change the date to any specific day if needed.'
+     ]) +
+
+     '<br><strong>✅ Real example — Increase prices by +3.5% starting April 2026:</strong>' +
+     '<div style="background:#f0fdf4;border-left:3px solid #16a34a;padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;font-size:12px;color:#14532d">' +
+     '<strong>Step 1 — Lock current prices for Jan, Feb, March</strong><br>' +
+     'Prices tab → 📅 Effective Date → Quick Month Pick: <strong>January</strong> → Year 2026 → All Departments → Save as Scheduled Prices<br><br>' +
+     '<strong>Step 2 — Copy 2025 prices into 2026</strong><br>' +
+     'Copy Prices → From 2025 → Into 2026 → All Departments → Copy Prices → Save Prices & Weights<br><br>' +
+     '<strong>Step 3 — Apply +3.5% adjustment</strong><br>' +
+     'Bulk Adjust → Year 2026 → All Departments → enter +3.5 → Apply Adjustment → Save Prices & Weights<br><br>' +
+     '<strong>Step 4 — Save as April schedule</strong><br>' +
+     'Effective Date → Quick Month Pick: <strong>April</strong> → Year 2026 → All Departments → Save as Scheduled Prices<br><br>' +
+     '<strong>Result:</strong> Jan/Feb/Mar use original 2026 prices · April onwards uses 2025 prices +3.5% · All previously entered data is untouched ✅' +
+     '</div>' +
+
+     warn('Copying prices or applying a % adjustment only changes the price list — it never changes any quantities you already entered. Your data is always safe.') +
+
+     '<br><strong>Export & Import Price Lists (CSV):</strong>' +
      ul([
        btn('📥 Export Prices','#eff6ff','#1d4ed8','#bfdbfe') + ' — downloads .csv with # / Department / Item / Unit Price (QR).',
        btn('📥 Export Prices & KG','#eff6ff','#1d4ed8','#bfdbfe') + ' — same but includes Weight (KG/pc).',
-       btn('📤 Import Prices CSV','#f0fdf4','#15803d','#16a34a') + ' — upload a .csv in the same format. Items matched by name. Updates the year selected in the Bulk Adjustment dropdown.',
+       btn('📤 Import Prices CSV','#f0fdf4','#15803d','#16a34a') + ' — upload a .csv in the same format. Items matched by name.',
        'Workflow: Export → edit in Excel → Save as CSV → Import back.'
      ]) +
-     '<strong>📥 Import Prices from Excel (.xlsx) — new:</strong>' +
-     '<br><br>Use this to update prices or weights for any year by uploading a pre-built Excel template.' +
+
+     '<br><strong>📥 Import Prices from Excel (.xlsx):</strong>' +
      step([
-       'Download the blank template (link in the section header).',
-       'Fill in the ' + badge('yellow cells','#fef9c3','#92400e','#fde68a') + ' for Unit Price (QR) and/or the ' + badge('blue cells','#dbeafe','#1e40af','#93c5fd') + ' for Weight (KG). Leave any cell blank to keep the existing value.',
-       'In the system → Prices tab → <strong>📥 Import Prices from Excel</strong> section.',
-       'Choose the <strong>Year</strong> to update and the <strong>Import Mode</strong>: Prices Only or Prices + Weight.',
-       'Click <strong>📂 Choose File</strong> → select your filled template.',
-       'Review the preview — it shows how many prices will change per department.',
-       'Click ' + btn('✅ Apply Prices','#0284c7','#fff') + '.'
+       'Download the blank template (link in the Import section header).',
+       'Fill in the ' + badge('yellow cells','#fef9c3','#92400e','#fde68a') + ' for Unit Price (QR) and/or ' + badge('blue cells','#dbeafe','#1e40af','#93c5fd') + ' for Weight (KG). Leave blank to keep existing value.',
+       'Prices tab → 📥 Import Prices from Excel → choose Year and Mode (Prices Only or Prices + Weight).',
+       'Choose File → review the preview → click ' + btn('✅ Apply Prices','#0284c7','#fff') + '.'
      ]) +
      ul([
-       '<strong>Prices Only mode</strong> — only filled yellow cells update. Blue cells ignored.',
-       '<strong>Prices + Weight mode</strong> — both yellow and blue filled cells update.',
-       'You can fill <strong>only blue cells</strong> (weights) and leave yellow blank — only weights update.',
-       'Items matched by <strong>row position</strong> — do not add, remove, or reorder rows in the template.',
-       'Works per year — use this to set correct historical prices e.g. for 2025.'
-     ]) +
-     warn('Never add or remove rows in the template. Row 1 = Item 1, Row 2 = Item 2. The item name column is for reference only and is not used for matching.')
+       'You can fill only yellow (prices only), only blue (weights only), or both.',
+       'Blank cells are always skipped — existing values kept.',
+       'Items matched by row position — never add or remove rows in the template.'
+     ])
     ],
 
     // ── 13. SETTINGS ────────────────────────────────────────────
