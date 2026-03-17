@@ -2473,12 +2473,16 @@ function monthTotals(y, m) {
   DEPT_KEYS.forEach(d => {
     let dq = 0, dk = 0, dp = 0;
     MASTER[d].forEach((_, i) => {
-      const pr = getP(d, i), kw = getK(d, i);
       for (let day = 0; day < nd; day++) {
         const v = getVal(y, m, d, i, day);
-        dq += v * pr;
-        dk += v * kw;
-        dp += v;
+        if (v > 0) {
+          // Use date-aware pricing so schedules are respected
+          const pr = getPriceForDate(d, i, y, m, day + 1);
+          const kw = getKgForDate(d, i, y, m, day + 1);
+          dq += v * pr;
+          dk += v * kw;
+          dp += v;
+        }
       }
     });
     byDept[d] = { qr: dq, kg: dk, pcs: dp };
@@ -4454,7 +4458,7 @@ function financeExportExcel() {
     var recvD = new Date(CY, m-1, d); var postD = new Date(CY, m-1, d+1);
     var dTot = 0;
     var dQRs = DEPT_KEYS.map(function(dept, di) {
-      var v = 0; MASTER[dept].forEach(function(_, i) { v += getVal(CY, m, dept, i, d-1) * getP(dept, i); });
+      var v = 0; MASTER[dept].forEach(function(_, i) { v += getVal(CY, m, dept, i, d-1) * getPriceForDate(dept, i, CY, m, d); });
       dTot += v; dTots[di] += v; return v;
     });
     mTot += dTot;
@@ -4713,7 +4717,7 @@ function renderFinance() {
     let dTot = 0;
     const dQRs = DEPT_KEYS.map(function(dept, di) {
       let v = 0;
-      MASTER[dept].forEach(function(_, i) { v += getVal(CY, m, dept, i, d - 1) * getP(dept, i); });
+      MASTER[dept].forEach(function(_, i) { v += getVal(CY, m, dept, i, d - 1) * getPriceForDate(dept, i, CY, m, d); });
       dTot += v; dTots[di] += v; return v;
     });
     mPostedTot += dTot;
@@ -4733,7 +4737,7 @@ function renderFinance() {
     let dTot = 0;
     const dQRs = DEPT_KEYS.map(function(dept) {
       let v = 0;
-      MASTER[dept].forEach(function(_, i) { v += getVal(CY, m, dept, i, nd - 1) * getP(dept, i); });
+      MASTER[dept].forEach(function(_, i) { v += getVal(CY, m, dept, i, nd - 1) * getPriceForDate(dept, i, CY, m, nd); });
       dTot += v; return v;
     });
     rows += '<tr style="opacity:.55;font-style:italic">' +
@@ -4862,40 +4866,63 @@ function pcmApply() {
   if (!fromDate) { msg.style.color='#dc2626'; msg.textContent='⚠️ Set an effective From Date first'; return; }
   var res = pcmGetNewPrices();
   if (!res) return;
-  // If mode is copy, also update the target year price list
-  if (res.mode === 'copy') {
-    var targetPR = loadPR(res.targetYr);
-    res.depts.forEach(function(d) { targetPR[d] = res.newPrices[d]; });
-    savePR(res.targetYr, targetPR);
-    if (res.targetYr === CY) PRICES = targetPR;
-  }
-  // Save as schedule entry for from-date
+
+  // Snapshot the CURRENT prices BEFORE any changes (for Jan schedule if needed)
+  var currentPR = loadPR(res.targetYr);
+
+  // Update the target year price list with new prices
+  var targetPR = loadPR(res.targetYr);
+  res.depts.forEach(function(d) { targetPR[d] = res.newPrices[d]; });
+  savePR(res.targetYr, targetPR);
+  if (res.targetYr === CY) PRICES = targetPR;
+
+  // Save new prices as schedule entry for from-date
   _PRICE_SCHEDULE = _PRICE_SCHEDULE.filter(function(e) {
     return !(e.effectiveDate === fromDate && e.year === res.targetYr && e.dept === res.dept);
   });
-  _PRICE_SCHEDULE.push({ effectiveDate: fromDate, year: res.targetYr, dept: res.dept, prices: res.newPrices, savedAt: new Date().toISOString(), pct: res.pct });
-  // If to-date set, save the PREVIOUS prices back as a schedule from to-date+1
+  _PRICE_SCHEDULE.push({
+    effectiveDate: fromDate,
+    year: res.targetYr,
+    dept: res.dept,
+    prices: res.newPrices,
+    savedAt: new Date().toISOString(),
+    pct: res.pct
+  });
+
+  // If to-date set, restore old prices after the range ends
   if (toDate) {
     var nextDay = new Date(toDate);
     nextDay.setDate(nextDay.getDate() + 1);
     var nextDateStr = nextDay.toISOString().slice(0,10);
-    var prevPR = res.mode === 'copy' ? loadPR(parseInt(document.getElementById('pcm-target-year')?.value) || CY) : loadPR(res.targetYr);
     var prevSnap = {};
-    res.depts.forEach(function(d) { prevSnap[d] = (prevPR[d] || MASTER[d]).map(function(item){ return [...item]; }); });
+    res.depts.forEach(function(d) {
+      prevSnap[d] = (currentPR[d] || MASTER[d]).map(function(item){ return [...item]; });
+    });
     _PRICE_SCHEDULE = _PRICE_SCHEDULE.filter(function(e) {
       return !(e.effectiveDate === nextDateStr && e.year === res.targetYr && e.dept === res.dept);
     });
-    _PRICE_SCHEDULE.push({ effectiveDate: nextDateStr, year: res.targetYr, dept: res.dept, prices: prevSnap, savedAt: new Date().toISOString(), note: 'Auto-restored after range end' });
+    _PRICE_SCHEDULE.push({
+      effectiveDate: nextDateStr,
+      year: res.targetYr,
+      dept: res.dept,
+      prices: prevSnap,
+      savedAt: new Date().toISOString(),
+      note: 'Auto-restored after range end'
+    });
   }
+
   _PRICE_SCHEDULE.sort(function(a,b){ return a.effectiveDate.localeCompare(b.effectiveDate); });
   savePriceSchedule();
+
   var dir = res.pct > 0 ? '+' : '';
   msg.style.color = '#16a34a';
-  msg.textContent = '✅ Applied! ' + (res.pct !== 0 ? dir + res.pct + '% · ' : '') + 'Schedule saved from ' + fromDate + (toDate ? ' to ' + toDate : ' onwards');
+  msg.textContent = '✅ Done! ' + (res.pct !== 0 ? dir + res.pct + '% · ' : '') + 'Schedule saved from ' + fromDate + (toDate ? ' to ' + toDate : ' onwards');
   setTimeout(function(){ msg.textContent = ''; }, 6000);
   renderPriceScheduleList();
+  // Force dashboard refresh
   try { renderDash(); } catch(e) {}
   try { renderEntry(); } catch(e) {}
+  try { renderFinance(); } catch(e) {}
 }
 
 function previewPadj() {
