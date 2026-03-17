@@ -948,10 +948,14 @@ var _fbDB = null;
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
         <div>
           <div style="font-size:13px;font-weight:800;color:#0d1b2e">📋 Enter Daily Occupancy %</div>
-          <div style="font-size:11px;color:#94a3b8;margin-top:2px">Enter the occupancy percentage for each day — the system calculates all benchmarks automatically</div>
+          <div style="font-size:11px;color:#94a3b8;margin-top:2px">Enter the occupancy percentage for each day — the system calculates all benchmarks automatically · <a href="#" onclick="downloadBenchTemplate();return false;" style="color:#0284c7;font-weight:700;text-decoration:none">⬇️ Download Excel Template</a></div>
         </div>
         <div style="display:flex;gap:8px">
           <button onclick="fillBenchOcc()" style="padding:7px 14px;background:#eff6ff;border:1.5px solid #3b82f6;color:#1d4ed8;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer">📋 Fill Same %</button>
+          <label style="padding:7px 14px;background:#f0fdf4;border:1.5px solid #16a34a;color:#15803d;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer">
+            📂 Import Excel
+            <input type="file" id="bench-xl-file" accept=".xlsx" style="display:none" onchange="importBenchExcel(this)">
+          </label>
           <button onclick="clearBenchOcc()" style="padding:7px 14px;background:#fff5f5;border:1.5px solid #fca5a5;color:#dc2626;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer">🗑 Clear All</button>
           <button onclick="saveBenchOcc()" style="padding:7px 14px;background:#16a34a;color:#fff;border:none;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer">💾 Save Occupancy</button>
         </div>
@@ -1112,6 +1116,30 @@ var _fbDB = null;
       </div>
       <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:8px;letter-spacing:.8px">ACTIVE PRICE SCHEDULES</div>
       <div id="psch-list" style="font-size:12px;color:#64748b">Loading...</div>
+
+      <!-- Emergency reverse-adjust tool -->
+      <div id="psch-fix-tool" style="margin-top:14px;padding:14px;background:#fff5f5;border:1.5px solid #fca5a5;border-radius:10px;display:none">
+        <div style="font-size:12px;font-weight:800;color:#dc2626;margin-bottom:8px">🛠 Fix Schedule — Reverse % Adjustment</div>
+        <div style="font-size:11px;color:#7f1d1d;margin-bottom:10px">Use this if you applied a price adjustment BEFORE saving the old prices as a schedule. Enter the % that was applied, choose the schedule date to fix, and click Reverse & Re-save.</div>
+        <div style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap">
+          <div>
+            <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px">SCHEDULE DATE TO FIX</div>
+            <select id="psch-fix-date" style="padding:7px 10px;border:1.5px solid #fca5a5;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;min-width:150px"></select>
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px">% THAT WAS APPLIED</div>
+            <div style="display:flex;align-items:center;gap:5px">
+              <input type="number" id="psch-fix-pct" step="0.1" placeholder="e.g. 3.5" style="padding:7px 10px;border:1.5px solid #fca5a5;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;width:100px;outline:none">
+              <span style="font-size:13px;color:#64748b">%</span>
+            </div>
+          </div>
+          <button onclick="fixScheduleReverse()" style="padding:8px 18px;background:#dc2626;color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer">🔄 Reverse & Re-save</button>
+          <div id="psch-fix-msg" style="font-size:12px;font-weight:600;color:#16a34a;align-self:flex-end"></div>
+        </div>
+      </div>
+      <div style="margin-top:10px">
+        <button onclick="document.getElementById('psch-fix-tool').style.display=document.getElementById('psch-fix-tool').style.display==='none'?'block':'none'" style="font-size:11px;color:#94a3b8;background:none;border:none;cursor:pointer;text-decoration:underline">🛠 Schedule wrong? Click to fix</button>
+      </div>
     </div>
 
     <!-- Section 4: Import Prices from Excel -->
@@ -4733,6 +4761,35 @@ function scheduleCurrentPrices() {
   renderPriceScheduleList();
 }
 
+function fixScheduleReverse() {
+  var dateEl = document.getElementById('psch-fix-date');
+  var pctEl  = document.getElementById('psch-fix-pct');
+  var msgEl  = document.getElementById('psch-fix-msg');
+  if (!dateEl.value) { msgEl.style.color='#dc2626'; msgEl.textContent='⚠️ Select a schedule date'; return; }
+  var pct = parseFloat(pctEl.value);
+  if (isNaN(pct) || pct === 0) { msgEl.style.color='#dc2626'; msgEl.textContent='⚠️ Enter the % that was applied'; return; }
+  var factor = 1 + pct / 100; // e.g. 1.035 for +3.5%
+  // Find the schedule entry
+  var idx = _PRICE_SCHEDULE.findIndex(function(e) { return e.effectiveDate === dateEl.value; });
+  if (idx === -1) { msgEl.style.color='#dc2626'; msgEl.textContent='⚠️ Schedule entry not found'; return; }
+  var entry = _PRICE_SCHEDULE[idx];
+  // Reverse the % on every price in that snapshot
+  var fixedPrices = {};
+  Object.keys(entry.prices).forEach(function(dept) {
+    fixedPrices[dept] = entry.prices[dept].map(function(item) {
+      return [item[0], parseFloat((item[1] / factor).toFixed(4)), item[2]];
+    });
+  });
+  _PRICE_SCHEDULE[idx] = Object.assign({}, entry, { prices: fixedPrices, savedAt: new Date().toISOString() });
+  savePriceSchedule();
+  msgEl.style.color = '#16a34a';
+  msgEl.textContent = '✅ Fixed! Schedule ' + dateEl.value + ' prices reversed by -' + pct + '%';
+  setTimeout(function(){ msgEl.textContent=''; }, 5000);
+  renderPriceScheduleList();
+  try { renderDash(); } catch(e){}
+  try { renderEntry(); } catch(e){}
+}
+
 function deletePriceSchedule(idx) {
   if (!confirm('Delete this price schedule entry?')) return;
   _PRICE_SCHEDULE.splice(idx, 1);
@@ -4743,6 +4800,14 @@ function deletePriceSchedule(idx) {
 function renderPriceScheduleList() {
   var el = document.getElementById('psch-list');
   if (!el) return;
+  // Populate fix-tool date selector
+  var fixSel = document.getElementById('psch-fix-date');
+  if (fixSel) {
+    fixSel.innerHTML = '<option value="">— Select schedule —</option>';
+    _PRICE_SCHEDULE.forEach(function(e) {
+      var o = document.createElement('option'); o.value = e.effectiveDate; o.textContent = e.effectiveDate; fixSel.appendChild(o);
+    });
+  }
   if (_PRICE_SCHEDULE.length === 0) {
     el.innerHTML = '<div style="color:#94a3b8;font-style:italic;padding:8px 0">No scheduled price changes. Current prices apply to all dates.</div>';
     return;
@@ -5460,9 +5525,9 @@ function renderBenchmark() {
   if (document.getElementById('bench-total-rooms') && !document.getElementById('bench-total-rooms').value && settings.totalRooms)
     document.getElementById('bench-total-rooms').value = settings.totalRooms;
 
-  // Build occupancy entry grid
+  // Build occupancy entry grid — only if not already built for this month
   var grid = document.getElementById('bench-occ-grid');
-  if (grid) {
+  if (grid && (grid.dataset.month !== String(m) || grid.dataset.year !== String(CY))) {
     var html = '';
     for (var d = 1; d <= days; d++) {
       var val = occ[d] !== undefined ? occ[d] : '';
@@ -5471,11 +5536,12 @@ function renderBenchmark() {
         '<div style="font-size:9px;font-weight:700;color:#94a3b8">' + dn + ' ' + d + '</div>' +
         '<div style="display:flex;align-items:center;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:7px;overflow:hidden">' +
         '<input type="number" min="0" max="100" step="0.1" value="' + val + '" id="bocc_' + d + '" ' +
-        'style="width:52px;padding:5px 4px;border:none;background:transparent;font-size:12px;font-weight:600;color:#1a2332;text-align:center;outline:none" ' +
-        'onchange="renderBenchmark()">' +
+        'style="width:52px;padding:5px 4px;border:none;background:transparent;font-size:12px;font-weight:600;color:#1a2332;text-align:center;outline:none">' +
         '<span style="font-size:10px;color:#94a3b8;padding-right:4px">%</span></div></div>';
     }
     grid.innerHTML = html;
+    grid.dataset.month = m;
+    grid.dataset.year = CY;
     // Restore saved values
     for (var d2 = 1; d2 <= days; d2++) {
       var inp = document.getElementById('bocc_' + d2);
@@ -5648,6 +5714,62 @@ function renderBenchmark() {
     deptHtml += '</tbody></table>';
     dw.innerHTML = deptHtml;
   }
+}
+
+function downloadBenchTemplate() {
+  // Build a simple xlsx template in memory using SheetJS
+  var rows = [
+    ['Pearl Laundry — Benchmark Occupancy Template'],
+    ['Fill Column C (Occupancy %) for each day. Leave blank if no data.'],
+    ['YEAR', 2026, 'MONTH', '(e.g. March 2026)'],
+    [],
+    ['DAY', 'DATE', 'OCCUPANCY %', 'NOTES (optional)']
+  ];
+  for (var d = 1; d <= 31; d++) {
+    rows.push([d, 'Day ' + d, '', '']);
+  }
+  rows.push([]);
+  rows.push(['⚠️ Only fill Column C. Do NOT change column order or add/remove rows.']);
+  var ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [{wch:8},{wch:14},{wch:16},{wch:20}];
+  var wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Occupancy');
+  XLSX.writeFile(wb, 'Pearl_Benchmark_Occupancy_Template.xlsx');
+}
+
+function importBenchExcel(input) {
+  var file = input.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      var data = new Uint8Array(e.target.result);
+      var wb = XLSX.read(data, { type: 'array' });
+      var ws = wb.Sheets[wb.SheetNames[0]];
+      var rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+      // Find data rows — look for rows where col A is a number 1-31
+      var m = parseInt(document.getElementById('bench-month')?.value || new Date().getMonth() + 1);
+      var days = dim(CY, m);
+      var imported = 0;
+      rows.forEach(function(row) {
+        var dayNum = parseInt(row[0]);
+        if (isNaN(dayNum) || dayNum < 1 || dayNum > 31) return;
+        var occVal = parseFloat(row[2]);
+        if (isNaN(occVal)) return;
+        var inp = document.getElementById('bocc_' + dayNum);
+        if (inp && dayNum <= days) { inp.value = occVal; imported++; }
+      });
+      input.value = '';
+      if (imported > 0) {
+        toast('✅ Imported ' + imported + ' occupancy values from Excel', 'ok');
+      } else {
+        toast('⚠️ No valid occupancy values found — check template format', 'err');
+      }
+    } catch(err) {
+      toast('❌ Error reading file: ' + err.message, 'err');
+    }
+  };
+  reader.readAsArrayBuffer(file);
 }
 
 function saveBenchOcc() {
