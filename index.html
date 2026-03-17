@@ -941,6 +941,7 @@ var _fbDB = null;
       </div>
       <button onclick="renderBenchmark()" style="padding:8px 18px;background:var(--navy);color:var(--gold);border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;align-self:flex-end">🔄 Refresh</button>
       <button onclick="exportBenchmarkExcel()" style="padding:8px 18px;background:#f0fdf4;border:1.5px solid #16a34a;color:#15803d;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;align-self:flex-end">⬇️ Export Excel</button>
+      <button onclick="printBenchmarkPDF()" style="padding:8px 18px;background:#fff7ed;border:1.5px solid #ea580c;color:#c2410c;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;align-self:flex-end">🖨️ Print / PDF</button>
     </div>
 
     <!-- Occupancy Entry Panel -->
@@ -3520,7 +3521,7 @@ function renderEntry() {
 
 function updateEntStats(m, day) {
   let dQR = 0, dKG = 0, depQR = 0, depKG = 0, depPCS = 0;
-  const _statPR = loadPR(CY);
+  const _statPR = PRICES; // use cached global — no Firebase call
   DEPT_KEYS.forEach(d => MASTER[d].forEach((_, i) => {
     // For the active department, read live input values from DOM (not saved cache)
     let v;
@@ -3552,8 +3553,8 @@ function renderEntryTable() {
   const items = MASTER[entDept];
   const dateStr = `${DAY_NAMES[new Date(CY,m-1,day).getDay()]} ${day} ${MONTH_NAMES[m-1]} ${CY}`;
   let rows = '';
-  // Use year-correct prices for display (e.g. 2025 data uses 2025 prices)
-  const _entPR = loadPR(CY);
+  // Use cached PRICES for display — fast, no Firebase call
+  const _entPR = PRICES;
   items.forEach((_, i) => {
     const nm = getN(entDept, i);
     const pr = _entPR[entDept]?.[i]?.[1] ?? MASTER[entDept][i][1];
@@ -3589,9 +3590,8 @@ function renderEntryTable() {
 function onQI(i, m, day) {
   const inp = document.getElementById('qi_' + i);
   const v = Math.max(0, parseInt(inp.value) || 0); inp.value = v;
-  const _pr = loadPR(CY);
-  const pr = _pr[entDept]?.[i]?.[1] ?? MASTER[entDept][i][1];
-  const kg = _pr[entDept]?.[i]?.[2] ?? MASTER[entDept][i][2];
+  const pr = PRICES[entDept]?.[i]?.[1] ?? MASTER[entDept][i][1];
+  const kg = PRICES[entDept]?.[i]?.[2] ?? MASTER[entDept][i][2];
   const ct = document.getElementById('ct_' + i); if (ct) ct.textContent = v > 0 ? f2(v * pr) : '';
   const kt = document.getElementById('kt_' + i); if (kt) kt.textContent = v > 0 ? (v * kg).toFixed(3) : '';
   inp.closest('tr')?.classList.toggle('hq', v > 0);
@@ -3611,16 +3611,89 @@ function saveDec31Carry(data) {
 function saveDay() {
   const m = parseInt(document.getElementById('ent-month').value);
   const day = parseInt(document.getElementById('ent-day').value);
-  MASTER[entDept].forEach((_, i) => {
-    const inp = document.getElementById('qi_' + i);
+
+  // Check if any item already has a locked price that differs from current price
+  var hasPriceDiff = false;
+  var sampleItem = '', sampleOld = 0, sampleNew = 0;
+  MASTER[entDept].forEach(function(_, i) {
+    var locked = getLockedPrice(CY, m, entDept, i, day - 1);
+    if (locked === null) return; // not yet locked — no conflict
+    var current = getPriceForDate(entDept, i, CY, m, day);
+    if (Math.abs(locked - current) > 0.0001) {
+      hasPriceDiff = true;
+      if (!sampleItem) { sampleItem = getN(entDept, i); sampleOld = locked; sampleNew = current; }
+    }
+  });
+
+  if (hasPriceDiff) {
+    // Show warning modal
+    showPriceConflictWarning(m, day, sampleItem, sampleOld, sampleNew);
+    return;
+  }
+
+  // No conflict — save normally
+  saveDayConfirmed(m, day, true);
+}
+
+function closePCModal() {
+  var el = document.getElementById('price-conflict-modal');
+  if (el) el.remove();
+}
+
+function showPriceConflictWarning(m, day, sampleItem, sampleOld, sampleNew) {
+  var existing = document.getElementById('price-conflict-modal');
+  if (existing) existing.remove();
+
+  var modal = document.createElement('div');
+  modal.id = 'price-conflict-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+  modal.innerHTML =
+    '<div style="background:#fff;border-radius:16px;padding:28px 28px 24px;max-width:460px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3)">' +
+      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">' +
+        '<div style="width:40px;height:40px;background:#fef3c7;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">⚠️</div>' +
+        '<div>' +
+          '<div style="font-size:15px;font-weight:800;color:#0d1b2e">Price Change Detected</div>' +
+          '<div style="font-size:12px;color:#64748b;margin-top:2px">' + entDept + ' · ' + DAY_NAMES[new Date(CY,m-1,day).getDay()] + ' ' + day + ' ' + MONTH_NAMES[m-1] + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div style="background:#fffbeb;border:1.5px solid #fde68a;border-radius:10px;padding:14px 16px;margin-bottom:18px;font-size:12.5px;color:#92400e">' +
+        'This day was previously saved with <strong>' + sampleItem + '</strong> at <strong>' + sampleOld.toFixed(4) + ' QR</strong>.<br>' +
+        'Current price is <strong>' + sampleNew.toFixed(4) + ' QR</strong>.<br><br>' +
+        'What would you like to do?' +
+      '</div>' +
+      '<div style="display:flex;flex-direction:column;gap:10px">' +
+        '<button onclick="saveDayConfirmed(' + m + ',' + day + ',false);closePCModal()" ' +
+          'style="padding:12px 20px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;text-align:left">' +
+          '🔒 Keep Old Prices — save quantities, keep ' + sampleOld.toFixed(4) + ' QR locked' +
+        '</button>' +
+        '<button onclick="saveDayConfirmed(' + m + ',' + day + ',true);closePCModal()" ' +
+          'style="padding:12px 20px;background:#dc2626;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;text-align:left">' +
+          '🔄 Update Prices — save quantities with new ' + sampleNew.toFixed(4) + ' QR' +
+        '</button>' +
+        '<button onclick="closePCModal()" ' +
+          'style="padding:10px 20px;background:#f8fafc;color:#64748b;border:1.5px solid #e2e8f0;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer">' +
+          'Cancel — do not save' +
+        '</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(modal);
+}
+
+function saveDayConfirmed(m, day, updatePrices) {
+  MASTER[entDept].forEach(function(_, i) {
+    var inp = document.getElementById('qi_' + i);
     if (inp) setVal(CY, m, entDept, i, day - 1, Math.max(0, parseInt(inp.value) || 0));
   });
-  // Lock prices at save time — permanent protection
-  MASTER[entDept].forEach((_, i) => lockPriceAtSave(CY, m, entDept, i, day - 1));
-  // Stamp timestamps so this save always wins over older Firebase data
+  if (updatePrices) {
+    // Lock new prices
+    MASTER[entDept].forEach(function(_, i) { lockPriceAtSave(CY, m, entDept, i, day - 1); });
+  } else {
+    // Keep old locked prices — only update timestamps
+    // Don't call lockPriceAtSave — existing -p and -k keys stay untouched
+  }
   stampTimestamps(CY, m, entDept, day);
   commitSave(CY);
-  toast('✔ Saved — ' + entDept + ' day ' + day + ' ' + MONTH_NAMES[m-1], 'ok');
+  toast('✔ Saved — ' + entDept + ' day ' + day + ' ' + MONTH_NAMES[m-1] + (updatePrices ? '' : ' · old prices kept'), 'ok');
   setTimeout(autoCloudBackup, 2000);
 }
 
@@ -6206,6 +6279,68 @@ function clearBenchOcc() {
   renderBenchmark();
 }
 
+function printBenchmarkPDF() {
+  var m = parseInt(document.getElementById('bench-month')?.value || new Date().getMonth() + 1);
+  var settings = loadBenchSettings();
+  var totalRooms = parseInt(document.getElementById('bench-total-rooms')?.value) || settings.totalRooms || 0;
+  var printWin = window.open('', '_blank', 'width=1000,height=750');
+  var dateStr = new Date().toLocaleDateString('en-GB', {day:'2-digit',month:'long',year:'numeric'});
+
+  // Grab current rendered content
+  var cardsHTML  = document.getElementById('bench-summary-cards')?.innerHTML || '';
+  var tableHTML  = document.getElementById('bench-table-wrap')?.innerHTML || '';
+  var deptHTML   = document.getElementById('bench-dept-wrap')?.innerHTML || '';
+
+  // Convert charts to images
+  var revImg = '', kgImg = '';
+  try { revImg = document.getElementById('bench-chart-rev')?.toDataURL('image/png') || ''; } catch(e){}
+  try { kgImg  = document.getElementById('bench-chart-kg')?.toDataURL('image/png')  || ''; } catch(e){}
+
+  var html2 = '<!DOCTYPE html><html><head><meta charset="utf-8">' +
+    '<title>Pearl Benchmark — ' + MONTH_NAMES[m-1] + ' ' + CY + '</title>' +
+    '<style>' +
+      'body{margin:0;padding:24px 28px;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;background:#f8fafc;color:#1a2332}' +
+      '.header{background:linear-gradient(135deg,#0d1b2e,#1e3a5f);color:#fff;padding:20px 24px;border-radius:12px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center}' +
+      '.header h1{margin:0;font-size:20px;font-weight:800;color:#c9a84c}' +
+      '.header p{margin:4px 0 0;font-size:12px;color:rgba(255,255,255,.7)}' +
+      '.header-right{text-align:right;font-size:11px;color:rgba(255,255,255,.7);line-height:1.8}' +
+      '.cards{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:20px}' +
+      '.charts{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}' +
+      '.chart-box{background:#fff;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0}' +
+      '.chart-hdr{padding:10px 14px;font-size:12px;font-weight:800;color:#fff}' +
+      '.chart-hdr.rev{background:linear-gradient(135deg,#0369a1,#0284c7)}' +
+      '.chart-hdr.kg{background:linear-gradient(135deg,#047857,#059669)}' +
+      'img{width:100%;display:block}' +
+      '.section{background:#fff;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0;margin-bottom:16px}' +
+      '.section-hdr{padding:10px 14px;font-size:12px;font-weight:800;color:#fff}' +
+      '.section-hdr.table{background:linear-gradient(135deg,#0d1b2e,#1e3a5f);color:#c9a84c}' +
+      '.section-hdr.dept{background:linear-gradient(135deg,#4c1d95,#6d28d9)}' +
+      '.section-body{padding:0;overflow-x:auto}' +
+      'table{width:100%;border-collapse:collapse;font-size:11px}' +
+      'th,td{padding:7px 9px}' +
+      '.footer{text-align:center;font-size:10px;color:#94a3b8;margin-top:16px;padding-top:12px;border-top:1px solid #e2e8f0}' +
+      '@media print{body{background:#fff;padding:12px 16px}@page{size:A4 landscape;margin:8mm}.cards{grid-template-columns:repeat(6,1fr)}}' +
+    '</style></head><body>' +
+    '<div class="header">' +
+      '<div><div class="header h1">🎯 Benchmark Report — ' + MONTH_NAMES[m-1] + ' ' + CY + '</div>' +
+      '<p>RS · Pearl Laundry Management System' + (totalRooms > 0 ? ' · ' + totalRooms + ' total rooms' : '') + '</p></div>' +
+      '<div class="header-right">Prepared by: Reda Salah<br>Date: ' + dateStr + '<br>© Reda Salah · All Rights Reserved</div>' +
+    '</div>' +
+    '<div class="cards">' + cardsHTML + '</div>' +
+    '<div class="charts">' +
+      '<div class="chart-box"><div class="chart-hdr rev">📈 Daily Revenue vs Occupancy %</div>' + (revImg ? '<img src="' + revImg + '">' : '') + '</div>' +
+      '<div class="chart-box"><div class="chart-hdr kg">⚖️ Daily KG vs Occupancy %</div>' + (kgImg ? '<img src="' + kgImg + '">' : '') + '</div>' +
+    '</div>' +
+    '<div class="section"><div class="section-hdr table">📊 Day-by-Day Benchmark Table</div><div class="section-body">' + tableHTML + '</div></div>' +
+    '<div class="section"><div class="section-hdr dept">🏢 Department Breakdown</div><div class="section-body" style="padding:14px">' + deptHTML + '</div></div>' +
+    '<div class="footer">© ' + CY + ' Reda Salah · RS · Pearl Laundry Management System · All Rights Reserved</div>' +
+    '<script>window.onload=function(){window.print();}<\/script>' +
+    '</body></html>';
+
+  printWin.document.write(html2);
+  printWin.document.close();
+}
+
 function exportBenchmarkExcel() {
   var m = parseInt(document.getElementById('bench-month')?.value || new Date().getMonth() + 1);
   var days = dim(CY, m);
@@ -6531,7 +6666,23 @@ function renderGuide() {
        'Click ' + btn('💾 Save Day','#16a34a','#fff') + '. The clipboard stays active so you can keep pasting to more days.',
        'Click the amber <strong>✕</strong> button when done to clear the clipboard.'
      ]) +
-     warn('Always click 💾 Save Day after entering or pasting. Navigating away without saving will lose that day\'s data.')
+     warn('Always click 💾 Save Day after entering or pasting. Navigating away without saving will lose that day\'s data.') +
+
+     '<br><strong>🔒 Locked Prices — Permanent Price Protection:</strong>' +
+     '<br><br>Every time you click ' + btn('💾 Save Day','#16a34a','#fff') + ', the system permanently locks the price of each item at that exact moment. This means:' +
+     ul([
+       'If you change prices next month, all previously saved data keeps its original prices forever.',
+       'Finance calculations, Dashboard revenue, and all reports always use the price that was active when the data was saved.',
+       'No schedules or manual steps needed — protection is automatic on every save.'
+     ]) +
+     '<strong>⚠️ Price Conflict Warning:</strong>' +
+     '<br><br>If you try to save a day that was previously saved with different prices, the system shows a warning:' +
+     ul([
+       btn('🔒 Keep Old Prices','#0d1b2e','#c9a84c') + ' — saves the quantity correction but keeps the original locked prices. Use this when fixing a typo.',
+       btn('🔄 Update Prices','#dc2626','#fff') + ' — saves with current prices. Use this if you intentionally want to reprice.',
+       'Cancel — nothing saved.'
+     ]) +
+     tip('When correcting a quantity mistake on an old day, always choose Keep Old Prices to protect the revenue figures that were already reported.')
     ],
 
     // ── 3. RECEIVING LOG ────────────────────────────────────────
@@ -6715,14 +6866,31 @@ function renderGuide() {
        '🖨️ Print/PDF dropdown — choose Prices Only, Weight Only, or Prices + Weight.'
      ]) +
 
-     '<br><strong>🔧 Tools sub-tab:</strong>' +
-     step([
-       '<strong>Copy Prices from Another Year</strong> — set From Year → Into Year → Department → Click Copy Prices. Copies all prices and KG instantly.',
-       '<strong>Bulk Price Adjustment by %</strong> — set Year, Department, enter % (negative = decrease, e.g. -3.5 · positive = increase, e.g. +5) → Live Preview shows sample → Click Apply Adjustment → Click Save Prices & Weights.',
-       '<strong>Import from Excel</strong> — choose Year, Mode (Prices Only or Prices + Weight), choose .xlsx file → preview → Apply Prices. Download template from the link in this card.',
-       '<strong>Export/Import CSV</strong> — export current prices as CSV, edit in Excel, import back.'
+     '<br><strong>🔧 Tools sub-tab — Price Change Manager:</strong>' +
+     '<br><br>The Tools sub-tab contains the <strong>🎛 Price Change Manager</strong> — one powerful tool that replaces Copy Prices, Bulk Adjust, and manual schedule saving. It does everything in one step with a full preview before applying.' +
+     '<br><br><strong>Price Change Manager fields:</strong>' +
+     ul([
+       '<strong>Mode</strong> — "Adjust Current Prices by %" uses the existing price list as base. "Copy from Another Year + % Adjust" copies prices from a different year first, then applies the %.',
+       '<strong>Source Year</strong> (copy mode only) — the year to copy prices from.',
+       '<strong>Target Year</strong> — the year to update.',
+       '<strong>Department</strong> — All Departments or a specific one.',
+       '<strong>Adjust %</strong> — positive = increase, negative = decrease. Leave 0 to copy only.',
+       '<strong>From Month / From Date</strong> — when new prices start. Quick Month picker fills the 1st automatically.',
+       '<strong>To Month / To Date</strong> — optional end date. If set, old prices are restored after this date.'
      ]) +
-     tip('Workflow for a new year: Copy prices from previous year → apply a % adjustment. Example: Copy 2025 → 2026, then apply +5%.') +
+     step([
+       'Fill in all fields.',
+       'Click ' + btn('🔍 Preview','#f8fafc','#0d1b2e','#e2e8f0') + ' — shows a table of before/after prices per department before anything changes.',
+       'Confirm numbers look correct.',
+       'Click ' + btn('✅ Apply & Save Schedule','#0d1b2e','#c9a84c') + ' — applies prices AND saves the schedule automatically in one step.'
+     ]) +
+     '<div style="background:#f0fdf4;border-left:3px solid #16a34a;padding:12px 16px;border-radius:0 8px 8px 0;margin:10px 0;font-size:12px;color:#14532d">' +
+     '<strong>✅ Example — +3.5% prices from April 2026 based on 2025 prices:</strong><br><br>' +
+     'Mode: Adjust Current Prices by % · Year 2026 · All Departments · +3.5% · From Month: April<br>' +
+     'Click Preview → confirm prices → Click Apply & Save Schedule<br><br>' +
+     '<strong>Result:</strong> January/February/March use original 2026 prices · April onwards uses +3.5% · All entered data is permanently protected by locked prices ✅' +
+     '</div>' +
+     tip('The Price Change Manager also includes Import from Excel (.xlsx) and Export/Import CSV cards for bulk price updates from spreadsheets.') +
 
      '<br><strong>📅 Price Schedules sub-tab — Mid-Year Price Changes:</strong>' +
      '<br><br>This is the most important feature when prices change during the year. The system stores a history of price snapshots. Each day\'s revenue uses the price that was active on that date — automatically.' +
@@ -6830,7 +6998,58 @@ function renderGuide() {
      ])
     ],
 
-    // ── 16. COPYRIGHT ───────────────────────────────────────────
+    // ── 16. BENCHMARK ───────────────────────────────────────────
+    ['🎯 Benchmark — Occupancy vs Revenue Analysis',
+     '<strong>What it does:</strong> Compares daily laundry revenue and KG against hotel occupancy to understand business performance per occupied room.' +
+     '<br><br><strong>How to set up:</strong>' +
+     step([
+       'Click <strong>🎯 Benchmark</strong> in the navigation bar.',
+       'Enter the <strong>Total Rooms in Hotel</strong> number — saved automatically.',
+       'Select the <strong>Month</strong> to analyse.',
+       'Enter the <strong>occupancy % for each day</strong> in the grid — or use <strong>📋 Fill Same %</strong> to fill all days at once.',
+       'Click ' + btn('💾 Save Occupancy','#16a34a','#fff') + ' — occupancy data syncs to Firebase and is available on all devices.',
+       'Click ' + btn('🔄 Refresh','#0d1b2e','#c9a84c') + ' to update all charts and calculations.'
+     ]) +
+     '<strong>📥 Import/Export Occupancy:</strong>' +
+     ul([
+       'Click <strong>⬇️ Download Excel Template</strong> to get the occupancy template.',
+       'Fill Column C (yellow) with occupancy % for each day.',
+       'Click <strong>📂 Import Excel</strong> to upload — all days fill instantly.',
+       'Click <strong>⬇️ Export Excel</strong> to export the full benchmark report as .xlsx.',
+       'Click <strong>🖨️ Print / PDF</strong> to generate a full PDF with all charts, table and department breakdown.'
+     ]) +
+     '<strong>6 Summary Cards:</strong>' +
+     ul([
+       '<strong>Avg Occupancy %</strong> — average for days with data entered.',
+       '<strong>Total Revenue (QR)</strong> — all departments for the month.',
+       '<strong>Total KG</strong> — all departments for the month.',
+       '<strong>Revenue / Room (QR)</strong> — average revenue per occupied room per day.',
+       '<strong>KG / Room</strong> — average KG per occupied room per day.',
+       '<strong>Days Tracked</strong> — how many days have occupancy entered.'
+     ]) +
+     '<strong>Charts:</strong>' +
+     ul([
+       '<strong>Daily Revenue vs Occupancy %</strong> — gradient bar chart with occupancy line overlay.',
+       '<strong>Daily KG vs Occupancy %</strong> — same format for weight data.',
+       'Hover over any bar for exact values in a tooltip.'
+     ]) +
+     '<strong>Day-by-Day Table:</strong>' +
+     ul([
+       'Occupancy % badges: ' + badge('≥70%','#dcfce7','#15803d','#86efac') + ' green · ' + badge('50–70%','#fef9c3','#92400e','#fde68a') + ' amber · ' + badge('<50%','#fee2e2','#dc2626','#fca5a5') + ' red.',
+       'Shows: Occupied Rooms, Total Revenue, Total KG, Revenue/Room, KG/Room, Rooms Linen Revenue, Other Departments.',
+       'High revenue days highlighted with a green left border.',
+       'Total row in navy/gold at the bottom.'
+     ]) +
+     '<strong>Department Breakdown:</strong>' +
+     ul([
+       'Each department shown as a colored card with its own color.',
+       'Shows total revenue, % share with progress bar, and average Revenue/Room/Day.',
+       'Colors: Rooms Linen = blue · F&B = green · Spa & Pool = teal · Uniform = purple · Others = amber · Dry Cleaning = orange.'
+     ]) +
+     tip('Enter occupancy data at the start of each month and save. The benchmark automatically updates as you enter daily laundry data throughout the month.')
+    ],
+
+    // ── 17. COPYRIGHT ───────────────────────────────────────────
     ['© Copyright & Ownership',
      '<div style="background:linear-gradient(135deg,#0d1b2e,#1e3a5f);border-radius:10px;padding:20px 24px;color:#fff;margin-bottom:12px"><div style="font-size:18px;font-weight:700;color:#c9a84c;letter-spacing:1px;margin-bottom:6px">© 2026 Reda Salah</div><div style="font-size:13px;color:rgba(255,255,255,.75);line-height:1.9">All Rights Reserved.<br><strong style="color:#fff">RS · Pearl Laundry Management System</strong> — proprietary software created and owned by <strong style="color:#c9a84c">Reda Salah</strong>.<br>Developed for professional laundry operations management.<br>Unauthorised copying, distribution, or modification is strictly prohibited.</div></div><div style="font-size:12px;color:#6b7a8d;line-height:1.8">Intellectual property and full ownership: <strong>Reda Salah</strong><br>For support or licensing enquiries, contact the author directly.</div>'
     ],
