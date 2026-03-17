@@ -895,6 +895,173 @@ var _fbDB = null;
       <button class="tn-logout" onclick="doLogout()" title="Logout">⏏ Logout</button>
     </div>
   </nav>
+  <!-- ══════════════════════════════════════════════════════════
+       MOBILE APP — completely separate layout, phone only
+  ══════════════════════════════════════════════════════════ -->
+  <div id="mob-app" style="display:none;flex-direction:column;min-height:100vh;background:#f1f5f9">
+
+    <!-- Mobile Top Bar -->
+    <div id="mob-topbar" style="background:#0d1b2e;padding:0 14px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;box-shadow:0 2px 12px rgba(0,0,0,.3)">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="width:30px;height:30px;background:#c9a84c;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#0d1b2e">RS</div>
+        <div>
+          <div style="font-size:13px;font-weight:800;color:#fff;line-height:1">RS · Pearl</div>
+          <div id="mob-live-status" style="font-size:9px;color:#86efac;font-weight:600">● LIVE</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <select id="mob-year-sel" onchange="mobChangeYear(this.value)" style="background:rgba(255,255,255,.1);border:1px solid rgba(201,168,76,.3);color:#fff;font-size:12px;font-weight:700;padding:4px 8px;border-radius:6px;cursor:pointer"></select>
+        <button onclick="openSettings()" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.8);border-radius:6px;padding:5px 8px;font-size:12px;cursor:pointer">⚙️</button>
+        <button onclick="doLogout()" style="background:rgba(220,38,38,.2);border:1px solid rgba(220,38,38,.4);color:#fca5a5;border-radius:6px;padding:5px 8px;font-size:11px;font-weight:700;cursor:pointer">Logout</button>
+      </div>
+    </div>
+
+    <!-- Mobile Pages Container -->
+    <div style="flex:1;overflow-y:auto;padding-bottom:70px" id="mob-pages">
+
+      <!-- ── MOB DASHBOARD ── -->
+      <div id="mob-tab-dashboard" class="mob-pg" style="display:block;padding:12px">
+        <!-- Month selector + notif -->
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+          <select id="mob-dash-month" onchange="mobRenderDash()" style="flex:1;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:14px;font-weight:700;color:#0d1b2e;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.06)"></select>
+          <div id="mob-dash-notif" style="font-size:18px"></div>
+        </div>
+        <!-- Stat cards 2x2 -->
+        <div id="mob-dash-cards" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px"></div>
+        <!-- Target bar -->
+        <div id="mob-target-bar" style="margin-bottom:12px"></div>
+        <!-- Target input -->
+        <div style="background:#fff;border-radius:12px;padding:12px;margin-bottom:12px;box-shadow:0 1px 6px rgba(0,0,0,.06)">
+          <div style="font-size:10px;font-weight:800;color:#64748b;letter-spacing:1px;margin-bottom:6px">🎯 MONTHLY TARGET (QR)</div>
+          <div style="display:flex;gap:8px">
+            <input type="number" id="mob-dash-target" placeholder="e.g. 80000" style="flex:1;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;font-weight:600;color:#0d1b2e;outline:none">
+            <button onclick="mobSaveTarget()" style="padding:9px 16px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">Set</button>
+          </div>
+        </div>
+        <!-- Dept breakdown -->
+        <div style="background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.06)">
+          <div style="background:#0d1b2e;padding:12px 14px;font-size:12px;font-weight:800;color:#c9a84c">🏢 Department Breakdown</div>
+          <div id="mob-dept-table" style="padding:0"></div>
+        </div>
+      </div>
+
+      <!-- ── MOB ENTRY ── -->
+      <div id="mob-tab-entry" class="mob-pg" style="display:none;padding:12px">
+        <!-- Controls -->
+        <div style="background:#fff;border-radius:12px;padding:12px;margin-bottom:10px;box-shadow:0 1px 6px rgba(0,0,0,.06)">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+            <div>
+              <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">MONTH</div>
+              <select id="mob-ent-month" onchange="mobOnMonthChange()" style="width:100%;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-weight:600;color:#0d1b2e;background:#fff"></select>
+            </div>
+            <div>
+              <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">DAY</div>
+              <select id="mob-ent-day" onchange="mobRenderEntry()" style="width:100%;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-weight:600;color:#0d1b2e;background:#fff"></select>
+            </div>
+          </div>
+          <!-- Dept tabs -->
+          <div id="mob-dept-tabs" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+        </div>
+        <!-- Stats row -->
+        <div id="mob-ent-stats" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px"></div>
+        <!-- Entry table -->
+        <div style="background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.06);margin-bottom:10px">
+          <div id="mob-ent-header" style="background:#0d1b2e;padding:12px 14px;display:flex;align-items:center;justify-content:space-between">
+            <div id="mob-ent-dept-label" style="font-size:13px;font-weight:800;color:#c9a84c"></div>
+            <div id="mob-ent-date-label" style="font-size:11px;color:rgba(255,255,255,.6)"></div>
+          </div>
+          <div id="mob-ent-table" style="padding:0"></div>
+        </div>
+        <!-- Action buttons -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+          <button onclick="mobSaveDay()" style="padding:14px;background:#16a34a;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 4px 12px rgba(22,163,74,.3)">💾 Save Day</button>
+          <button onclick="mobCopyDay()" id="mob-btn-copy" style="padding:14px;background:#fff;color:#d97706;border:2px solid #d97706;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer">📋 Copy Day</button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <button onclick="mobPasteDay()" id="mob-btn-paste" style="padding:12px;background:#fff;color:#94a3b8;border:1.5px solid #e2e8f0;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer">📌 Paste Day</button>
+          <button onclick="mobClearDay()" style="padding:12px;background:#fff5f5;color:#dc2626;border:1.5px solid #fca5a5;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer">🗑 Clear Day</button>
+        </div>
+      </div>
+
+      <!-- ── MOB FINANCE ── -->
+      <div id="mob-tab-finance" class="mob-pg" style="display:none;padding:12px">
+        <div style="background:#fff;border-radius:12px;padding:12px;margin-bottom:10px;box-shadow:0 1px 6px rgba(0,0,0,.06)">
+          <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:6px;letter-spacing:.8px">MONTH</div>
+          <select id="mob-fin-month" onchange="mobRenderFinance()" style="width:100%;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;font-weight:700;color:#0d1b2e"></select>
+        </div>
+        <div id="mob-fin-cards" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px"></div>
+        <div style="background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.06)">
+          <div style="background:#0d1b2e;padding:12px 14px;font-size:12px;font-weight:800;color:#c9a84c">📋 Daily Finance Log</div>
+          <div id="mob-fin-table" style="overflow-x:auto"></div>
+        </div>
+      </div>
+
+      <!-- ── MOB MORE ── -->
+      <div id="mob-tab-more" class="mob-pg" style="display:none;padding:12px">
+        <div style="font-size:12px;font-weight:800;color:#64748b;letter-spacing:1px;margin-bottom:12px">MORE FEATURES</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div onclick="mobGoto('monthly')" style="background:#fff;border-radius:14px;padding:18px;text-align:center;box-shadow:0 1px 6px rgba(0,0,0,.06);cursor:pointer;border:1.5px solid #e2e8f0">
+            <div style="font-size:28px;margin-bottom:6px">📅</div>
+            <div style="font-size:13px;font-weight:700;color:#0d1b2e">Monthly</div>
+            <div style="font-size:11px;color:#94a3b8;margin-top:2px">Full month report</div>
+          </div>
+          <div onclick="mobGoto('report')" style="background:#fff;border-radius:14px;padding:18px;text-align:center;box-shadow:0 1px 6px rgba(0,0,0,.06);cursor:pointer;border:1.5px solid #e2e8f0">
+            <div style="font-size:28px;margin-bottom:6px">📄</div>
+            <div style="font-size:13px;font-weight:700;color:#0d1b2e">Report</div>
+            <div style="font-size:11px;color:#94a3b8;margin-top:2px">Export & print</div>
+          </div>
+          <div onclick="mobGoto('benchmark')" style="background:#fff;border-radius:14px;padding:18px;text-align:center;box-shadow:0 1px 6px rgba(0,0,0,.06);cursor:pointer;border:1.5px solid #e2e8f0">
+            <div style="font-size:28px;margin-bottom:6px">🎯</div>
+            <div style="font-size:13px;font-weight:700;color:#0d1b2e">Benchmark</div>
+            <div style="font-size:11px;color:#94a3b8;margin-top:2px">Occupancy vs revenue</div>
+          </div>
+          <div onclick="mobGoto('analytics')" style="background:#fff;border-radius:14px;padding:18px;text-align:center;box-shadow:0 1px 6px rgba(0,0,0,.06);cursor:pointer;border:1.5px solid #e2e8f0">
+            <div style="font-size:28px;margin-bottom:6px">📈</div>
+            <div style="font-size:13px;font-weight:700;color:#0d1b2e">Analytics</div>
+            <div style="font-size:11px;color:#94a3b8;margin-top:2px">Charts & trends</div>
+          </div>
+          <div onclick="mobGoto('prices')" style="background:#fff;border-radius:14px;padding:18px;text-align:center;box-shadow:0 1px 6px rgba(0,0,0,.06);cursor:pointer;border:1.5px solid #e2e8f0">
+            <div style="font-size:28px;margin-bottom:6px">⚙️</div>
+            <div style="font-size:13px;font-weight:700;color:#0d1b2e">Prices</div>
+            <div style="font-size:11px;color:#94a3b8;margin-top:2px">Manage prices</div>
+          </div>
+          <div onclick="mobGoto('backup')" style="background:#fff;border-radius:14px;padding:18px;text-align:center;box-shadow:0 1px 6px rgba(0,0,0,.06);cursor:pointer;border:1.5px solid #e2e8f0;border-color:#c9a84c">
+            <div style="font-size:28px;margin-bottom:6px">🛡️</div>
+            <div style="font-size:13px;font-weight:700;color:#0d1b2e">Backup</div>
+            <div style="font-size:11px;color:#94a3b8;margin-top:2px">Cloud & local</div>
+          </div>
+          <div onclick="mobGoto('guide')" style="background:#fff;border-radius:14px;padding:18px;text-align:center;box-shadow:0 1px 6px rgba(0,0,0,.06);cursor:pointer;border:1.5px solid #e2e8f0">
+            <div style="font-size:28px;margin-bottom:6px">📖</div>
+            <div style="font-size:13px;font-weight:700;color:#0d1b2e">Guide</div>
+            <div style="font-size:11px;color:#94a3b8;margin-top:2px">How to use</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /mob-pages -->
+
+    <!-- Mobile Bottom Nav -->
+    <div style="position:fixed;bottom:0;left:0;right:0;height:62px;background:#0d1b2e;border-top:1px solid rgba(201,168,76,.2);display:flex;align-items:center;justify-content:space-around;z-index:300;box-shadow:0 -4px 20px rgba(0,0,0,.3)">
+      <div id="mbn-dashboard" onclick="mobShowTab('dashboard')" style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 12px;cursor:pointer;border-radius:10px;background:rgba(201,168,76,.12);min-width:60px">
+        <span style="font-size:20px">📊</span>
+        <span style="font-size:9px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;color:#c9a84c">Dash</span>
+      </div>
+      <div id="mbn-entry" onclick="mobShowTab('entry')" style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 12px;cursor:pointer;border-radius:10px;min-width:60px">
+        <span style="font-size:20px">✏️</span>
+        <span style="font-size:9px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;color:rgba(255,255,255,.45)">Entry</span>
+      </div>
+      <div id="mbn-finance" onclick="mobShowTab('finance')" style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 12px;cursor:pointer;border-radius:10px;min-width:60px">
+        <span style="font-size:20px">🏦</span>
+        <span style="font-size:9px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;color:rgba(255,255,255,.45)">Finance</span>
+      </div>
+      <div id="mbn-more" onclick="mobShowTab('more')" style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 12px;cursor:pointer;border-radius:10px;min-width:60px">
+        <span style="font-size:20px">⋯</span>
+        <span style="font-size:9px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;color:rgba(255,255,255,.45)">More</span>
+      </div>
+    </div>
+
+  </div><!-- /mob-app -->
+
   <!-- ══ MOBILE BOTTOM NAV ══════════════════════════════════════ -->
   <div id="mob-nav">
     <div class="mob-tab on" id="mob-dashboard" onclick="showTab('dashboard')">
@@ -2581,6 +2748,17 @@ function attachFbListener(y) {
   } catch(e) { console.warn('attachFbListener error', e); }
 }
 // Start listener when Firebase is ready
+window.addEventListener('resize', function() {
+  var mob = document.getElementById('mob-app');
+  var desk = document.getElementById('pg-app');
+  if (!mob || !desk) return;
+  var mobV = mob.style.display === 'flex';
+  var deskV = desk.style.display === 'flex';
+  if (!mobV && !deskV) return;
+  if (isMobile() && deskV) { desk.style.display='none'; mob.style.display='flex'; initMobileApp(); }
+  else if (!isMobile() && mobV) { mob.style.display='none'; desk.style.display='flex'; }
+});
+
 window.addEventListener('fb-ready', function() {
   attachFbListener(CY);
   loadPriceSchedule();
@@ -3546,6 +3724,8 @@ function _bootApp(user) {
   // Show first allowed tab
   var firstTab = allowed[0] || 'dashboard';
   buildYearSel(); buildSelectors(); showTab(firstTab);
+  // Init mobile layout if on phone
+  setTimeout(function() { if (isMobile()) initMobileApp(); }, 400);
 }
 
 function buildYearSel() {
@@ -7706,6 +7886,445 @@ function renderGuide() {
   showGuideSection(0);
 }
 
+// ══════════════════════════════════════════════════════════════
+//  MOBILE APP — dedicated mobile layout
+// ══════════════════════════════════════════════════════════════
+var _mobTab = 'dashboard';
+var _mobEntDept = '';
+var _mobDayClip = null;
+
+function isMobile() { return window.innerWidth <= 768; }
+
+function initMobileApp() {
+  if (!isMobile()) return;
+  // Hide desktop, show mobile
+  document.getElementById('pg-app').style.display = 'none';
+  var mob = document.getElementById('mob-app');
+  mob.style.display = 'flex';
+  // Populate year selector
+  var ys = document.getElementById('mob-year-sel');
+  if (ys) { ys.innerHTML = ''; for (var y=2025;y<=2035;y++){var o=document.createElement('option');o.value=y;o.textContent=y;if(y===CY)o.selected=true;ys.appendChild(o);} }
+  // Populate month selectors
+  mobPopulateMonths('mob-dash-month', new Date().getMonth()+1);
+  mobPopulateMonths('mob-ent-month', new Date().getMonth()+1);
+  mobPopulateMonths('mob-fin-month', new Date().getMonth()+1);
+  // Set default dept
+  _mobEntDept = DEPT_KEYS[0];
+  // Build entry day selector
+  mobBuildDays();
+  // Render dashboard
+  mobRenderDash();
+  mobRenderEntry();
+  // Update live status
+  mobUpdateLiveStatus();
+}
+
+function mobUpdateLiveStatus() {
+  var el = document.getElementById('mob-live-status');
+  if (!el) return;
+  var fbLabel = document.getElementById('fb-label');
+  if (fbLabel && fbLabel.textContent === 'LIVE') { el.textContent = '● LIVE'; el.style.color = '#86efac'; }
+  else { el.textContent = '● OFFLINE'; el.style.color = '#fca5a5'; }
+}
+
+function mobPopulateMonths(id, selected) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  el.innerHTML = '';
+  MONTH_NAMES.forEach(function(mn, i) {
+    var o = document.createElement('option');
+    o.value = i+1; o.textContent = mn + ' ' + CY;
+    if (i+1 === selected) o.selected = true;
+    el.appendChild(o);
+  });
+}
+
+function mobChangeYear(y) {
+  CY = parseInt(y);
+  PRICES = loadPR(CY);
+  _DB[CY] = null;
+  attachFbListener(CY);
+  mobPopulateMonths('mob-dash-month', parseInt(document.getElementById('mob-dash-month')?.value||1));
+  mobPopulateMonths('mob-ent-month', parseInt(document.getElementById('mob-ent-month')?.value||1));
+  mobPopulateMonths('mob-fin-month', parseInt(document.getElementById('mob-fin-month')?.value||1));
+  mobRenderDash(); mobRenderEntry();
+}
+
+function mobShowTab(name) {
+  _mobTab = name;
+  document.querySelectorAll('.mob-pg').forEach(function(el){ el.style.display = 'none'; });
+  var pg = document.getElementById('mob-tab-' + name);
+  if (pg) pg.style.display = 'block';
+  // Update bottom nav
+  ['dashboard','entry','finance','more'].forEach(function(t) {
+    var btn = document.getElementById('mbn-' + t);
+    if (!btn) return;
+    var isActive = t === name;
+    btn.style.background = isActive ? 'rgba(201,168,76,.12)' : 'transparent';
+    btn.querySelector('span:last-child').style.color = isActive ? '#c9a84c' : 'rgba(255,255,255,.45)';
+  });
+  if (name === 'dashboard') mobRenderDash();
+  if (name === 'entry') mobRenderEntry();
+  if (name === 'finance') mobRenderFinance();
+}
+
+function mobGoto(tabName) {
+  // Switch to desktop tab (for tabs not in mobile layout)
+  if (isMobile()) {
+    // Show desktop app temporarily for these tabs
+    document.getElementById('mob-app').style.display = 'none';
+    document.getElementById('pg-app').style.display = 'flex';
+    showTab(tabName);
+    // Add a back button
+    var backBtn = document.getElementById('mob-back-btn');
+    if (!backBtn) {
+      backBtn = document.createElement('button');
+      backBtn.id = 'mob-back-btn';
+      backBtn.innerHTML = '← Back to App';
+      backBtn.style.cssText = 'position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:9999;padding:10px 24px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.3)';
+      backBtn.onclick = function() {
+        document.getElementById('pg-app').style.display = 'none';
+        document.getElementById('mob-app').style.display = 'flex';
+        backBtn.remove();
+      };
+      document.body.appendChild(backBtn);
+    }
+  }
+}
+
+// ── Mobile Dashboard ──────────────────────────────────────────
+function mobRenderDash() {
+  var m = parseInt(document.getElementById('mob-dash-month')?.value || new Date().getMonth()+1);
+  var tot = monthTotals(CY, m);
+  var nd = dim(CY, m);
+  var act = 0;
+  for (var d=1;d<=nd;d++) { if(dayTotals(CY,m,d).qr>0) act++; }
+  var avgQR = act>0 ? tot.qr/act : 0;
+  var avgKG = act>0 ? tot.kg/act : 0;
+
+  // Cards
+  var cards = document.getElementById('mob-dash-cards');
+  if (cards) {
+    var cardData = [
+      { label:'Monthly Revenue', val:f2(tot.qr)+' QR', sub:MONTH_NAMES[m-1], grad:'linear-gradient(135deg,#0369a1,#0284c7)', shadow:'rgba(2,132,199,.25)' },
+      { label:'Total KG', val:tot.kg.toFixed(1)+' kg', sub:'All depts', grad:'linear-gradient(135deg,#b45309,#d97706)', shadow:'rgba(217,119,6,.25)' },
+      { label:'Avg Daily Rev', val:f2(avgQR)+' QR', sub:act+' active days', grad:'linear-gradient(135deg,#15803d,#16a34a)', shadow:'rgba(22,163,74,.25)' },
+      { label:'Avg Daily KG', val:avgKG.toFixed(1)+' kg', sub:'Per working day', grad:'linear-gradient(135deg,#334155,#475569)', shadow:'rgba(71,85,105,.25)' }
+    ];
+    cards.innerHTML = cardData.map(function(c) {
+      return '<div style="background:'+c.grad+';border-radius:14px;padding:14px 12px;box-shadow:0 6px 18px '+c.shadow+'">' +
+        '<div style="font-size:9px;font-weight:800;color:rgba(255,255,255,.65);letter-spacing:1px;margin-bottom:6px;text-transform:uppercase">'+c.label+'</div>' +
+        '<div style="font-size:19px;font-weight:900;color:#fff;line-height:1.1">'+c.val+'</div>' +
+        '<div style="font-size:10px;color:rgba(255,255,255,.55);margin-top:3px">'+c.sub+'</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  // Target bar
+  var tgt = loadTarget(CY, m);
+  var tgtInp = document.getElementById('mob-dash-target');
+  if (tgtInp && tgt && tgt.revenue) tgtInp.value = tgt.revenue;
+  var tbar = document.getElementById('mob-target-bar');
+  if (tbar) {
+    if (tgt && tgt.revenue) {
+      var pct = Math.min(100, (tot.qr/tgt.revenue*100));
+      var col = pct>=100?'#16a34a':pct>=75?'#d97706':'#dc2626';
+      var lbl = pct>=100?'🎉 Target reached!':pct>=75?'⚡ On track':'⚠️ Below target';
+      tbar.innerHTML = '<div style="background:#fff;border-radius:12px;padding:12px;box-shadow:0 1px 6px rgba(0,0,0,.06)">' +
+        '<div style="display:flex;justify-content:space-between;margin-bottom:8px">' +
+          '<div style="font-size:11px;font-weight:700;color:#64748b">Monthly Target</div>' +
+          '<div style="font-size:11px;font-weight:800;color:'+col+'">'+lbl+'</div>' +
+        '</div>' +
+        '<div style="background:#f1f5f9;border-radius:20px;height:8px;overflow:hidden;margin-bottom:5px">' +
+          '<div style="background:'+col+';height:100%;width:'+pct+'%;border-radius:20px"></div>' +
+        '</div>' +
+        '<div style="display:flex;justify-content:space-between;font-size:10px;color:#64748b">' +
+          '<span>'+f2(tot.qr)+' QR</span><span style="font-weight:800;color:'+col+'">'+pct.toFixed(1)+'%</span><span>'+f2(tgt.revenue)+' QR</span>' +
+        '</div></div>';
+    } else { tbar.innerHTML = ''; }
+  }
+
+  // Notifications
+  var notif = document.getElementById('mob-dash-notif');
+  if (notif) {
+    var today = new Date(); var miss = 0;
+    if (CY===today.getFullYear() && m===today.getMonth()+1) {
+      for (var dd=1;dd<today.getDate();dd++) { if(dayTotals(CY,m,dd).qr===0) miss++; }
+    }
+    notif.textContent = miss>0 ? '⚠️' : (tgt&&tgt.revenue&&tot.qr>=tgt.revenue ? '🎉' : '');
+    notif.title = miss>0 ? miss+' days missing data' : '';
+  }
+
+  // Dept table
+  var dtbl = document.getElementById('mob-dept-table');
+  if (dtbl) {
+    var deptColors = {'Rooms Linen':'#0284c7','F & B':'#16a34a','Spa & Pool':'#0891b2','Uniform':'#7c3aed','Others':'#d97706','Dry Cleaning':'#ea580c'};
+    var html = '';
+    DEPT_KEYS.forEach(function(dept) {
+      var dRev = tot.byDept[dept]?.qr || 0;
+      var pct2 = tot.qr>0 ? (dRev/tot.qr*100) : 0;
+      var col2 = deptColors[dept] || '#64748b';
+      html += '<div style="display:flex;align-items:center;padding:11px 14px;border-bottom:1px solid #f1f5f9">' +
+        '<div style="width:32px;height:32px;border-radius:8px;background:'+col2+'22;display:flex;align-items:center;justify-content:center;font-size:15px;margin-right:10px;flex-shrink:0">'+(DEPT_ICONS[dept]||'📦')+'</div>' +
+        '<div style="flex:1;min-width:0">' +
+          '<div style="font-size:12px;font-weight:700;color:#0d1b2e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+dept+'</div>' +
+          '<div style="background:#f1f5f9;border-radius:4px;height:4px;margin-top:4px;overflow:hidden">' +
+            '<div style="background:'+col2+';height:100%;width:'+Math.min(100,pct2)+'%"></div>' +
+          '</div>' +
+        '</div>' +
+        '<div style="text-align:right;margin-left:10px;flex-shrink:0">' +
+          '<div style="font-size:13px;font-weight:800;color:'+col2+'">'+(dRev>0?f2(dRev):'—')+'</div>' +
+          '<div style="font-size:10px;color:#94a3b8">'+pct2.toFixed(1)+'%</div>' +
+        '</div>' +
+      '</div>';
+    });
+    dtbl.innerHTML = html || '<div style="padding:16px;text-align:center;color:#94a3b8;font-size:13px">No data for this month</div>';
+  }
+}
+
+function mobSaveTarget() {
+  var m = parseInt(document.getElementById('mob-dash-month')?.value || new Date().getMonth()+1);
+  var val = parseFloat(document.getElementById('mob-dash-target')?.value) || 0;
+  saveTarget(CY, m, {revenue:val});
+  // Also sync desktop target
+  var dtInp = document.getElementById('dash-target');
+  if (dtInp) dtInp.value = val;
+  toast('✅ Target saved — '+f2(val)+' QR', 'ok');
+  mobRenderDash();
+}
+
+// ── Mobile Entry ──────────────────────────────────────────────
+function mobBuildDays() {
+  var m = parseInt(document.getElementById('mob-ent-month')?.value || new Date().getMonth()+1);
+  var nd = dim(CY, m);
+  var sel = document.getElementById('mob-ent-day');
+  if (!sel) return;
+  var today = new Date();
+  var todayD = (today.getMonth()+1===m && today.getFullYear()===CY) ? today.getDate() : 1;
+  sel.innerHTML = '';
+  for (var d=1;d<=nd;d++) {
+    var o = document.createElement('option');
+    o.value = d;
+    o.textContent = d + ' — ' + DAY_NAMES[new Date(CY,m-1,d).getDay()];
+    if (d===todayD) o.selected = true;
+    sel.appendChild(o);
+  }
+}
+
+function mobOnMonthChange() {
+  mobBuildDays(); mobRenderEntry();
+}
+
+function mobRenderEntry() {
+  var m = parseInt(document.getElementById('mob-ent-month')?.value || new Date().getMonth()+1);
+  var day = parseInt(document.getElementById('mob-ent-day')?.value || 1);
+  if (!_mobEntDept) _mobEntDept = DEPT_KEYS[0];
+
+  // Dept tabs
+  var tabsEl = document.getElementById('mob-dept-tabs');
+  if (tabsEl) {
+    tabsEl.innerHTML = '';
+    DEPT_KEYS.forEach(function(d) {
+      var isActive = d === _mobEntDept;
+      var btn = document.createElement('div');
+      btn.style.cssText = 'padding:7px 12px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;' + (isActive?'background:#0d1b2e;color:#c9a84c;':'background:#f1f5f9;color:#64748b;');
+      btn.textContent = (DEPT_ICONS[d]||'') + ' ' + d;
+      btn.onclick = (function(dept){ return function(){ mobSetDept(dept); }; })(d);
+      tabsEl.appendChild(btn);
+    });
+  }
+
+  // Header
+  var hdr = document.getElementById('mob-ent-dept-label');
+  var datelbl = document.getElementById('mob-ent-date-label');
+  if (hdr) hdr.textContent = (DEPT_ICONS[_mobEntDept]||'') + ' ' + _mobEntDept;
+  if (datelbl) datelbl.textContent = DAY_NAMES[new Date(CY,m-1,day).getDay()] + ' ' + day + ' ' + MONTH_NAMES[m-1] + ' ' + CY;
+
+  // Entry table
+  var tbl = document.getElementById('mob-ent-table');
+  if (tbl && MASTER[_mobEntDept]) {
+    var html = '';
+    MASTER[_mobEntDept].forEach(function(item, i) {
+      var v = getVal(CY, m, _mobEntDept, i, day-1);
+      var pr = PRICES[_mobEntDept]?.[i]?.[1] ?? MASTER[_mobEntDept][i][1];
+      var cost = (v * pr).toFixed(2);
+      html += '<div style="display:flex;align-items:center;padding:11px 14px;border-bottom:1px solid #f8fafc">' +
+        '<div style="flex:1;min-width:0">' +
+          '<div style="font-size:13px;font-weight:600;color:#0d1b2e">' + item[0] + '</div>' +
+          '<div style="font-size:10px;color:#94a3b8;margin-top:1px">' + pr.toFixed(4) + ' QR' + (v>0?' · '+cost+' QR':'') + '</div>' +
+        '</div>' +
+        '<input type="number" id="mob-qi-'+i+'" value="'+(v||'')+'" min="0" placeholder="0" ' +
+          'style="width:72px;padding:8px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:16px;font-weight:700;text-align:center;color:#0d1b2e;background:#fff;outline:none" ' +
+          'oninput="mobUpdateStats('+m+','+day+')" ' +
+          'onfocus="this.select()">' +
+      '</div>';
+    });
+    tbl.innerHTML = html || '<div style="padding:16px;text-align:center;color:#94a3b8">No items</div>';
+  }
+
+  mobUpdateStats(m, day);
+}
+
+function mobSetDept(dept) {
+  _mobEntDept = dept;
+  mobRenderEntry();
+}
+
+function mobUpdateStats(m, day) {
+  var dQR=0, dKG=0, depQR=0, depKG=0, depPCS=0;
+  DEPT_KEYS.forEach(function(d) {
+    MASTER[d].forEach(function(_, i) {
+      var v;
+      if (d===_mobEntDept) { var inp=document.getElementById('mob-qi-'+i); v=inp?(parseInt(inp.value)||0):getVal(CY,m,d,i,day-1); }
+      else { v=getVal(CY,m,d,i,day-1); }
+      var pr=PRICES[d]?.[i]?.[1]??MASTER[d][i][1];
+      var kg=PRICES[d]?.[i]?.[2]??MASTER[d][i][2];
+      dQR+=v*pr; dKG+=v*kg;
+      if(d===_mobEntDept){depQR+=v*pr;depKG+=v*kg;depPCS+=v;}
+    });
+  });
+  var statsEl = document.getElementById('mob-ent-stats');
+  if (statsEl) {
+    var dn = DAY_NAMES[new Date(CY,m-1,day).getDay()];
+    statsEl.innerHTML = [
+      {label:'Day Total',val:f2(dQR)+' QR',sub:'All depts · '+dn+' '+day,col:'#0284c7',bg:'#eff6ff'},
+      {label:'Day KG',val:dKG.toFixed(2)+' kg',sub:'All departments',col:'#16a34a',bg:'#f0fdf4'},
+      {label:_mobEntDept+' Rev',val:f2(depQR)+' QR',sub:depKG.toFixed(2)+' kg',col:'#d97706',bg:'#fffbeb'},
+      {label:_mobEntDept+' Pcs',val:depPCS+'',sub:'Total pieces',col:'#7c3aed',bg:'#f5f3ff'}
+    ].map(function(c) {
+      return '<div style="background:'+c.bg+';border-radius:12px;padding:11px 12px;border-left:3px solid '+c.col+'">' +
+        '<div style="font-size:9px;font-weight:800;color:'+c.col+';letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px">'+c.label+'</div>' +
+        '<div style="font-size:17px;font-weight:800;color:#0d1b2e">'+c.val+'</div>' +
+        '<div style="font-size:10px;color:#94a3b8;margin-top:2px">'+c.sub+'</div>' +
+      '</div>';
+    }).join('');
+  }
+}
+
+function mobSaveDay() {
+  var m = parseInt(document.getElementById('mob-ent-month')?.value || 1);
+  var day = parseInt(document.getElementById('mob-ent-day')?.value || 1);
+  // Check price conflict
+  var hasDiff = false; var sItem='', sOld=0, sNew=0;
+  MASTER[_mobEntDept].forEach(function(_,i) {
+    var locked=getLockedPrice(CY,m,_mobEntDept,i,day-1);
+    if(locked===null) return;
+    var cur=getPriceForDate(_mobEntDept,i,CY,m,day);
+    if(Math.abs(locked-cur)>0.0001 && !hasDiff){hasDiff=true;sItem=getN(_mobEntDept,i);sOld=locked;sNew=cur;}
+  });
+  if (hasDiff) { showPriceConflictWarning(m,day,sItem,sOld,sNew); return; }
+  mobSaveDayConfirmed(m, day, true);
+}
+
+function mobSaveDayConfirmed(m, day, updatePrices) {
+  MASTER[_mobEntDept].forEach(function(_,i) {
+    var inp=document.getElementById('mob-qi-'+i);
+    if(inp) setVal(CY,m,_mobEntDept,i,day-1,Math.max(0,parseInt(inp.value)||0));
+  });
+  if (updatePrices) { MASTER[_mobEntDept].forEach(function(_,i){lockPriceAtSave(CY,m,_mobEntDept,i,day-1);}); }
+  stampTimestamps(CY,m,_mobEntDept,day);
+  commitSave(CY);
+  logAudit('SAVE_DAY',_mobEntDept+' · Day '+day+' '+MONTH_NAMES[m-1]+' '+CY+' [mobile]');
+  toast('✔ Saved — '+_mobEntDept+' day '+day,'ok');
+  mobUpdateStats(m,day);
+  setTimeout(autoCloudBackup,2000);
+}
+
+function mobCopyDay() {
+  var m=parseInt(document.getElementById('mob-ent-month')?.value||1);
+  var day=parseInt(document.getElementById('mob-ent-day')?.value||1);
+  var values=[];
+  MASTER[_mobEntDept].forEach(function(_,i){var inp=document.getElementById('mob-qi-'+i);values.push(inp?parseInt(inp.value)||0:getVal(CY,m,_mobEntDept,i,day-1));});
+  _mobDayClip={dept:_mobEntDept,month:m,day:day,values:values};
+  var btn=document.getElementById('mob-btn-paste');
+  if(btn){btn.style.background='#eff6ff';btn.style.color='#1d4ed8';btn.style.borderColor='#93c5fd';btn.textContent='📌 Paste Ready';}
+  toast('📋 Copied '+_mobEntDept+' Day '+day,'ok');
+}
+
+function mobPasteDay() {
+  if(!_mobDayClip){toast('Nothing copied yet','err');return;}
+  var m=parseInt(document.getElementById('mob-ent-month')?.value||1);
+  var day=parseInt(document.getElementById('mob-ent-day')?.value||1);
+  var dept=_mobDayClip.dept;
+  _mobDayClip.values.forEach(function(v,i){
+    var inp=document.getElementById('mob-qi-'+i);
+    if(inp && MASTER[dept] && MASTER[dept][i]) inp.value=v||'';
+  });
+  mobUpdateStats(m,day);
+  toast('📌 Pasted '+dept+' → Day '+day,'ok');
+}
+
+function mobClearDay() {
+  if(!confirm('Clear all quantities for '+_mobEntDept+' on this day?')) return;
+  var m=parseInt(document.getElementById('mob-ent-month')?.value||1);
+  var day=parseInt(document.getElementById('mob-ent-day')?.value||1);
+  MASTER[_mobEntDept].forEach(function(_,i){setVal(CY,m,_mobEntDept,i,day-1,0);});
+  commitSave(CY);
+  mobRenderEntry();
+  toast('🗑 Cleared','ok');
+}
+
+// ── Mobile Finance ────────────────────────────────────────────
+function mobRenderFinance() {
+  var m = parseInt(document.getElementById('mob-fin-month')?.value || new Date().getMonth()+1);
+  var nd = dim(CY, m);
+  // Carry from prev month
+  var prevM=m===1?12:m-1, prevY=m===1?CY-1:CY;
+  var prevNd=dim(prevY,prevM);
+  var prevCarry=0;
+  var prevPR=loadPR(prevY);
+  DEPT_KEYS.forEach(function(dept){MASTER[dept].forEach(function(_,i){prevCarry+=getVal(prevY,prevM,dept,i,prevNd-1)*(prevPR[dept]?.[i]?.[1]??MASTER[dept][i][1]);});});
+  var daysPosted=0;
+  for(var dd=1;dd<=nd-1;dd++){daysPosted+=dayTotals(CY,m,dd).qr;}
+  var finTotal=prevCarry+daysPosted;
+  var tot=monthTotals(CY,m);
+  // Cards
+  var cards=document.getElementById('mob-fin-cards');
+  if(cards){
+    cards.innerHTML=[
+      {label:'Finance Posted',val:f2(finTotal)+' QR',sub:'Carry + Days 1–'+(nd-1),grad:'linear-gradient(135deg,#0e7490,#0891b2)',shadow:'rgba(8,145,178,.25)'},
+      {label:'Monthly Revenue',val:f2(tot.qr)+' QR',sub:MONTH_NAMES[m-1]+' received',grad:'linear-gradient(135deg,#15803d,#16a34a)',shadow:'rgba(22,163,74,.25)'},
+      {label:'Carry from '+MONTH_NAMES[prevM-1],val:f2(prevCarry)+' QR',sub:'Last day carry-in',grad:'linear-gradient(135deg,#6d28d9,#7c3aed)',shadow:'rgba(124,58,237,.25)'},
+      {label:'Days Entered',val:String(nd-1),sub:'Days 1–'+(nd-1)+' posted',grad:'linear-gradient(135deg,#334155,#475569)',shadow:'rgba(51,65,85,.25)'}
+    ].map(function(c){
+      return '<div style="background:'+c.grad+';border-radius:14px;padding:14px 12px;box-shadow:0 6px 18px '+c.shadow+'">' +
+        '<div style="font-size:9px;font-weight:800;color:rgba(255,255,255,.65);letter-spacing:1px;margin-bottom:4px;text-transform:uppercase">'+c.label+'</div>' +
+        '<div style="font-size:18px;font-weight:900;color:#fff;line-height:1.1">'+c.val+'</div>' +
+        '<div style="font-size:10px;color:rgba(255,255,255,.55);margin-top:2px">'+c.sub+'</div>' +
+      '</div>';
+    }).join('');
+  }
+  // Table
+  var tbl=document.getElementById('mob-fin-table');
+  if(tbl){
+    var html='<table style="width:100%;border-collapse:collapse;font-size:12px">' +
+      '<thead><tr style="background:#f8fafc">' +
+      '<th style="padding:8px 10px;text-align:left;color:#64748b;font-size:10px;border-bottom:1.5px solid #e2e8f0">DAY</th>' +
+      '<th style="padding:8px 10px;text-align:right;color:#64748b;font-size:10px;border-bottom:1.5px solid #e2e8f0">REVENUE</th>' +
+      '<th style="padding:8px 10px;text-align:right;color:#64748b;font-size:10px;border-bottom:1.5px solid #e2e8f0">KG</th>' +
+      '</tr></thead><tbody>';
+    for(var d=1;d<=nd;d++){
+      var dt=dayTotals(CY,m,d);
+      var bg=d%2===0?'#fff':'#f8fafc';
+      var isToday=new Date().getDate()===d&&new Date().getMonth()+1===m&&new Date().getFullYear()===CY;
+      html+='<tr style="background:'+(isToday?'#eff6ff':bg)+'">' +
+        '<td style="padding:8px 10px;font-weight:700;color:#0d1b2e">'+DAY_NAMES[new Date(CY,m-1,d).getDay()].slice(0,3)+' '+d+(isToday?' •':'')+' </td>' +
+        '<td style="padding:8px 10px;text-align:right;color:#15803d;font-weight:600">'+(dt.qr>0?f2(dt.qr):'—')+'</td>' +
+        '<td style="padding:8px 10px;text-align:right;color:#b45309">'+(dt.kg>0?dt.kg.toFixed(1):'—')+'</td>' +
+      '</tr>';
+    }
+    html+='<tr style="background:#0d1b2e;color:#c9a84c;font-weight:800">' +
+      '<td style="padding:9px 10px">TOTAL</td>' +
+      '<td style="padding:9px 10px;text-align:right">'+f2(tot.qr)+'</td>' +
+      '<td style="padding:9px 10px;text-align:right">'+tot.kg.toFixed(1)+'</td>' +
+    '</tr></tbody></table>';
+    tbl.innerHTML=html;
+  }
+}
+
+// Hook into doLogin to init mobile
+var _origDoLogin = null;
+
 function showGuideSection(idx) {
   // Hide all sections
   document.querySelectorAll('.gs-section').forEach(function(el){ el.classList.remove('active'); });
@@ -8154,7 +8773,18 @@ function toast(msg, type = '') {
   if (window._fbReady) {
     preSyncCreds(function(){});
   } else {
-    window.addEventListener('fb-ready', function() { preSyncCreds(function(){}); });
+    window.addEventListener('resize', function() {
+  var mob = document.getElementById('mob-app');
+  var desk = document.getElementById('pg-app');
+  if (!mob || !desk) return;
+  var mobV = mob.style.display === 'flex';
+  var deskV = desk.style.display === 'flex';
+  if (!mobV && !deskV) return;
+  if (isMobile() && deskV) { desk.style.display='none'; mob.style.display='flex'; initMobileApp(); }
+  else if (!isMobile() && mobV) { mob.style.display='none'; desk.style.display='flex'; }
+});
+
+window.addEventListener('fb-ready', function() { preSyncCreds(function(){}); });
   }
 })();
 
