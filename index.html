@@ -997,225 +997,286 @@ var _fbDB = null;
 
   <!-- PRICES -->
   <div class="pg" id="tab-prices">
-    <div class="ph"><h1>⚙️ Prices &amp; Weights</h1><p>Manage unit prices (QR) and weights (KG) per department — changes affect all revenue and KG calculations</p></div>
+    <div class="ph"><h1>⚙️ Prices &amp; Weights</h1><p>Manage unit prices (QR) and weights (KG) per department</p></div>
 
-    <!-- ── TOOL CARDS GRID ── -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px">
+    <!-- ── SUB-TAB NAV ── -->
+    <div style="display:flex;gap:0;border-bottom:2px solid #e2e8f0;margin-bottom:20px">
+      <button id="ptab-btn-list" onclick="showPriceSubTab('list')" style="padding:10px 22px;font-size:13px;font-weight:700;border:none;border-bottom:3px solid #0d1b2e;background:none;color:#0d1b2e;cursor:pointer;margin-bottom:-2px">📋 Price List</button>
+      <button id="ptab-btn-tools" onclick="showPriceSubTab('tools')" style="padding:10px 22px;font-size:13px;font-weight:600;border:none;border-bottom:3px solid transparent;background:none;color:#64748b;cursor:pointer;margin-bottom:-2px">🔧 Tools</button>
+      <button id="ptab-btn-schedules" onclick="showPriceSubTab('schedules')" style="padding:10px 22px;font-size:13px;font-weight:600;border:none;border-bottom:3px solid transparent;background:none;color:#64748b;cursor:pointer;margin-bottom:-2px">📅 Price Schedules</button>
+    </div>
 
-      <!-- Card 1: Copy from Year -->
-      <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:20px">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
-          <div style="width:32px;height:32px;background:#eff6ff;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px">📋</div>
-          <div>
-            <div style="font-size:13px;font-weight:800;color:#0d1b2e">Copy Prices from Another Year</div>
-            <div style="font-size:11px;color:#94a3b8">Duplicate a full year's price list</div>
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- SUB-TAB 1: PRICE LIST                                      -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div id="ptab-list">
+      <div class="dept-tabs" id="price-tabs"></div>
+      <div id="price-wrap"></div>
+      <div style="margin-top:16px;background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:16px 20px">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-bottom:14px;border-bottom:1.5px solid #f1f5f9;margin-bottom:14px">
+          <button class="btn-save green" onclick="savePrices()" style="font-size:13px;padding:10px 22px">💾 Save Prices &amp; Weights</button>
+          <div style="font-size:11px;color:#94a3b8">Saves price (QR) and weight (KG) for current department</div>
+          <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn-bulk" onclick="openAddItem()" style="background:#eff6ff;border-color:#3b82f6;color:#1d4ed8">➕ Add Item</button>
+            <button class="btn-bulk" onclick="openAddDept()" style="background:#fdf4ff;border-color:#a855f7;color:#7e22ce">🏢 Add Dept</button>
+            <button class="btn-clear" onclick="resetPrices()">↩ Reset</button>
           </div>
         </div>
-        <div style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span style="font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:1px">EXPORT / IMPORT</span>
+          <button class="btn-import" onclick="exportPricesExcel('price')" style="padding:8px 14px;font-size:12px">📥 Prices CSV</button>
+          <button class="btn-import" onclick="exportPricesExcel('both')" style="padding:8px 14px;font-size:12px">📥 Prices + KG CSV</button>
           <div>
-            <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">FROM YEAR</div>
-            <select id="pcopy-from" style="padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;min-width:90px"></select>
+            <input type="file" id="import-prices-file" accept=".csv" style="display:none" onchange="importPricesFromCSV(this)">
+            <button class="btn-import" onclick="document.getElementById('import-prices-file').click()" style="padding:8px 14px;font-size:12px;background:#f0fdf4;border-color:#16a34a;color:#15803d">📤 Import CSV</button>
           </div>
-          <div style="font-size:18px;color:#94a3b8;padding-bottom:4px">→</div>
-          <div>
-            <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">INTO YEAR</div>
-            <select id="pcopy-to" style="padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;min-width:90px"></select>
-          </div>
-          <div>
-            <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">DEPARTMENT</div>
-            <select id="pcopy-dept" style="padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;min-width:140px">
-              <option value="ALL">All Departments</option>
-            </select>
-          </div>
-        </div>
-        <div style="margin-top:12px;display:flex;align-items:center;gap:10px">
-          <button onclick="applyCopyPrices()" style="padding:8px 18px;background:#0284c7;color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer" onmouseover="this.style.background='#0369a1'" onmouseout="this.style.background='#0284c7'">📋 Copy Prices</button>
-          <div id="pcopy-msg" style="font-size:12px;font-weight:600;color:#16a34a"></div>
-        </div>
-      </div>
-
-      <!-- Card 2: Bulk Adjust % -->
-      <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:20px">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
-          <div style="width:32px;height:32px;background:#f0fdf4;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px">📊</div>
-          <div>
-            <div style="font-size:13px;font-weight:800;color:#0d1b2e">Bulk Price Adjustment by %</div>
-            <div style="font-size:11px;color:#94a3b8">Increase or decrease all prices at once</div>
-          </div>
-        </div>
-        <div style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap">
-          <div>
-            <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">YEAR</div>
-            <select id="padj-year" style="padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;min-width:90px"></select>
-          </div>
-          <div>
-            <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">DEPARTMENT</div>
-            <select id="padj-dept" style="padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;min-width:140px">
-              <option value="ALL">All Departments</option>
-            </select>
-          </div>
-          <div>
-            <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">ADJUST %</div>
-            <div style="display:flex;align-items:center;gap:5px">
-              <input id="padj-pct" type="number" step="0.1" placeholder="e.g. -3.5" style="padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;width:110px;outline:none" oninput="previewPadj()">
-              <span style="font-size:14px;font-weight:700;color:#64748b">%</span>
+          <div style="margin-left:auto;position:relative">
+            <button onclick="togglePricePDFMenu(event)" style="background:#fff7ed;border:1.5px solid #ea580c;color:#c2410c;border-radius:7px;font-weight:700;padding:8px 18px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:6px">🖨️ Print / PDF <span style="font-size:10px;opacity:.7">▾</span></button>
+            <div id="price-pdf-menu" style="display:none;position:absolute;top:calc(100% + 5px);right:0;background:#fff;border:1.5px solid #e2e8f0;border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,.14);z-index:700;min-width:200px;overflow:hidden">
+              <div style="padding:7px 13px;font-size:10px;font-weight:800;letter-spacing:1.5px;color:#94a3b8;text-transform:uppercase;background:#f8fafc;border-bottom:1px solid #e2e8f0">Choose Content</div>
+              <button onclick="closePricePDFMenu();printPricesPDF('both')" style="display:flex;align-items:center;gap:9px;width:100%;text-align:left;padding:11px 15px;border:none;background:none;font-size:13px;font-weight:600;color:#1a2332;cursor:pointer;border-bottom:1px solid #f1f5f9" onmouseover="this.style.background='#fff7ed'" onmouseout="this.style.background='none'">💰⚖️ Prices + Weight</button>
+              <button onclick="closePricePDFMenu();printPricesPDF('price')" style="display:flex;align-items:center;gap:9px;width:100%;text-align:left;padding:11px 15px;border:none;background:none;font-size:13px;font-weight:600;color:#1a2332;cursor:pointer;border-bottom:1px solid #f1f5f9" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='none'">💰 Prices Only (QR)</button>
+              <button onclick="closePricePDFMenu();printPricesPDF('kg')" style="display:flex;align-items:center;gap:9px;width:100%;text-align:left;padding:11px 15px;border:none;background:none;font-size:13px;font-weight:600;color:#1a2332;cursor:pointer" onmouseover="this.style.background='#f0fdf4'" onmouseout="this.style.background='none'">⚖️ Weight Only (KG)</button>
             </div>
           </div>
         </div>
-        <div style="margin-top:10px">
-          <div id="padj-preview" style="font-size:11.5px;font-weight:600;color:#64748b;padding:7px 10px;background:#f8fafc;border-radius:7px;min-height:32px;line-height:1.5;margin-bottom:10px">Enter % to preview changes</div>
-          <button onclick="applyPadj()" style="padding:8px 18px;background:var(--navy);color:var(--gold);border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer" onmouseover="this.style.background='var(--navy2)'" onmouseout="this.style.background='var(--navy)'">✅ Apply Adjustment</button>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- SUB-TAB 2: TOOLS                                           -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div id="ptab-tools" style="display:none">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px">
+
+        <!-- Copy from Year -->
+        <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:20px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+            <div style="width:32px;height:32px;background:#eff6ff;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px">📋</div>
+            <div>
+              <div style="font-size:13px;font-weight:800;color:#0d1b2e">Copy Prices from Another Year</div>
+              <div style="font-size:11px;color:#94a3b8">Duplicate a full year's price list into another year</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap">
+            <div>
+              <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">FROM YEAR</div>
+              <select id="pcopy-from" style="padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;min-width:90px"></select>
+            </div>
+            <div style="font-size:18px;color:#94a3b8;padding-bottom:4px">→</div>
+            <div>
+              <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">INTO YEAR</div>
+              <select id="pcopy-to" style="padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;min-width:90px"></select>
+            </div>
+            <div>
+              <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">DEPARTMENT</div>
+              <select id="pcopy-dept" style="padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;min-width:140px">
+                <option value="ALL">All Departments</option>
+              </select>
+            </div>
+          </div>
+          <div style="margin-top:12px;display:flex;align-items:center;gap:10px">
+            <button onclick="applyCopyPrices()" style="padding:8px 18px;background:#0284c7;color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer" onmouseover="this.style.background='#0369a1'" onmouseout="this.style.background='#0284c7'">📋 Copy Prices</button>
+            <div id="pcopy-msg" style="font-size:12px;font-weight:600;color:#16a34a"></div>
+          </div>
+        </div>
+
+        <!-- Bulk Adjust -->
+        <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:20px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+            <div style="width:32px;height:32px;background:#f0fdf4;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px">📊</div>
+            <div>
+              <div style="font-size:13px;font-weight:800;color:#0d1b2e">Bulk Price Adjustment by %</div>
+              <div style="font-size:11px;color:#94a3b8">Increase or decrease all prices at once. Negative = decrease.</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap">
+            <div>
+              <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">YEAR</div>
+              <select id="padj-year" style="padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;min-width:90px"></select>
+            </div>
+            <div>
+              <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">DEPARTMENT</div>
+              <select id="padj-dept" style="padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;min-width:140px">
+                <option value="ALL">All Departments</option>
+              </select>
+            </div>
+            <div>
+              <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">ADJUST %</div>
+              <div style="display:flex;align-items:center;gap:5px">
+                <input id="padj-pct" type="number" step="0.1" placeholder="e.g. -3.5" style="padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;width:110px;outline:none" oninput="previewPadj()">
+                <span style="font-size:14px;font-weight:700;color:#64748b">%</span>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:10px">
+            <div id="padj-preview" style="font-size:11.5px;font-weight:600;color:#64748b;padding:7px 10px;background:#f8fafc;border-radius:7px;min-height:32px;line-height:1.5;margin-bottom:10px">Enter % to preview changes</div>
+            <button onclick="applyPadj()" style="padding:8px 18px;background:var(--navy);color:var(--gold);border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer" onmouseover="this.style.background='var(--navy2)'" onmouseout="this.style.background='var(--navy)'">✅ Apply Adjustment</button>
+          </div>
+        </div>
+
+        <!-- Import from Excel -->
+        <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:20px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+            <div style="width:32px;height:32px;background:#f0fdf4;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px">📥</div>
+            <div>
+              <div style="font-size:13px;font-weight:800;color:#0d1b2e">Import Prices from Excel</div>
+              <div style="font-size:11px;color:#94a3b8">Upload .xlsx to update prices/weights · <a href="#" onclick="downloadPriceTemplate();return false;" style="color:#0284c7;font-weight:700;text-decoration:none">⬇️ Download template</a></div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+            <div>
+              <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">UPDATE YEAR</div>
+              <select id="pxl-year" style="padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;min-width:90px"></select>
+            </div>
+            <div>
+              <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">MODE</div>
+              <select id="pxl-mode" style="padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;min-width:180px">
+                <option value="prices">Prices Only (QR)</option>
+                <option value="both">Prices + Weight (QR &amp; KG)</option>
+              </select>
+            </div>
+            <div>
+              <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">FILE</div>
+              <label style="display:inline-flex;align-items:center;gap:8px;padding:8px 14px;background:#f0fdf4;border:1.5px solid #16a34a;border-radius:7px;font-size:12px;font-weight:700;color:#15803d;cursor:pointer">
+                📂 Choose File
+                <input type="file" id="pxl-file" accept=".xlsx" style="display:none" onchange="previewPriceXL(this)">
+              </label>
+            </div>
+          </div>
+          <div id="pxl-filename" style="font-size:12px;font-weight:600;color:#64748b;margin-bottom:8px"></div>
+          <div id="pxl-preview" style="display:none;margin-bottom:12px"></div>
+          <div style="display:flex;gap:10px;align-items:center">
+            <button id="pxl-apply-btn" onclick="applyPriceXL()" style="display:none;padding:8px 20px;background:#0284c7;color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer">✅ Apply Prices</button>
+            <div id="pxl-msg" style="font-size:12px;font-weight:600;color:#16a34a"></div>
+          </div>
+        </div>
+
+        <!-- Import from CSV -->
+        <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:20px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+            <div style="width:32px;height:32px;background:#eff6ff;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px">📤</div>
+            <div>
+              <div style="font-size:13px;font-weight:800;color:#0d1b2e">Export / Import CSV</div>
+              <div style="font-size:11px;color:#94a3b8">Export prices to CSV or import back after editing</div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn-import" onclick="exportPricesExcel('price')" style="padding:9px 16px;font-size:12px">📥 Export Prices Only</button>
+              <button class="btn-import" onclick="exportPricesExcel('both')" style="padding:9px 16px;font-size:12px">📥 Export Prices + KG</button>
+            </div>
+            <div>
+              <input type="file" id="import-prices-file" accept=".csv" style="display:none" onchange="importPricesFromCSV(this)">
+              <button class="btn-import" onclick="document.getElementById('import-prices-file').click()" style="padding:9px 16px;font-size:12px;background:#f0fdf4;border-color:#16a34a;color:#15803d">📤 Import Prices from CSV</button>
+              <div style="font-size:11px;color:#94a3b8;margin-top:6px">Upload a .csv file in the same format as the export. Items matched by name.</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- SUB-TAB 3: PRICE SCHEDULES                                 -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div id="ptab-schedules" style="display:none">
+
+      <!-- How it works info box -->
+      <div style="background:#f5f3ff;border:1.5px solid #c4b5fd;border-radius:14px;padding:18px 20px;margin-bottom:18px">
+        <div style="font-size:13px;font-weight:800;color:#6d28d9;margin-bottom:10px">📖 How Price Schedules Work</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;font-size:12px;color:#4c1d95">
+          <div style="background:#fff;border-radius:8px;padding:12px">
+            <div style="font-weight:800;margin-bottom:4px">1️⃣ Save original prices</div>
+            Set effective date → Jan 1 → Save as Scheduled Prices. This locks current prices for Jan onwards.
+          </div>
+          <div style="background:#fff;border-radius:8px;padding:12px">
+            <div style="font-weight:800;margin-bottom:4px">2️⃣ Apply new prices</div>
+            Use Bulk Adjust % or edit prices manually → Save Prices &amp; Weights.
+          </div>
+          <div style="background:#fff;border-radius:8px;padding:12px">
+            <div style="font-weight:800;margin-bottom:4px">3️⃣ Save new prices</div>
+            Set effective date → April 1 → Save as Scheduled Prices. April onwards uses new prices.
+          </div>
+          <div style="background:#fff;border-radius:8px;padding:12px">
+            <div style="font-weight:800;margin-bottom:4px">✅ Result</div>
+            Jan–Mar use old prices. April onwards uses new prices. All data untouched.
+          </div>
         </div>
       </div>
 
-    </div><!-- end grid -->
-
-    <!-- Section 3: Effective Date Price Schedule — full width -->
-    <div style="background:#fff;border:1.5px solid #c4b5fd;border-radius:14px;padding:20px;margin-bottom:18px">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-        <div style="width:32px;height:32px;background:#f5f3ff;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px">📅</div>
-        <div>
-          <div style="font-size:13px;font-weight:800;color:#0d1b2e">Price Change Effective Date</div>
-          <div style="font-size:11px;color:#94a3b8">Set new prices from a specific month or date — old data keeps old prices automatically</div>
-        </div>
-      </div>
-      <div style="font-size:12px;color:#7c3aed;background:#f5f3ff;border-radius:8px;padding:8px 12px;margin-bottom:14px">
-        💡 <strong>Tip:</strong> First save current prices as a schedule for the current period, then apply your adjustment, then save again for the new period.
-      </div>
-      <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;padding-bottom:16px;border-bottom:1.5px solid #f1f5f9;margin-bottom:16px">
-        <div>
-          <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">QUICK MONTH PICK</div>
-          <select id="psch-month-quick" onchange="pschQuickMonth(this.value)" style="padding:7px 10px;border:1.5px solid #c4b5fd;border-radius:7px;font-size:13px;font-weight:600;color:#7c3aed;background:#faf5ff;min-width:140px">
-            <option value="">— Pick a month —</option>
-            <option value="1">January</option><option value="2">February</option><option value="3">March</option>
-            <option value="4">April</option><option value="5">May</option><option value="6">June</option>
-            <option value="7">July</option><option value="8">August</option><option value="9">September</option>
-            <option value="10">October</option><option value="11">November</option><option value="12">December</option>
-          </select>
-        </div>
-        <div style="font-size:12px;color:#94a3b8;padding-bottom:8px">or set exact date →</div>
-        <div>
-          <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">EFFECTIVE FROM DATE</div>
-          <input type="date" id="psch-date" style="padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;outline:none">
-        </div>
-        <div>
-          <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">YEAR</div>
-          <select id="psch-year" style="padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;min-width:90px"></select>
-        </div>
-        <div>
-          <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">DEPARTMENT</div>
-          <select id="psch-dept" style="padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;min-width:150px">
-            <option value="ALL">All Departments</option>
-          </select>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:5px;align-self:flex-end">
-          <button onclick="scheduleCurrentPrices()" style="padding:9px 20px;background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">📅 Save as Scheduled Prices</button>
-          <div style="font-size:10px;color:#94a3b8;text-align:center">Captures current prices table as new schedule</div>
-        </div>
-        <div id="psch-msg" style="font-size:12px;font-weight:600;color:#16a34a;align-self:flex-end;padding-bottom:8px"></div>
-      </div>
-      <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:8px;letter-spacing:.8px">ACTIVE PRICE SCHEDULES</div>
-      <div id="psch-list" style="font-size:12px;color:#64748b">Loading...</div>
-
-      <!-- Emergency reverse-adjust tool -->
-      <div id="psch-fix-tool" style="margin-top:14px;padding:14px;background:#fff5f5;border:1.5px solid #fca5a5;border-radius:10px;display:none">
-        <div style="font-size:12px;font-weight:800;color:#dc2626;margin-bottom:8px">🛠 Fix Schedule — Reverse % Adjustment</div>
-        <div style="font-size:11px;color:#7f1d1d;margin-bottom:10px">Use this if you applied a price adjustment BEFORE saving the old prices as a schedule. Enter the % that was applied, choose the schedule date to fix, and click Reverse & Re-save.</div>
-        <div style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap">
+      <!-- New schedule form -->
+      <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:20px;margin-bottom:18px">
+        <div style="font-size:13px;font-weight:800;color:#0d1b2e;margin-bottom:14px">➕ Add New Price Schedule</div>
+        <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap">
           <div>
-            <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px">SCHEDULE DATE TO FIX</div>
-            <select id="psch-fix-date" style="padding:7px 10px;border:1.5px solid #fca5a5;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;min-width:150px"></select>
+            <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">QUICK MONTH</div>
+            <select id="psch-month-quick" onchange="pschQuickMonth(this.value)" style="padding:7px 10px;border:1.5px solid #c4b5fd;border-radius:7px;font-size:13px;font-weight:600;color:#7c3aed;background:#faf5ff;min-width:140px">
+              <option value="">— Pick a month —</option>
+              <option value="1">January</option><option value="2">February</option><option value="3">March</option>
+              <option value="4">April</option><option value="5">May</option><option value="6">June</option>
+              <option value="7">July</option><option value="8">August</option><option value="9">September</option>
+              <option value="10">October</option><option value="11">November</option><option value="12">December</option>
+            </select>
           </div>
           <div>
-            <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px">% THAT WAS APPLIED</div>
+            <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">OR EXACT DATE</div>
+            <input type="date" id="psch-date" style="padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;outline:none">
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">YEAR</div>
+            <select id="psch-year" style="padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;min-width:90px"></select>
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">DEPARTMENT</div>
+            <select id="psch-dept" style="padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;min-width:150px">
+              <option value="ALL">All Departments</option>
+            </select>
+          </div>
+          <div>
+            <button onclick="scheduleCurrentPrices()" style="padding:10px 22px;background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">📅 Save as Scheduled Prices</button>
+            <div style="font-size:10px;color:#94a3b8;margin-top:4px;text-align:center">Captures current price table</div>
+          </div>
+          <div id="psch-msg" style="font-size:12px;font-weight:600;color:#16a34a;align-self:flex-end;padding-bottom:8px"></div>
+        </div>
+      </div>
+
+      <!-- Active schedules list -->
+      <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:20px;margin-bottom:18px">
+        <div style="font-size:13px;font-weight:800;color:#0d1b2e;margin-bottom:14px">📋 Active Price Schedules</div>
+        <div id="psch-list" style="font-size:12px;color:#64748b">Loading...</div>
+      </div>
+
+      <!-- Fix wrong schedule tool -->
+      <div style="background:#fff;border:1.5px solid #fca5a5;border-radius:14px;padding:20px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <div style="width:32px;height:32px;background:#fee2e2;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px">🛠</div>
+          <div>
+            <div style="font-size:13px;font-weight:800;color:#dc2626">Fix a Wrong Schedule</div>
+            <div style="font-size:11px;color:#94a3b8">Use this if you applied a % adjustment BEFORE saving the old prices as a schedule</div>
+          </div>
+        </div>
+        <div style="font-size:12px;color:#7f1d1d;background:#fff5f5;border-radius:8px;padding:10px 14px;margin-bottom:14px">
+          Example: You applied +3.5% and then saved Jan 1 schedule — but the schedule captured the already-increased prices. Select the schedule, enter 3.5, click Reverse. The system divides those prices by 1.035 to get back the original prices.
+        </div>
+        <div style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap">
+          <div>
+            <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">SCHEDULE TO FIX</div>
+            <select id="psch-fix-date" style="padding:7px 10px;border:1.5px solid #fca5a5;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;min-width:160px"></select>
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">% THAT WAS APPLIED</div>
             <div style="display:flex;align-items:center;gap:5px">
               <input type="number" id="psch-fix-pct" step="0.1" placeholder="e.g. 3.5" style="padding:7px 10px;border:1.5px solid #fca5a5;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;width:100px;outline:none">
               <span style="font-size:13px;color:#64748b">%</span>
             </div>
           </div>
-          <button onclick="fixScheduleReverse()" style="padding:8px 18px;background:#dc2626;color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer">🔄 Reverse & Re-save</button>
-          <div id="psch-fix-msg" style="font-size:12px;font-weight:600;color:#16a34a;align-self:flex-end"></div>
-        </div>
-      </div>
-      <div style="margin-top:10px">
-        <button onclick="document.getElementById('psch-fix-tool').style.display=document.getElementById('psch-fix-tool').style.display==='none'?'block':'none'" style="font-size:11px;color:#94a3b8;background:none;border:none;cursor:pointer;text-decoration:underline">🛠 Schedule wrong? Click to fix</button>
-      </div>
-    </div>
-
-    <!-- Section 4: Import Prices from Excel -->
-    <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:20px;margin-bottom:18px">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
-        <div style="width:32px;height:32px;background:#f0fdf4;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px">📥</div>
-        <div>
-          <div style="font-size:13px;font-weight:800;color:#0d1b2e">Import Prices from Excel</div>
-          <div style="font-size:11px;color:#94a3b8">Upload .xlsx to update prices/weights · <a href="#" onclick="downloadPriceTemplate();return false;" style="color:#0284c7;font-weight:700;text-decoration:none">⬇️ Download blank template</a></div>
-        </div>
-      </div>
-      <div style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:14px">
-        <div>
-          <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">UPDATE YEAR</div>
-          <select id="pxl-year" style="padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;min-width:90px"></select>
-        </div>
-        <div>
-          <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">IMPORT MODE</div>
-          <select id="pxl-mode" style="padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;min-width:190px">
-            <option value="prices">Prices Only (QR)</option>
-            <option value="both">Prices + Weight (QR &amp; KG)</option>
-          </select>
-        </div>
-        <div>
-          <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">EXCEL FILE</div>
-          <label style="display:inline-flex;align-items:center;gap:8px;padding:8px 14px;background:#f0fdf4;border:1.5px solid #16a34a;border-radius:7px;font-size:12px;font-weight:700;color:#15803d;cursor:pointer">
-            📂 Choose File
-            <input type="file" id="pxl-file" accept=".xlsx" style="display:none" onchange="previewPriceXL(this)">
-          </label>
-        </div>
-        <div id="pxl-filename" style="font-size:12px;font-weight:600;color:#64748b;align-self:flex-end;padding-bottom:6px"></div>
-      </div>
-      <div id="pxl-preview" style="display:none;margin-bottom:12px"></div>
-      <div style="display:flex;gap:10px;align-items:center">
-        <button id="pxl-apply-btn" onclick="applyPriceXL()" style="display:none;padding:8px 20px;background:#0284c7;color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer" onmouseover="this.style.background='#0369a1'" onmouseout="this.style.background='#0284c7'">✅ Apply Prices</button>
-        <div id="pxl-msg" style="font-size:12px;font-weight:600;color:#16a34a"></div>
-      </div>
-    </div>
-
-    <div class="dept-tabs" id="price-tabs"></div>
-    <div id="price-wrap"></div>
-
-    <!-- ── PRICE TABLE ACTION BAR ── -->
-    <div style="margin-top:16px;background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:16px 20px">
-
-      <!-- Row 1: Primary actions -->
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-bottom:14px;border-bottom:1.5px solid #f1f5f9;margin-bottom:14px">
-        <button class="btn-save green" onclick="savePrices()" style="font-size:13px;padding:10px 22px">💾 Save Prices &amp; Weights</button>
-        <div style="font-size:11px;color:#94a3b8">Saves price (QR) and weight (KG) for current department</div>
-        <div style="margin-left:auto;display:flex;gap:8px">
-          <button class="btn-bulk" onclick="openAddItem()" style="background:#eff6ff;border-color:#3b82f6;color:#1d4ed8">➕ Add Item</button>
-          <button class="btn-bulk" onclick="openAddDept()" style="background:#fdf4ff;border-color:#a855f7;color:#7e22ce">🏢 Add Department</button>
-          <button class="btn-clear" onclick="resetPrices()">↩ Reset to Default</button>
+          <button onclick="fixScheduleReverse()" style="padding:9px 20px;background:#dc2626;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer">🔄 Reverse &amp; Re-save</button>
+          <div id="psch-fix-msg" style="font-size:12px;font-weight:600;color:#16a34a;align-self:flex-end;padding-bottom:6px"></div>
         </div>
       </div>
 
-      <!-- Row 2: Export / Import -->
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-        <div style="font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:1px;margin-right:4px">EXPORT / IMPORT</div>
-        <button class="btn-import" onclick="exportPricesExcel('price')" style="padding:8px 14px;font-size:12px">📥 Prices Only (CSV)</button>
-        <button class="btn-import" onclick="exportPricesExcel('both')" style="padding:8px 14px;font-size:12px">📥 Prices + Weight (CSV)</button>
-        <div>
-          <input type="file" id="import-prices-file" accept=".csv" style="display:none" onchange="importPricesFromCSV(this)">
-          <button class="btn-import" onclick="document.getElementById('import-prices-file').click()" style="padding:8px 14px;font-size:12px;background:#f0fdf4;border-color:#16a34a;color:#15803d">📤 Import CSV</button>
-        </div>
-        <div style="margin-left:auto;position:relative">
-          <button onclick="togglePricePDFMenu(event)" style="background:#fff7ed;border:1.5px solid #ea580c;color:#c2410c;border-radius:7px;font-weight:700;padding:8px 18px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:6px">🖨️ Print / PDF <span style="font-size:10px;opacity:.7">▾</span></button>
-          <div id="price-pdf-menu" style="display:none;position:absolute;top:calc(100% + 5px);right:0;background:#fff;border:1.5px solid #e2e8f0;border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,.14);z-index:700;min-width:200px;overflow:hidden">
-            <div style="padding:7px 13px;font-size:10px;font-weight:800;letter-spacing:1.5px;color:#94a3b8;text-transform:uppercase;background:#f8fafc;border-bottom:1px solid #e2e8f0">Choose Content</div>
-            <button onclick="closePricePDFMenu();printPricesPDF('both')" style="display:flex;align-items:center;gap:9px;width:100%;text-align:left;padding:11px 15px;border:none;background:none;font-size:13px;font-weight:600;color:#1a2332;cursor:pointer;border-bottom:1px solid #f1f5f9" onmouseover="this.style.background='#fff7ed'" onmouseout="this.style.background='none'">💰⚖️ Prices + Weight</button>
-            <button onclick="closePricePDFMenu();printPricesPDF('price')" style="display:flex;align-items:center;gap:9px;width:100%;text-align:left;padding:11px 15px;border:none;background:none;font-size:13px;font-weight:600;color:#1a2332;cursor:pointer;border-bottom:1px solid #f1f5f9" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='none'">💰 Prices Only (QR)</button>
-            <button onclick="closePricePDFMenu();printPricesPDF('kg')" style="display:flex;align-items:center;gap:9px;width:100%;text-align:left;padding:11px 15px;border:none;background:none;font-size:13px;font-weight:600;color:#1a2332;cursor:pointer" onmouseover="this.style.background='#f0fdf4'" onmouseout="this.style.background='none'">⚖️ Weight Only (KG)</button>
-          </div>
-        </div>
-      </div>
-    </div>
+    </div><!-- end ptab-schedules -->
 
   <div style="text-align:center;padding:18px 0 10px;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;margin-top:32px;letter-spacing:0.3px">
     © Reda Salah · All Rights Reserved
@@ -4729,6 +4790,19 @@ function buildDeptOpts(el, selectedD, includeAll) {
   DEPT_KEYS.forEach(function(d) { var o = document.createElement('option'); o.value = d; o.textContent = DEPT_ICONS[d] + ' ' + d; if (d === selectedD) o.selected = true; el.appendChild(o); });
 }
 
+function showPriceSubTab(name) {
+  ['list','tools','schedules'].forEach(function(t) {
+    var el = document.getElementById('ptab-' + t);
+    var btn = document.getElementById('ptab-btn-' + t);
+    if (el) el.style.display = t === name ? 'block' : 'none';
+    if (btn) {
+      btn.style.borderBottomColor = t === name ? '#0d1b2e' : 'transparent';
+      btn.style.color = t === name ? '#0d1b2e' : '#64748b';
+      btn.style.fontWeight = t === name ? '700' : '600';
+    }
+  });
+}
+
 function pschQuickMonth(m) {
   if (!m) return;
   var yr = parseInt(document.getElementById('psch-year').value) || new Date().getFullYear();
@@ -4986,6 +5060,10 @@ function applyCopyPrices() {
 }
 
 function renderPriceTable() {
+  // Ensure correct sub-tab shown on first load
+  if (document.getElementById('ptab-list') && document.getElementById('ptab-list').style.display === '') {
+    showPriceSubTab('list');
+  }
   // Always rebuild all price tool selectors fresh
   var py   = document.getElementById('padj-year');
   var pd   = document.getElementById('padj-dept');
@@ -6296,91 +6374,63 @@ function renderGuide() {
 
     // ── 12. PRICES ──────────────────────────────────────────────
     ['⚙️ Prices & Weights — Full Guide',
-     '<strong>Key rules:</strong>' +
+     '<strong>The Prices tab has 3 sub-tabs:</strong>' +
      ul([
-       'Each year has its own independent price list. Changing 2025 prices never affects 2026.',
-       'Use department tabs to switch. Click <strong>🗂 All Items</strong> to see all departments in one scrollable list.',
-       'Changes in <strong>🗂 All Items</strong> save automatically when you click away — no Save button needed.',
+       btn('📋 Price List','#0d1b2e','#c9a84c') + ' — view and edit prices and weights for each department.',
+       btn('🔧 Tools','#f8fafc','#0d1b2e','#e2e8f0') + ' — Copy from Year, Bulk Adjust %, Import Excel, Import CSV.',
+       btn('📅 Price Schedules','#f8fafc','#0d1b2e','#e2e8f0') + ' — manage mid-year price changes with effective dates.'
+     ]) +
+     warn('Changing the price list NEVER affects quantities already entered. Only revenue calculations use prices, and schedules control which price applies to which date.') +
+
+     '<br><strong>📋 Price List sub-tab:</strong>' +
+     ul([
+       'Use department tabs to switch. Click <strong>🗂 All Items</strong> to see all departments at once.',
+       'Changes in <strong>🗂 All Items</strong> save automatically when you click away.',
        'Changes in individual department tabs require clicking ' + btn('💾 Save Prices & Weights','#16a34a','#fff') + '.',
-       '<strong>Changing the price list never affects data already entered</strong> — quantities are always safe. Only the revenue calculation uses the price, and that is controlled by schedules.'
-     ]) +
-     '<strong>Reorder items:</strong> Use the <strong>▲ ▼</strong> arrows — order changes everywhere including Daily Entry, exports and reports.' +
-     '<br><br><strong>➕ Add Item / 🏢 Add Department:</strong>' +
-     ul([
-       'Add new items to any department or create entirely new departments with custom emoji icons.',
-       'Saved permanently and available in all tabs.'
+       'Use <strong>▲ ▼</strong> arrows to reorder items — order changes everywhere in the system.',
+       btn('➕ Add Item','#eff6ff','#1d4ed8','#3b82f6') + ' — add new item to current department.',
+       btn('🏢 Add Dept','#fdf4ff','#7e22ce','#a855f7') + ' — create a new department with custom emoji.',
+       btn('↩ Reset','#fff5f5','#dc2626','#fca5a5') + ' — restore default prices for this department.',
+       '🖨️ Print/PDF dropdown — choose Prices Only, Weight Only, or Prices + Weight.'
      ]) +
 
-     '<br><strong>📋 Copy Prices from Another Year:</strong>' +
+     '<br><strong>🔧 Tools sub-tab:</strong>' +
      step([
-       'Set <strong>Copy From Year</strong> → <strong>Into Year</strong> → Department (or All Departments).',
-       'Click ' + btn('📋 Copy Prices','#0284c7','#fff') + ' — all prices and KG values copy instantly.',
-       'This only changes the price list — it does not touch any entered data.'
+       '<strong>Copy Prices from Another Year</strong> — set From Year → Into Year → Department → Click Copy Prices. Copies all prices and KG instantly.',
+       '<strong>Bulk Price Adjustment by %</strong> — set Year, Department, enter % (negative = decrease, e.g. -3.5 · positive = increase, e.g. +5) → Live Preview shows sample → Click Apply Adjustment → Click Save Prices & Weights.',
+       '<strong>Import from Excel</strong> — choose Year, Mode (Prices Only or Prices + Weight), choose .xlsx file → preview → Apply Prices. Download template from the link in this card.',
+       '<strong>Export/Import CSV</strong> — export current prices as CSV, edit in Excel, import back.'
      ]) +
+     tip('Workflow for a new year: Copy prices from previous year → apply a % adjustment. Example: Copy 2025 → 2026, then apply +5%.') +
 
-     '<br><strong>📊 Bulk Price Adjustment by %:</strong>' +
-     step([
-       'Set Year, Department, enter a % value. Use negative for decrease (e.g. -3.5), positive for increase (e.g. +5).',
-       'The <strong>Live Preview</strong> shows how many items will change and a sample before/after price.',
-       'Click ' + btn('✅ Apply Adjustment','#0d1b2e','#c9a84c') + ' — only the selected year and department are affected.',
-       'Click ' + btn('💾 Save Prices & Weights','#16a34a','#fff') + ' to commit the change.'
-     ]) +
-     tip('Workflow for a new year: Copy prices from the previous year → apply a % adjustment. Example: Copy 2025 → 2026, then apply +5%.') +
-
-     '<br><strong>📅 Price Change Effective Date — How It Works:</strong>' +
-     '<br><br>This is the most important feature for mid-year price changes. It lets you set <strong>which date new prices take effect</strong>. Data before that date keeps old prices. Data from that date onwards uses new prices. Everything is automatic — no need to re-enter data.' +
-     '<br><br><strong>Key concept:</strong> You save a "snapshot" of the price table at a specific date. The system has a full history of price changes and applies the right one per day.' +
-     ul([
-       'Data entered <strong>before</strong> the effective date → old prices used for revenue',
-       'Data entered <strong>from</strong> the effective date onwards → new prices used for revenue',
-       'All tabs update automatically — Dashboard, Finance, Monthly, Analytics',
-       'Multiple schedules allowed — e.g. Jan 1 for first prices, Apr 1 for new prices',
-       'Each schedule shows ' + badge('UPCOMING','#dbeafe','#1d4ed8','#93c5fd') + ' ' + badge('TODAY','#d1fae5','#065f46','#6ee7b7') + ' or ' + badge('ACTIVE','#f1f5f9','#64748b','#e2e8f0') + ' badge',
-       'Delete any schedule with the 🗑 button at any time'
-     ]) +
-
-     '<br><strong>📅 Quick Month Pick (new):</strong>' +
-     ul([
-       'Use the <strong>Quick Month Pick</strong> dropdown to select a month — the date field auto-fills to the 1st of that month.',
-       'Example: Select <strong>April</strong> → date becomes 01/04/2026 automatically.',
-       'You can still manually change the date to any specific day if needed.'
-     ]) +
-
-     '<br><strong>✅ Real example — Increase prices by +3.5% starting April 2026:</strong>' +
-     '<div style="background:#f0fdf4;border-left:3px solid #16a34a;padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0;font-size:12px;color:#14532d">' +
-     '<strong>Step 1 — Lock current prices for Jan, Feb, March</strong><br>' +
-     'Prices tab → 📅 Effective Date → Quick Month Pick: <strong>January</strong> → Year 2026 → All Departments → Save as Scheduled Prices<br><br>' +
-     '<strong>Step 2 — Copy 2025 prices into 2026</strong><br>' +
-     'Copy Prices → From 2025 → Into 2026 → All Departments → Copy Prices → Save Prices & Weights<br><br>' +
-     '<strong>Step 3 — Apply +3.5% adjustment</strong><br>' +
-     'Bulk Adjust → Year 2026 → All Departments → enter +3.5 → Apply Adjustment → Save Prices & Weights<br><br>' +
-     '<strong>Step 4 — Save as April schedule</strong><br>' +
-     'Effective Date → Quick Month Pick: <strong>April</strong> → Year 2026 → All Departments → Save as Scheduled Prices<br><br>' +
-     '<strong>Result:</strong> Jan/Feb/Mar use original 2026 prices · April onwards uses 2025 prices +3.5% · All previously entered data is untouched ✅' +
+     '<br><strong>📅 Price Schedules sub-tab — Mid-Year Price Changes:</strong>' +
+     '<br><br>This is the most important feature when prices change during the year. The system stores a history of price snapshots. Each day\'s revenue uses the price that was active on that date — automatically.' +
+     '<br><br><div style="background:#f0fdf4;border-left:3px solid #16a34a;padding:12px 16px;border-radius:0 8px 8px 0;margin:10px 0;font-size:12px;color:#14532d">' +
+     '<strong>✅ Correct workflow — Example: +3.5% prices starting April 2026</strong><br><br>' +
+     '<strong>Step 1</strong> — Go to Price Schedules → Quick Month: January → Year 2026 → All Departments → Save as Scheduled Prices<br>' +
+     '<em>This locks current prices for Jan 1. Jan, Feb, March will use these prices.</em><br><br>' +
+     '<strong>Step 2</strong> — Go to Tools → Bulk Adjust → Year 2026 → All Departments → enter +3.5 → Apply → Save<br>' +
+     '<em>This changes the active price list to +3.5%</em><br><br>' +
+     '<strong>Step 3</strong> — Go to Price Schedules → Quick Month: April → Year 2026 → All Departments → Save as Scheduled Prices<br>' +
+     '<em>This locks new +3.5% prices from April 1 onwards.</em><br><br>' +
+     '<strong>Result:</strong> Jan/Feb/Mar → original prices · April onwards → +3.5% prices · All data untouched ✅' +
      '</div>' +
-
-     warn('Copying prices or applying a % adjustment only changes the price list — it never changes any quantities you already entered. Your data is always safe.') +
-
-     '<br><strong>Export & Import Price Lists (CSV):</strong>' +
      ul([
-       btn('📥 Export Prices','#eff6ff','#1d4ed8','#bfdbfe') + ' — downloads .csv with # / Department / Item / Unit Price (QR).',
-       btn('📥 Export Prices & KG','#eff6ff','#1d4ed8','#bfdbfe') + ' — same but includes Weight (KG/pc).',
-       btn('📤 Import Prices CSV','#f0fdf4','#15803d','#16a34a') + ' — upload a .csv in the same format. Items matched by name.',
-       'Workflow: Export → edit in Excel → Save as CSV → Import back.'
+       'The <strong>Quick Month</strong> dropdown auto-fills the date to the 1st of the selected month.',
+       'You can also set an exact date for mid-month changes.',
+       'Each schedule shows ' + badge('UPCOMING','#dbeafe','#1d4ed8','#93c5fd') + ' ' + badge('TODAY','#d1fae5','#065f46','#6ee7b7') + ' or ' + badge('ACTIVE','#f1f5f9','#64748b','#e2e8f0') + ' badge.',
+       'Delete any schedule with the 🗑 Delete button.'
      ]) +
+     warn('Always save the CURRENT prices as a Jan 1 schedule BEFORE applying any adjustment. If you apply the adjustment first and then save, the schedule captures wrong prices.') +
 
-     '<br><strong>📥 Import Prices from Excel (.xlsx):</strong>' +
+     '<br><strong>🛠 Fix a Wrong Schedule:</strong>' +
+     '<br>If you accidentally saved a schedule with already-adjusted prices, use the <strong>Fix a Wrong Schedule</strong> tool at the bottom of the Price Schedules sub-tab.' +
      step([
-       'Download the blank template (link in the Import section header).',
-       'Fill in the ' + badge('yellow cells','#fef9c3','#92400e','#fde68a') + ' for Unit Price (QR) and/or ' + badge('blue cells','#dbeafe','#1e40af','#93c5fd') + ' for Weight (KG). Leave blank to keep existing value.',
-       'Prices tab → 📥 Import Prices from Excel → choose Year and Mode (Prices Only or Prices + Weight).',
-       'Choose File → review the preview → click ' + btn('✅ Apply Prices','#0284c7','#fff') + '.'
+       'Select the schedule date to fix from the dropdown.',
+       'Enter the % that was already applied (e.g. 3.5).',
+       'Click ' + btn('🔄 Reverse & Re-save','#dc2626','#fff') + ' — the system divides all prices in that snapshot by 1.035 to get back the original prices.'
      ]) +
-     ul([
-       'You can fill only yellow (prices only), only blue (weights only), or both.',
-       'Blank cells are always skipped — existing values kept.',
-       'Items matched by row position — never add or remove rows in the template.'
-     ])
+     tip('Export your prices as CSV before making any major changes. That way you always have a copy of the exact prices to restore from.')
     ],
 
     // ── 13. SETTINGS ────────────────────────────────────────────
