@@ -964,30 +964,42 @@ var _fbDB = null;
     </div>
 
     <!-- Summary Cards -->
-    <div id="bench-summary-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-bottom:18px"></div>
+    <div id="bench-summary-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;margin-bottom:20px"></div>
 
     <!-- Charts row -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px">
-      <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:18px">
-        <div style="font-size:12px;font-weight:800;color:#0d1b2e;margin-bottom:12px">📈 Daily Revenue vs Occupancy %</div>
-        <canvas id="bench-chart-rev" height="200"></canvas>
+      <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:16px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.08)">
+        <div style="background:linear-gradient(135deg,#0369a1,#0284c7);padding:14px 18px;display:flex;align-items:center;gap:8px">
+          <span style="font-size:16px">📈</span>
+          <span style="font-size:13px;font-weight:800;color:#fff">Daily Revenue vs Occupancy %</span>
+        </div>
+        <div style="padding:16px"><canvas id="bench-chart-rev" height="220"></canvas></div>
       </div>
-      <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:18px">
-        <div style="font-size:12px;font-weight:800;color:#0d1b2e;margin-bottom:12px">⚖️ Daily KG vs Occupancy %</div>
-        <canvas id="bench-chart-kg" height="200"></canvas>
+      <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:16px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.08)">
+        <div style="background:linear-gradient(135deg,#047857,#059669);padding:14px 18px;display:flex;align-items:center;gap:8px">
+          <span style="font-size:16px">⚖️</span>
+          <span style="font-size:13px;font-weight:800;color:#fff">Daily KG vs Occupancy %</span>
+        </div>
+        <div style="padding:16px"><canvas id="bench-chart-kg" height="220"></canvas></div>
       </div>
     </div>
 
     <!-- Day-by-day table -->
-    <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:18px;margin-bottom:18px;overflow-x:auto">
-      <div style="font-size:12px;font-weight:800;color:#0d1b2e;margin-bottom:14px">📊 Day-by-Day Benchmark Table</div>
-      <div id="bench-table-wrap"></div>
+    <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:16px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.08);margin-bottom:18px">
+      <div style="background:linear-gradient(135deg,#0d1b2e,#1e3a5f);padding:14px 18px;display:flex;align-items:center;gap:8px">
+        <span style="font-size:16px">📊</span>
+        <span style="font-size:13px;font-weight:800;color:#c9a84c">Day-by-Day Benchmark Table</span>
+      </div>
+      <div style="overflow-x:auto"><div id="bench-table-wrap"></div></div>
     </div>
 
     <!-- Department breakdown -->
-    <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:18px;margin-bottom:18px">
-      <div style="font-size:12px;font-weight:800;color:#0d1b2e;margin-bottom:14px">🏢 Department Revenue per Occupied Room</div>
-      <div id="bench-dept-wrap"></div>
+    <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:16px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.08);margin-bottom:18px">
+      <div style="background:linear-gradient(135deg,#4c1d95,#6d28d9);padding:14px 18px;display:flex;align-items:center;gap:8px">
+        <span style="font-size:16px">🏢</span>
+        <span style="font-size:13px;font-weight:800;color:#fff">Department Revenue per Occupied Room</span>
+      </div>
+      <div style="padding:16px"><div id="bench-dept-wrap"></div></div>
     </div>
 
   <div style="text-align:center;padding:18px 0 10px;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;margin-top:32px;letter-spacing:0.3px">
@@ -5918,23 +5930,24 @@ function renderBenchmark() {
   var avgRevPOR = porCount > 0 ? totalRevPOR / porCount : 0;
   var avgKgPOR  = porCount > 0 ? totalKgPOR  / porCount : 0;
 
-  // Summary cards
+  // Summary cards — vivid gradient design
   var cards = document.getElementById('bench-summary-cards');
   if (cards) {
     var cardData = [
-      { icon: '📊', label: 'Avg Occupancy', val: avgOcc.toFixed(1) + '%', sub: 'Days with data', color: '#0284c7', bg: '#eff6ff' },
-      { icon: '💰', label: 'Total Revenue', val: f2(totalRev) + ' QR', sub: MONTH_NAMES[m-1] + ' ' + CY, color: '#16a34a', bg: '#f0fdf4' },
-      { icon: '⚖️', label: 'Total KG', val: totalKg.toFixed(2) + ' kg', sub: MONTH_NAMES[m-1] + ' ' + CY, color: '#d97706', bg: '#fffbeb' },
-      { icon: '🛏️', label: 'Revenue / Room', val: avgRevPOR > 0 ? f2(avgRevPOR) + ' QR' : '—', sub: 'Avg per occupied room', color: '#7c3aed', bg: '#f5f3ff' },
-      { icon: '📦', label: 'KG / Room', val: avgKgPOR > 0 ? avgKgPOR.toFixed(3) + ' kg' : '—', sub: 'Avg per occupied room', color: '#0891b2', bg: '#ecfeff' },
-      { icon: '📅', label: 'Days Tracked', val: dayData.filter(function(x){ return x.occPct > 0; }).length + ' / ' + days, sub: 'Occupancy entered', color: '#64748b', bg: '#f8fafc' }
+      { icon: '📊', label: 'Avg Occupancy', val: avgOcc.toFixed(1) + '%', sub: 'Days with data', grad: 'linear-gradient(135deg,#0369a1,#0284c7)', shadow: 'rgba(2,132,199,.3)' },
+      { icon: '💰', label: 'Total Revenue', val: f2(totalRev) + ' QR', sub: MONTH_NAMES[m-1] + ' ' + CY, grad: 'linear-gradient(135deg,#15803d,#16a34a)', shadow: 'rgba(22,163,74,.3)' },
+      { icon: '⚖️', label: 'Total KG', val: totalKg.toFixed(2) + ' kg', sub: MONTH_NAMES[m-1] + ' ' + CY, grad: 'linear-gradient(135deg,#b45309,#d97706)', shadow: 'rgba(217,119,6,.3)' },
+      { icon: '🛏️', label: 'Revenue / Room', val: avgRevPOR > 0 ? f2(avgRevPOR) + ' QR' : '—', sub: 'Avg per occupied room', grad: 'linear-gradient(135deg,#6d28d9,#7c3aed)', shadow: 'rgba(124,58,237,.3)' },
+      { icon: '📦', label: 'KG / Room', val: avgKgPOR > 0 ? avgKgPOR.toFixed(3) + ' kg' : '—', sub: 'Avg per occupied room', grad: 'linear-gradient(135deg,#0e7490,#0891b2)', shadow: 'rgba(8,145,178,.3)' },
+      { icon: '📅', label: 'Days Tracked', val: dayData.filter(function(x){ return x.occPct > 0; }).length + ' / ' + days, sub: 'Occupancy entered', grad: 'linear-gradient(135deg,#334155,#475569)', shadow: 'rgba(71,85,105,.3)' }
     ];
     cards.innerHTML = cardData.map(function(c) {
-      return '<div style="background:' + c.bg + ';border:1.5px solid #e2e8f0;border-radius:12px;padding:16px">' +
-        '<div style="font-size:18px;margin-bottom:6px">' + c.icon + '</div>' +
-        '<div style="font-size:11px;font-weight:700;color:#64748b;letter-spacing:.8px;margin-bottom:4px">' + c.label.toUpperCase() + '</div>' +
-        '<div style="font-size:20px;font-weight:800;color:' + c.color + '">' + c.val + '</div>' +
-        '<div style="font-size:11px;color:#94a3b8;margin-top:2px">' + c.sub + '</div></div>';
+      return '<div style="background:' + c.grad + ';border-radius:16px;padding:20px 18px;box-shadow:0 8px 24px ' + c.shadow + ';position:relative;overflow:hidden">' +
+        '<div style="position:absolute;top:-10px;right:-10px;font-size:52px;opacity:.15">' + c.icon + '</div>' +
+        '<div style="font-size:22px;margin-bottom:8px">' + c.icon + '</div>' +
+        '<div style="font-size:10px;font-weight:800;color:rgba(255,255,255,.7);letter-spacing:1.2px;margin-bottom:6px;text-transform:uppercase">' + c.label + '</div>' +
+        '<div style="font-size:24px;font-weight:900;color:#fff;letter-spacing:-.5px">' + c.val + '</div>' +
+        '<div style="font-size:11px;color:rgba(255,255,255,.6);margin-top:4px">' + c.sub + '</div></div>';
     }).join('');
   }
 
@@ -5944,112 +5957,160 @@ function renderBenchmark() {
   var revData  = dayData.map(function(x){ return x.rev > 0 ? parseFloat(x.rev.toFixed(2)) : null; });
   var kgData   = dayData.map(function(x){ return x.kg  > 0 ? parseFloat(x.kg.toFixed(2))  : null; });
 
-  function buildChart(canvasId, chartRef, label1, data1, color1, label2, data2, color2, yLabel1, yLabel2) {
+  function buildChart(canvasId, chartRef, label1, data1, color1, label2, data2, color2, yLabel1, yLabel2, gradStart, gradEnd) {
     var ctx = document.getElementById(canvasId);
     if (!ctx) return chartRef;
     if (chartRef) { try { chartRef.destroy(); } catch(e){} }
+    // Create gradient fill for bars
+    var canvas = ctx;
+    var chartCtx = canvas.getContext('2d');
+    var gradFill = chartCtx.createLinearGradient(0, 0, 0, 300);
+    gradFill.addColorStop(0, gradStart || color1);
+    gradFill.addColorStop(1, (gradEnd || color1) + '55');
     return new Chart(ctx, {
       type: 'bar',
       data: {
         labels: labels,
         datasets: [
-          { type: 'bar', label: label1, data: data1, backgroundColor: color1 + '99', borderColor: color1, borderWidth: 1.5, yAxisID: 'y1', borderRadius: 3 },
-          { type: 'line', label: label2, data: data2, borderColor: color2, backgroundColor: color2 + '22', borderWidth: 2.5, pointRadius: 3, pointBackgroundColor: color2, yAxisID: 'y2', tension: 0.3, fill: false }
+          { type: 'bar', label: label1, data: data1,
+            backgroundColor: gradFill, borderColor: color1,
+            borderWidth: 0, yAxisID: 'y1',
+            borderRadius: 6, borderSkipped: false },
+          { type: 'line', label: label2, data: data2,
+            borderColor: color2, backgroundColor: color2 + '25',
+            borderWidth: 3, pointRadius: 4, pointBackgroundColor: '#fff',
+            pointBorderColor: color2, pointBorderWidth: 2,
+            yAxisID: 'y2', tension: 0.4, fill: true }
         ]
       },
       options: {
         responsive: true, maintainAspectRatio: true,
-        plugins: { legend: { position: 'top', labels: { font: { size: 11 }, boxWidth: 14 } } },
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { position: 'top', labels: { font: { size: 11, weight: '600' }, boxWidth: 12, padding: 16, usePointStyle: true } },
+          tooltip: {
+            backgroundColor: '#0d1b2e', titleColor: '#c9a84c', bodyColor: '#fff',
+            padding: 10, cornerRadius: 8,
+            callbacks: {
+              label: function(ctx2) {
+                var v = ctx2.raw;
+                if (v === null) return null;
+                if (ctx2.dataset.yAxisID === 'y2') return ' ' + ctx2.dataset.label + ': ' + v + '%';
+                return ' ' + ctx2.dataset.label + ': ' + (yLabel1 === 'KG' ? v + ' kg' : f2(v) + ' QR');
+              }
+            }
+          }
+        },
         scales: {
-          y1: { type: 'linear', position: 'left', title: { display: true, text: yLabel1, font: { size: 10 } }, grid: { color: '#f1f5f9' } },
-          y2: { type: 'linear', position: 'right', title: { display: true, text: yLabel2, font: { size: 10 } }, grid: { drawOnChartArea: false }, ticks: { callback: function(v){ return v + '%'; } } },
-          x: { grid: { display: false }, ticks: { font: { size: 10 } } }
+          y1: { type: 'linear', position: 'left',
+            title: { display: true, text: yLabel1, font: { size: 10, weight: '600' }, color: '#64748b' },
+            grid: { color: '#f1f5f9', drawBorder: false },
+            ticks: { color: '#64748b', font: { size: 10 } } },
+          y2: { type: 'linear', position: 'right',
+            title: { display: true, text: 'Occupancy %', font: { size: 10, weight: '600' }, color: '#f59e0b' },
+            grid: { drawOnChartArea: false },
+            ticks: { callback: function(v){ return v + '%'; }, color: '#f59e0b', font: { size: 10 } },
+            min: 0, max: 100 },
+          x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 10 } }, border: { display: false } }
         }
       }
     });
   }
 
-  _benchChartRev = buildChart('bench-chart-rev', _benchChartRev, 'Revenue (QR)', revData, '#0284c7', 'Occupancy %', occData, '#f59e0b', 'Revenue (QR)', 'Occupancy %');
-  _benchChartKg  = buildChart('bench-chart-kg',  _benchChartKg,  'KG Washed',   kgData,  '#16a34a', 'Occupancy %', occData, '#f59e0b', 'KG', 'Occupancy %');
+  _benchChartRev = buildChart('bench-chart-rev', _benchChartRev, 'Revenue (QR)', revData, '#0284c7', 'Occupancy %', occData, '#f59e0b', 'Revenue (QR)', 'Occupancy %', '#0369a1', '#bfdbfe');
+  _benchChartKg  = buildChart('bench-chart-kg',  _benchChartKg,  'KG Washed',   kgData,  '#059669', 'Occupancy %', occData, '#f59e0b', 'KG', 'Occupancy %', '#047857', '#a7f3d0');
 
-  // Day-by-day table
+  // Day-by-day table — color coded
   var tw = document.getElementById('bench-table-wrap');
   if (tw) {
-    var th = '<table style="width:100%;border-collapse:collapse;font-size:12px">' +
-      '<thead><tr style="background:#0d1b2e;color:#fff">' +
-      '<th style="padding:9px 10px;text-align:center;white-space:nowrap">Day</th>' +
-      '<th style="padding:9px 10px;text-align:center">Occ %</th>' +
-      (totalRooms > 0 ? '<th style="padding:9px 10px;text-align:center">Occ Rooms</th>' : '') +
-      '<th style="padding:9px 10px;text-align:right">Total Rev (QR)</th>' +
-      '<th style="padding:9px 10px;text-align:right">Total KG</th>' +
-      '<th style="padding:9px 10px;text-align:right">Rev/Room (QR)</th>' +
-      '<th style="padding:9px 10px;text-align:right">KG/Room</th>' +
-      '<th style="padding:9px 10px;text-align:right">Rooms Linen Rev</th>' +
-      '<th style="padding:9px 10px;text-align:right">Other Depts Rev</th>' +
-      '</tr></thead><tbody>';
-    dayData.forEach(function(row, idx) {
-      var bg = idx % 2 === 0 ? '#ffffff' : '#f8fafc';
-      var rlRev = row.deptRevs['Rooms Linen'] || 0;
-      var otherRev = row.rev - rlRev;
-      th += '<tr style="background:' + bg + (row.rev === 0 && row.occPct === 0 ? ';opacity:.45' : '') + '">' +
-        '<td style="padding:7px 10px;text-align:center;font-weight:700;color:#0d1b2e">' + DAY_NAMES[new Date(CY,m-1,row.d).getDay()].slice(0,3) + ' ' + row.d + '</td>' +
-        '<td style="padding:7px 10px;text-align:center">' + (row.occPct > 0 ? '<span style="background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:10px;font-weight:700">' + row.occPct.toFixed(1) + '%</span>' : '<span style="color:#cbd5e1">—</span>') + '</td>' +
-        (totalRooms > 0 ? '<td style="padding:7px 10px;text-align:center;color:#0369a1;font-weight:600">' + (row.occRooms !== null ? row.occRooms : '—') + '</td>' : '') +
-        '<td style="padding:7px 10px;text-align:right;font-weight:600;color:#15803d">' + (row.rev > 0 ? f2(row.rev) : '—') + '</td>' +
-        '<td style="padding:7px 10px;text-align:right;color:#d97706">' + (row.kg > 0 ? row.kg.toFixed(2) : '—') + '</td>' +
-        '<td style="padding:7px 10px;text-align:right;font-weight:700;color:#7c3aed">' + (row.revPOR !== null ? f2(row.revPOR) : '—') + '</td>' +
-        '<td style="padding:7px 10px;text-align:right;color:#0891b2">' + (row.kgPOR !== null ? row.kgPOR.toFixed(3) : '—') + '</td>' +
-        '<td style="padding:7px 10px;text-align:right;color:#1d4ed8">' + (rlRev > 0 ? f2(rlRev) : '—') + '</td>' +
-        '<td style="padding:7px 10px;text-align:right;color:#64748b">' + (otherRev > 0 ? f2(otherRev) : '—') + '</td>' +
-        '</tr>';
-    });
-    // Totals row
     var totalRL = dayData.reduce(function(a,b){ return a + (b.deptRevs['Rooms Linen']||0); }, 0);
     var totalOther = totalRev - totalRL;
-    th += '<tr style="background:#0d1b2e;color:#c9a84c;font-weight:800">' +
-      '<td style="padding:9px 10px;text-align:center">TOTAL</td>' +
-      '<td style="padding:9px 10px;text-align:center">' + avgOcc.toFixed(1) + '%</td>' +
-      (totalRooms > 0 ? '<td style="padding:9px 10px;text-align:center">—</td>' : '') +
-      '<td style="padding:9px 10px;text-align:right">' + f2(totalRev) + '</td>' +
-      '<td style="padding:9px 10px;text-align:right">' + totalKg.toFixed(2) + '</td>' +
-      '<td style="padding:9px 10px;text-align:right">' + (avgRevPOR > 0 ? f2(avgRevPOR) : '—') + '</td>' +
-      '<td style="padding:9px 10px;text-align:right">' + (avgKgPOR > 0 ? avgKgPOR.toFixed(3) : '—') + '</td>' +
-      '<td style="padding:9px 10px;text-align:right">' + (totalRL > 0 ? f2(totalRL) : '—') + '</td>' +
-      '<td style="padding:9px 10px;text-align:right">' + (totalOther > 0 ? f2(totalOther) : '—') + '</td>' +
+    var th = '<table style="width:100%;border-collapse:collapse;font-size:12px">' +
+      '<thead><tr style="background:linear-gradient(135deg,#0d1b2e,#1e3a5f)">' +
+      '<th style="padding:10px 10px;text-align:center;color:#c9a84c;font-size:11px;letter-spacing:.5px">DAY</th>' +
+      '<th style="padding:10px 10px;text-align:center;color:#c9a84c;font-size:11px;letter-spacing:.5px">OCC %</th>' +
+      (totalRooms > 0 ? '<th style="padding:10px 10px;text-align:center;color:#c9a84c;font-size:11px;letter-spacing:.5px">ROOMS</th>' : '') +
+      '<th style="padding:10px 10px;text-align:right;color:#86efac;font-size:11px;letter-spacing:.5px">TOTAL REV (QR)</th>' +
+      '<th style="padding:10px 10px;text-align:right;color:#fcd34d;font-size:11px;letter-spacing:.5px">TOTAL KG</th>' +
+      '<th style="padding:10px 10px;text-align:right;color:#c4b5fd;font-size:11px;letter-spacing:.5px">REV/ROOM (QR)</th>' +
+      '<th style="padding:10px 10px;text-align:right;color:#67e8f9;font-size:11px;letter-spacing:.5px">KG/ROOM</th>' +
+      '<th style="padding:10px 10px;text-align:right;color:#93c5fd;font-size:11px;letter-spacing:.5px">ROOMS LINEN</th>' +
+      '<th style="padding:10px 10px;text-align:right;color:#d1d5db;font-size:11px;letter-spacing:.5px">OTHER DEPTS</th>' +
+      '</tr></thead><tbody>';
+    dayData.forEach(function(row, idx) {
+      var rlRev = row.deptRevs['Rooms Linen'] || 0;
+      var otherRev = row.rev - rlRev;
+      var isEmpty = row.rev === 0 && row.occPct === 0;
+      var bg = isEmpty ? '#fafafa' : (idx % 2 === 0 ? '#ffffff' : '#f8fafc');
+      // Occupancy badge color
+      var occBadge = '—';
+      if (row.occPct > 0) {
+        var bc = row.occPct >= 70 ? '#dcfce7' : row.occPct >= 50 ? '#fef9c3' : '#fee2e2';
+        var tc = row.occPct >= 70 ? '#15803d' : row.occPct >= 50 ? '#92400e' : '#dc2626';
+        occBadge = '<span style="background:' + bc + ';color:' + tc + ';padding:3px 10px;border-radius:20px;font-weight:800;font-size:11px">' + row.occPct.toFixed(1) + '%</span>';
+      }
+      // Row highlight for high revenue days
+      var rowStyle = 'background:' + bg + (isEmpty ? ';opacity:.4' : '') + (row.rev > 2500 ? ';border-left:3px solid #16a34a' : '');
+      th += '<tr style="' + rowStyle + '">' +
+        '<td style="padding:8px 10px;text-align:center;font-weight:700;color:#0d1b2e">' + DAY_NAMES[new Date(CY,m-1,row.d).getDay()].slice(0,3) + ' <span style="font-size:13px">' + row.d + '</span></td>' +
+        '<td style="padding:8px 10px;text-align:center">' + occBadge + '</td>' +
+        (totalRooms > 0 ? '<td style="padding:8px 10px;text-align:center;color:#0369a1;font-weight:700">' + (row.occRooms !== null ? row.occRooms : '—') + '</td>' : '') +
+        '<td style="padding:8px 10px;text-align:right;font-weight:700;color:#15803d;font-size:12.5px">' + (row.rev > 0 ? f2(row.rev) : '—') + '</td>' +
+        '<td style="padding:8px 10px;text-align:right;color:#b45309;font-weight:600">' + (row.kg > 0 ? row.kg.toFixed(2) : '—') + '</td>' +
+        '<td style="padding:8px 10px;text-align:right;font-weight:800;color:#7c3aed;font-size:12.5px">' + (row.revPOR !== null ? f2(row.revPOR) : '—') + '</td>' +
+        '<td style="padding:8px 10px;text-align:right;color:#0891b2;font-weight:600">' + (row.kgPOR !== null ? row.kgPOR.toFixed(3) : '—') + '</td>' +
+        '<td style="padding:8px 10px;text-align:right;color:#1d4ed8">' + (rlRev > 0 ? f2(rlRev) : '—') + '</td>' +
+        '<td style="padding:8px 10px;text-align:right;color:#64748b">' + (otherRev > 0 ? f2(otherRev) : '—') + '</td>' +
+        '</tr>';
+    });
+    th += '<tr style="background:linear-gradient(135deg,#0d1b2e,#1e3a5f);color:#c9a84c;font-weight:800">' +
+      '<td style="padding:10px 10px;text-align:center;letter-spacing:.5px;font-size:11px">TOTAL</td>' +
+      '<td style="padding:10px 10px;text-align:center">' + avgOcc.toFixed(1) + '%</td>' +
+      (totalRooms > 0 ? '<td style="padding:10px 10px;text-align:center">—</td>' : '') +
+      '<td style="padding:10px 10px;text-align:right;color:#86efac">' + f2(totalRev) + '</td>' +
+      '<td style="padding:10px 10px;text-align:right;color:#fcd34d">' + totalKg.toFixed(2) + '</td>' +
+      '<td style="padding:10px 10px;text-align:right;color:#c4b5fd">' + (avgRevPOR > 0 ? f2(avgRevPOR) : '—') + '</td>' +
+      '<td style="padding:10px 10px;text-align:right;color:#67e8f9">' + (avgKgPOR > 0 ? avgKgPOR.toFixed(3) : '—') + '</td>' +
+      '<td style="padding:10px 10px;text-align:right;color:#93c5fd">' + (totalRL > 0 ? f2(totalRL) : '—') + '</td>' +
+      '<td style="padding:10px 10px;text-align:right;color:#d1d5db">' + (totalOther > 0 ? f2(totalOther) : '—') + '</td>' +
       '</tr></tbody></table>';
     tw.innerHTML = th;
   }
 
-  // Dept breakdown
+  // Dept breakdown — per-dept colors
   var dw = document.getElementById('bench-dept-wrap');
   if (dw) {
-    var deptTotals = {};
-    DEPT_KEYS.forEach(function(dept) { deptTotals[dept] = 0; });
+    var deptColors = ['#0284c7','#16a34a','#0891b2','#7c3aed','#d97706','#ea580c'];
+    var deptTotals2 = {};
+    DEPT_KEYS.forEach(function(dept) { deptTotals2[dept] = 0; });
     dayData.forEach(function(row) {
-      DEPT_KEYS.forEach(function(dept) { deptTotals[dept] += (row.deptRevs[dept] || 0); });
+      DEPT_KEYS.forEach(function(dept) { deptTotals2[dept] += (row.deptRevs[dept] || 0); });
     });
-    var deptHtml = '<table style="width:100%;border-collapse:collapse;font-size:12px">' +
-      '<thead><tr style="background:#0d1b2e;color:#fff">' +
-      '<th style="padding:9px 12px;text-align:left">Department</th>' +
-      '<th style="padding:9px 12px;text-align:right">Total Revenue (QR)</th>' +
-      '<th style="padding:9px 12px;text-align:right">% of Total</th>' +
-      '<th style="padding:9px 12px;text-align:right">Avg Rev/Room/Day (QR)</th>' +
-      '</tr></thead><tbody>';
+    var deptHtml = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px">';
     DEPT_KEYS.forEach(function(dept, idx) {
-      var dRev = deptTotals[dept];
+      var dRev = deptTotals2[dept];
       var pct  = totalRev > 0 ? (dRev / totalRev * 100) : 0;
-      var rpr  = (avgRevPOR > 0 && dRev > 0 && porCount > 0) ? (dRev / porCount / (totalRooms > 0 ? (totalRooms * avgOcc / 100) : 1)) : null;
-      var bg2 = idx % 2 === 0 ? '#ffffff' : '#f8fafc';
-      deptHtml += '<tr style="background:' + bg2 + '">' +
-        '<td style="padding:8px 12px;font-weight:600;color:#0d1b2e">' + (DEPT_ICONS[dept]||'') + ' ' + dept + '</td>' +
-        '<td style="padding:8px 12px;text-align:right;font-weight:700;color:#15803d">' + (dRev > 0 ? f2(dRev) : '—') + '</td>' +
-        '<td style="padding:8px 12px;text-align:right">' +
-          (dRev > 0 ? '<div style="display:flex;align-items:center;justify-content:flex-end;gap:8px"><div style="background:#0284c7;height:6px;border-radius:3px;width:' + Math.min(80,pct) + 'px"></div><span style="font-weight:700;color:#0284c7">' + pct.toFixed(1) + '%</span></div>' : '—') +
-        '</td>' +
-        '<td style="padding:8px 12px;text-align:right;color:#7c3aed;font-weight:600">' + (rpr !== null && totalRooms > 0 ? f2(rpr) : '—') + '</td>' +
-        '</tr>';
+      var rpr  = (porCount > 0 && dRev > 0 && totalRooms > 0) ? (dRev / porCount / (totalRooms * avgOcc / 100)) : null;
+      var col  = deptColors[idx % deptColors.length];
+      var col2 = col + '18';
+      deptHtml += '<div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.06)">' +
+        '<div style="background:' + col + ';padding:12px 16px;display:flex;align-items:center;justify-content:space-between">' +
+          '<div style="font-size:13px;font-weight:800;color:#fff">' + (DEPT_ICONS[dept]||'') + ' ' + dept + '</div>' +
+          '<div style="background:rgba(255,255,255,.2);color:#fff;font-size:12px;font-weight:800;padding:3px 10px;border-radius:20px">' + pct.toFixed(1) + '%</div>' +
+        '</div>' +
+        '<div style="padding:14px 16px">' +
+          '<div style="display:flex;justify-content:space-between;margin-bottom:10px">' +
+            '<div><div style="font-size:10px;color:#94a3b8;font-weight:700;letter-spacing:.8px">TOTAL REVENUE</div>' +
+            '<div style="font-size:18px;font-weight:800;color:' + col + '">' + (dRev > 0 ? f2(dRev) + ' QR' : '—') + '</div></div>' +
+            '<div style="text-align:right"><div style="font-size:10px;color:#94a3b8;font-weight:700;letter-spacing:.8px">REV/ROOM/DAY</div>' +
+            '<div style="font-size:18px;font-weight:800;color:#7c3aed">' + (rpr !== null ? f2(rpr) + ' QR' : '—') + '</div></div>' +
+          '</div>' +
+          '<div style="background:#f8fafc;border-radius:6px;overflow:hidden;height:8px">' +
+            '<div style="background:' + col + ';height:100%;width:' + Math.min(100,pct) + '%;border-radius:6px;transition:width .5s ease"></div>' +
+          '</div>' +
+        '</div></div>';
     });
-    deptHtml += '</tbody></table>';
+    deptHtml += '</div>';
     dw.innerHTML = deptHtml;
   }
 }
