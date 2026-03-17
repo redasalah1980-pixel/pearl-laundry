@@ -495,6 +495,108 @@ table.price-t tr:hover td{background:var(--grey3)}
 .toast.ok{border-left-color:#16a34a}
 .toast.err{border-left-color:var(--red)}
 
+/* ══════════════════════════════════════════════
+   MOBILE RESPONSIVE — screens ≤ 768px
+══════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* Hide desktop top nav tabs on mobile */
+  .tn-tabs { display: none !important; }
+  .tn-divider { display: none !important; }
+  .tn-right { gap: 6px !important; }
+  .tn-brand-name { font-size: 12px !important; }
+  .tn-brand-sub { display: none !important; }
+  .tn-brand { margin-right: 0 !important; }
+  #btn-settings-nav #tn-name-display { display: none !important; }
+  #btn-settings-nav { padding: 5px 10px !important; font-size: 11px !important; }
+  .tn-logout { padding: 5px 10px !important; font-size: 11px !important; }
+  .year-sel { font-size: 11px !important; padding: 4px 6px !important; }
+
+  /* Show mobile bottom nav */
+  #mob-nav { display: flex !important; }
+
+  /* Page padding adjustment for bottom nav */
+  #pg-app { padding-bottom: 64px; }
+  .pg { padding: 16px !important; }
+  .ph h1 { font-size: 18px !important; }
+
+  /* Entry tab mobile */
+  .ctrl { flex-wrap: wrap !important; gap: 8px !important; }
+  .ctrl-group { flex: 1 !important; min-width: 120px; }
+  #ent-stats { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
+  .tscroll { font-size: 12px !important; }
+  .tscroll table { min-width: 600px; }
+  .qi { width: 60px !important; }
+  /* Toolbar buttons — wrap and smaller */
+  .entry-toolbar { flex-wrap: wrap !important; gap: 6px !important; }
+  .btn-save, .btn-clear, .btn-bulk, .btn-import { padding: 8px 12px !important; font-size: 11px !important; }
+
+  /* Dashboard mobile */
+  #dash-stats { grid-template-columns: 1fr 1fr !important; }
+  .dash-calendar { font-size: 11px !important; }
+
+  /* Guide sidebar hidden on mobile — show as dropdown */
+  #tab-guide > div { flex-direction: column !important; height: auto !important; }
+  #guide-sidebar { width: 100% !important; height: auto !important; position: relative !important; top: 0 !important; }
+  #guide-nav { max-height: 200px; }
+  #guide-wrap { padding: 16px !important; }
+
+  /* Benchmark mobile */
+  #bench-summary-cards { grid-template-columns: 1fr 1fr !important; }
+  #bench-occ-grid { grid-template-columns: repeat(auto-fill, minmax(65px, 1fr)) !important; }
+
+  /* Finance & report tables — scrollable */
+  #finance-wrap, #report-wrap, #monthly-wrap { overflow-x: auto; }
+
+  /* Prices tab — stack cards */
+  #ptab-tools > div:first-child { grid-template-columns: 1fr !important; }
+
+  /* Hide non-essential columns on small screens */
+  .mob-hide { display: none !important; }
+}
+
+/* ── Mobile bottom navigation bar ── */
+#mob-nav {
+  display: none;
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: 60px;
+  background: #0d1b2e;
+  border-top: 1px solid rgba(201,168,76,.2);
+  z-index: 300;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 4px;
+  box-shadow: 0 -4px 20px rgba(0,0,0,.3);
+}
+.mob-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 6px;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: background .15s;
+  min-width: 48px;
+  color: rgba(255,255,255,.45);
+}
+.mob-tab:hover, .mob-tab.on {
+  background: rgba(201,168,76,.12);
+  color: #c9a84c;
+}
+.mob-tab-icon { font-size: 18px; line-height: 1; }
+.mob-tab-label { font-size: 9px; font-weight: 700; letter-spacing: .3px; text-transform: uppercase; }
+.mob-tab.on .mob-tab-icon, .mob-tab.on .mob-tab-label { color: #c9a84c; }
+
+/* ── Mobile-only entry enhancements ── */
+@media (max-width: 768px) {
+  .entry-card { border-radius: 12px !important; }
+  .ech { padding: 12px 14px !important; }
+  .sc { padding: 12px 14px !important; }
+  .sc-val { font-size: 22px !important; }
+  table.et th, table.et td { padding: 8px 6px !important; font-size: 11.5px !important; }
+}
+
 @media print{
   @page { size: A3 landscape; margin: 8mm 6mm; }
 
@@ -738,15 +840,72 @@ var _fbDB = null;
       <button class="tn-logout" onclick="doLogout()" title="Logout">⏏ Logout</button>
     </div>
   </nav>
+  <!-- ══ MOBILE BOTTOM NAV ══════════════════════════════════════ -->
+  <div id="mob-nav">
+    <div class="mob-tab on" id="mob-dashboard" onclick="showTab('dashboard')">
+      <div class="mob-tab-icon">📊</div>
+      <div class="mob-tab-label">Dash</div>
+    </div>
+    <div class="mob-tab" id="mob-entry" onclick="showTab('entry')">
+      <div class="mob-tab-icon">✏️</div>
+      <div class="mob-tab-label">Entry</div>
+    </div>
+    <div class="mob-tab" id="mob-finance" onclick="showTab('finance')">
+      <div class="mob-tab-icon">🏦</div>
+      <div class="mob-tab-label">Finance</div>
+    </div>
+    <div class="mob-tab" id="mob-benchmark" onclick="showTab('benchmark')">
+      <div class="mob-tab-icon">🎯</div>
+      <div class="mob-tab-label">Bench</div>
+    </div>
+    <div class="mob-tab" id="mob-more" onclick="toggleMobMore()">
+      <div class="mob-tab-icon">⋯</div>
+      <div class="mob-tab-label">More</div>
+    </div>
+  </div>
+  <!-- Mobile "More" menu -->
+  <div id="mob-more-menu" style="display:none;position:fixed;bottom:64px;left:0;right:0;background:#0d1b2e;border-top:1px solid rgba(201,168,76,.2);z-index:299;padding:10px;display:none">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+      <div onclick="showTab('monthly');closeMobMore()" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;background:rgba(255,255,255,.06);border-radius:10px;cursor:pointer;color:rgba(255,255,255,.7);font-size:11px;font-weight:700">
+        <span style="font-size:20px">📅</span>Monthly
+      </div>
+      <div onclick="showTab('report');closeMobMore()" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;background:rgba(255,255,255,.06);border-radius:10px;cursor:pointer;color:rgba(255,255,255,.7);font-size:11px;font-weight:700">
+        <span style="font-size:20px">📄</span>Report
+      </div>
+      <div onclick="showTab('analytics');closeMobMore()" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;background:rgba(255,255,255,.06);border-radius:10px;cursor:pointer;color:rgba(255,255,255,.7);font-size:11px;font-weight:700">
+        <span style="font-size:20px">📈</span>Analytics
+      </div>
+      <div onclick="showTab('prices');closeMobMore()" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;background:rgba(255,255,255,.06);border-radius:10px;cursor:pointer;color:rgba(255,255,255,.7);font-size:11px;font-weight:700">
+        <span style="font-size:20px">⚙️</span>Prices
+      </div>
+      <div onclick="showTab('guide');closeMobMore()" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;background:rgba(255,255,255,.06);border-radius:10px;cursor:pointer;color:rgba(255,255,255,.7);font-size:11px;font-weight:700">
+        <span style="font-size:20px">📖</span>Guide
+      </div>
+      <div onclick="showTab('backup');closeMobMore()" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;background:rgba(255,255,255,.06);border-radius:10px;cursor:pointer;color:rgba(201,168,76,1);font-size:11px;font-weight:700">
+        <span style="font-size:20px">🛡️</span>Backup
+      </div>
+    </div>
+  </div>
 
   <!-- DASHBOARD -->
   <div class="pg on" id="tab-dashboard">
     <div class="ph"><h1>Dashboard</h1><p>Live overview — Laundry Management System</p></div>
-    <div class="ctrl">
+    <div class="ctrl" style="flex-wrap:wrap;gap:10px;align-items:flex-end">
       <div class="ctrl-group"><div class="ctrl-label">Month</div>
         <select id="dash-month" onchange="renderDash()"></select></div>
+      <div style="display:flex;align-items:flex-end;gap:8px">
+        <div>
+          <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">MONTHLY TARGET (QR)</div>
+          <input type="number" id="dash-target" placeholder="e.g. 80000" min="0"
+            style="padding:7px 12px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;width:140px;outline:none"
+            onchange="saveDashTarget()">
+        </div>
+        <button onclick="saveDashTarget()" style="padding:7px 14px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer">Set Target</button>
+      </div>
+      <div id="dash-notif" style="margin-left:auto"></div>
     </div>
     <div class="stats" id="dash-stats"></div>
+    <div id="dash-target-bar" style="margin-bottom:14px"></div>
     <div class="two-col">
       <div class="cal-wrap">
         <div class="cal-head"><div class="cal-title">📅 Monthly Calendar
@@ -1338,11 +1497,49 @@ var _fbDB = null;
   <!-- ANALYTICS -->
   <div class="pg" id="tab-analytics">
     <div class="ph"><h1>📈 Analytics</h1><p>Visual breakdown — revenue, KG, trends by department</p></div>
-    <div class="ctrl">
-      <div class="ctrl-group"><div class="ctrl-label">Month</div>
-        <select id="ana-month" onchange="renderAnalytics()"></select></div>
+
+    <!-- Analytics sub-tabs -->
+    <div style="display:flex;gap:0;border-bottom:2px solid #e2e8f0;margin-bottom:20px">
+      <button id="atab-btn-charts" onclick="showAnalyticsTab('charts')" style="padding:10px 20px;font-size:13px;font-weight:700;border:none;border-bottom:3px solid #0d1b2e;background:none;color:#0d1b2e;cursor:pointer;margin-bottom:-2px">📊 Charts</button>
+      <button id="atab-btn-yoy" onclick="showAnalyticsTab('yoy')" style="padding:10px 20px;font-size:13px;font-weight:600;border:none;border-bottom:3px solid transparent;background:none;color:#64748b;cursor:pointer;margin-bottom:-2px">📅 Year vs Year</button>
+      <button id="atab-btn-trend" onclick="showAnalyticsTab('trend')" style="padding:10px 20px;font-size:13px;font-weight:600;border:none;border-bottom:3px solid transparent;background:none;color:#64748b;cursor:pointer;margin-bottom:-2px">📈 Trends</button>
     </div>
-    <div id="analytics-wrap" style="padding:0 0 32px"></div>
+
+    <!-- Charts sub-tab -->
+    <div id="atab-charts">
+      <div class="ctrl">
+        <div class="ctrl-group"><div class="ctrl-label">Month</div>
+          <select id="ana-month" onchange="renderAnalytics()"></select></div>
+      </div>
+      <div id="analytics-wrap" style="padding:0 0 32px"></div>
+    </div>
+
+    <!-- Year vs Year sub-tab -->
+    <div id="atab-yoy" style="display:none">
+      <div class="ctrl" style="flex-wrap:wrap;gap:10px">
+        <div class="ctrl-group"><div class="ctrl-label">Month</div>
+          <select id="yoy-month" onchange="renderYoY()"></select></div>
+        <div class="ctrl-group"><div class="ctrl-label">Compare Year 1</div>
+          <select id="yoy-y1" onchange="renderYoY()"></select></div>
+        <div class="ctrl-group"><div class="ctrl-label">vs Year 2</div>
+          <select id="yoy-y2" onchange="renderYoY()"></select></div>
+      </div>
+      <div id="yoy-wrap" style="margin-top:16px"></div>
+    </div>
+
+    <!-- Trends sub-tab -->
+    <div id="atab-trend" style="display:none">
+      <div class="ctrl">
+        <div class="ctrl-group"><div class="ctrl-label">Months to analyse</div>
+          <select id="trend-months" onchange="renderTrends()">
+            <option value="3">Last 3 months</option>
+            <option value="6" selected>Last 6 months</option>
+            <option value="12">Last 12 months</option>
+          </select>
+        </div>
+      </div>
+      <div id="trend-wrap" style="margin-top:16px"></div>
+    </div>
 
   <div style="text-align:center;padding:18px 0 10px;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;margin-top:32px;letter-spacing:0.3px">
     © Reda Salah · All Rights Reserved
@@ -1442,6 +1639,7 @@ var _fbDB = null;
       <button class="stab on" id="stab-admin"   onclick="switchStab('admin')"  style="flex:1;padding:16px 10px;font-size:13px">👤 Admin Account</button>
       <button class="stab"     id="stab-team"    onclick="switchStab('team')"   style="flex:1;padding:16px 10px;font-size:13px">👥 Team Account</button>
       <button class="stab"     id="stab-access"  onclick="switchStab('access')" style="flex:1;padding:16px 10px;font-size:13px">🔒 Tab Access</button>
+      <button class="stab"     id="stab-audit"   onclick="switchStab('audit')"  style="flex:1;padding:16px 10px;font-size:13px">📋 Audit Log</button>
     </div>
 
     <div style="padding:30px 36px 24px;max-height:70vh;overflow-y:auto">
@@ -1605,6 +1803,18 @@ var _fbDB = null;
           <button style="flex:1;padding:14px;background:linear-gradient(135deg,#14532d,#16a34a);color:#fff;border:none;border-radius:11px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit" onclick="saveAccessSettings()" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">💾 Save Tab Access</button>
           <button style="padding:14px 22px;background:#f1f5f9;color:#64748b;border:1.5px solid #e2e8f0;border-radius:11px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit" onclick="closeSettings()">Cancel</button>
         </div>
+      </div>
+
+      <!-- ── PANEL: Audit Log ─────────────────────── -->
+      <div id="spanel-audit" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <div>
+            <div style="font-size:15px;font-weight:800;color:#0d1b2e">📋 Audit Log</div>
+            <div style="font-size:12px;color:#64748b;margin-top:2px">Record of all data saves — who saved what and when</div>
+          </div>
+          <button onclick="clearAuditLog()" style="padding:7px 14px;background:#fff5f5;border:1.5px solid #fca5a5;color:#dc2626;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer">🗑 Clear Log</button>
+        </div>
+        <div id="audit-log-wrap" style="max-height:52vh;overflow-y:auto;border:1.5px solid #e2e8f0;border-radius:12px"></div>
       </div>
 
     </div>
@@ -2031,6 +2241,37 @@ function loadDB(y) {
 }
 
 // ── Timestamp-safe merge: for each data key, the version with the newer timestamp wins ──
+// ── Monthly Targets ───────────────────────────────────────────
+function targetKey(y, m) { return 'pearl_target_' + y + '_' + m; }
+function loadTarget(y, m) {
+  try { return JSON.parse(_STORE.getItem(targetKey(y, m)) || 'null'); } catch(e) { return null; }
+}
+function saveTarget(y, m, data) {
+  try { _STORE.setItem(targetKey(y, m), JSON.stringify(data)); } catch(e) {}
+  if (window._fbSaveKey) window._fbSaveKey('pearl/targets/' + y + '/' + m, data);
+}
+function loadTargetFB(y, m) {
+  if (window._fbLoadKey) {
+    window._fbLoadKey('pearl/targets/' + y + '/' + m).then(function(fb) {
+      if (fb) { try { _STORE.setItem(targetKey(y, m), JSON.stringify(fb)); } catch(e) {} }
+    });
+  }
+}
+
+// ── Audit Log ─────────────────────────────────────────────────
+var _auditLog = [];
+function logAudit(action, detail) {
+  var user = _SESSION.getItem('ph_user') || 'Unknown';
+  var entry = { ts: new Date().toISOString(), user: user, action: action, detail: detail };
+  _auditLog.unshift(entry);
+  if (_auditLog.length > 200) _auditLog = _auditLog.slice(0, 200);
+  try { _STORE.setItem('pearl_audit_log', JSON.stringify(_auditLog)); } catch(e) {}
+  if (window._fbSaveKey) window._fbSaveKey('pearl/audit/' + entry.ts.replace(/[:.]/g,'-'), entry);
+}
+function loadAuditLog() {
+  try { _auditLog = JSON.parse(_STORE.getItem('pearl_audit_log') || '[]'); } catch(e) { _auditLog = []; }
+}
+
 function mergeDataSafe(local, remote) {
   var merged = {};
   // Collect all non-timestamp keys from both
@@ -2288,6 +2529,7 @@ function attachFbListener(y) {
 window.addEventListener('fb-ready', function() {
   attachFbListener(CY);
   loadPriceSchedule();
+  loadAuditLog();
   // Auto-push any existing local data up to Firebase
   setTimeout(pushLocalDataToFirebase, 2000);
   // One-time migration: stamp locked prices on existing data
@@ -2656,13 +2898,57 @@ function syncSettingsFromFirebase(callback) {
 }
 
 // ── Settings modal tab switcher ───────────────────────
+function renderAuditLog() {
+  var wrap = document.getElementById('audit-log-wrap');
+  if (!wrap) return;
+  loadAuditLog();
+  if (_auditLog.length === 0) {
+    wrap.innerHTML = '<div style="padding:24px;text-align:center;color:#94a3b8;font-size:13px">No audit entries yet. Entries are recorded when data is saved.</div>';
+    return;
+  }
+  var html = '<table style="width:100%;border-collapse:collapse;font-size:12px">' +
+    '<thead><tr style="background:#f8fafc;position:sticky;top:0">' +
+    '<th style="padding:9px 12px;text-align:left;color:#64748b;font-size:11px;border-bottom:1.5px solid #e2e8f0">TIME</th>' +
+    '<th style="padding:9px 12px;text-align:left;color:#64748b;font-size:11px;border-bottom:1.5px solid #e2e8f0">USER</th>' +
+    '<th style="padding:9px 12px;text-align:left;color:#64748b;font-size:11px;border-bottom:1.5px solid #e2e8f0">ACTION</th>' +
+    '<th style="padding:9px 12px;text-align:left;color:#64748b;font-size:11px;border-bottom:1.5px solid #e2e8f0">DETAIL</th>' +
+    '</tr></thead><tbody>';
+  _auditLog.slice(0,100).forEach(function(e, idx) {
+    var d = new Date(e.ts);
+    var timeStr = d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) + ' ' +
+      d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+    var bg = idx%2===0?'#fff':'#f8fafc';
+    var actionCol = e.action==='SAVE_DAY'?'#0369a1':e.action==='LOGIN'?'#15803d':'#7c3aed';
+    html += '<tr style="background:' + bg + '">' +
+      '<td style="padding:8px 12px;color:#64748b;white-space:nowrap">' + timeStr + '</td>' +
+      '<td style="padding:8px 12px;font-weight:700;color:#0d1b2e">' + (e.user||'—') + '</td>' +
+      '<td style="padding:8px 12px"><span style="background:' + actionCol + '22;color:' + actionCol + ';padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700">' + e.action + '</span></td>' +
+      '<td style="padding:8px 12px;color:#374151">' + (e.detail||'—') + '</td>' +
+    '</tr>';
+  });
+  html += '</tbody></table>';
+  if (_auditLog.length > 100) html += '<div style="padding:10px 12px;font-size:11px;color:#94a3b8;text-align:center">Showing 100 of ' + _auditLog.length + ' entries</div>';
+  wrap.innerHTML = html;
+}
+
+function clearAuditLog() {
+  if (!confirm('Clear all audit log entries?')) return;
+  _auditLog = [];
+  try { _STORE.removeItem('pearl_audit_log'); } catch(e) {}
+  renderAuditLog();
+  toast('Audit log cleared', 'ok');
+}
+
 function switchStab(name) {
-  ['admin','team','access'].forEach(function(t) {
-    document.getElementById('stab-'+t).classList.toggle('on', t===name);
-    document.getElementById('spanel-'+t).style.display = t===name ? '' : 'none';
+  ['admin','team','access','audit'].forEach(function(t) {
+    var btn = document.getElementById('stab-'+t);
+    var pan = document.getElementById('spanel-'+t);
+    if (btn) btn.classList.toggle('on', t===name);
+    if (pan) pan.style.display = t===name ? '' : 'none';
   });
   if (name === 'access') buildAccessCheckboxes();
   if (name === 'team') prefillTeam();
+  if (name === 'audit') renderAuditLog();
 }
 
 function openSettings() {
@@ -3323,7 +3609,25 @@ function showTab(name) {
   document.querySelectorAll('.pg').forEach(p => p.classList.remove('on'));
   document.getElementById('tab-' + name)?.classList.add('on');
   window.scrollTo(0, 0);
+  // Sync mobile bottom nav
+  var mobTabs = ['dashboard','entry','finance','benchmark'];
+  document.querySelectorAll('.mob-tab').forEach(function(t){ t.classList.remove('on'); });
+  var mobEl = document.getElementById('mob-' + name);
+  if (mobEl) mobEl.classList.add('on');
+  else { var moreEl = document.getElementById('mob-more'); if (moreEl) moreEl.classList.add('on'); }
+  closeMobMore();
   refreshTab();
+}
+
+function toggleMobMore() {
+  var m = document.getElementById('mob-more-menu');
+  if (!m) return;
+  var isHidden = m.style.display === 'none' || m.style.display === '';
+  m.style.display = isHidden ? 'grid' : 'none';
+}
+function closeMobMore() {
+  var m = document.getElementById('mob-more-menu');
+  if (m) m.style.display = 'none';
 }
 function refreshTab() {
   if (curTab === 'backup') { renderBackupTab(); return; }
@@ -3334,7 +3638,7 @@ function refreshTab() {
   else if (curTab === 'finance') renderFinance();
   else if (curTab === 'prices') renderPriceTable();
   else if (curTab === 'benchmark') initBenchmark();
-  else if (curTab === 'analytics') renderAnalytics();
+  else if (curTab === 'analytics') { renderAnalytics(); showAnalyticsTab('charts'); }
   else if (curTab === 'guide') renderGuide();
 }
 
@@ -3706,6 +4010,7 @@ function saveDayConfirmed(m, day, updatePrices) {
   }
   stampTimestamps(CY, m, entDept, day);
   commitSave(CY);
+  logAudit('SAVE_DAY', entDept + ' · Day ' + day + ' ' + MONTH_NAMES[m-1] + ' ' + CY + (updatePrices ? '' : ' · prices kept'));
   toast('✔ Saved — ' + entDept + ' day ' + day + ' ' + MONTH_NAMES[m-1] + (updatePrices ? '' : ' · old prices kept'), 'ok');
   setTimeout(autoCloudBackup, 2000);
 }
@@ -6416,6 +6721,162 @@ function initBenchmark() {
   }
 }
 
+function showAnalyticsTab(name) {
+  ['charts','yoy','trend'].forEach(function(t) {
+    var el = document.getElementById('atab-' + t);
+    var btn = document.getElementById('atab-btn-' + t);
+    if (el) el.style.display = t === name ? 'block' : 'none';
+    if (btn) {
+      btn.style.borderBottomColor = t === name ? '#0d1b2e' : 'transparent';
+      btn.style.color = t === name ? '#0d1b2e' : '#64748b';
+      btn.style.fontWeight = t === name ? '700' : '600';
+    }
+  });
+  if (name === 'yoy') renderYoY();
+  if (name === 'trend') renderTrends();
+}
+
+function renderYoY() {
+  var m   = parseInt(document.getElementById('yoy-month')?.value || new Date().getMonth()+1);
+  var y1  = parseInt(document.getElementById('yoy-y1')?.value || CY);
+  var y2  = parseInt(document.getElementById('yoy-y2')?.value || (CY-1));
+  var wrap = document.getElementById('yoy-wrap');
+  if (!wrap) return;
+
+  // Populate selects if empty
+  ['yoy-month','yoy-y1','yoy-y2'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    if (id === 'yoy-month' && el.options.length === 0) {
+      MONTH_NAMES.forEach(function(mn,i){ var o=document.createElement('option'); o.value=i+1; o.textContent=mn; if(i+1===m) o.selected=true; el.appendChild(o); });
+    } else if (id !== 'yoy-month' && el.options.length === 0) {
+      buildYearOpts(el, id==='yoy-y1'?CY:CY-1);
+    }
+  });
+
+  var data1 = monthTotals(y1, m);
+  var data2 = monthTotals(y2, m);
+
+  var html = '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:20px">';
+  function yoyCard(label, v1, v2, fmt) {
+    var diff = v1 - v2; var pct = v2 > 0 ? (diff/v2*100) : 0;
+    var col = diff >= 0 ? '#16a34a' : '#dc2626';
+    var arrow = diff >= 0 ? '↑' : '↓';
+    return '<div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:18px">' +
+      '<div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:10px;letter-spacing:.8px">' + label.toUpperCase() + '</div>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">' +
+        '<div style="background:#eff6ff;border-radius:8px;padding:10px;text-align:center">' +
+          '<div style="font-size:10px;color:#0369a1;font-weight:700;margin-bottom:4px">' + y1 + '</div>' +
+          '<div style="font-size:18px;font-weight:800;color:#0d1b2e">' + fmt(v1) + '</div>' +
+        '</div>' +
+        '<div style="background:#f0fdf4;border-radius:8px;padding:10px;text-align:center">' +
+          '<div style="font-size:10px;color:#15803d;font-weight:700;margin-bottom:4px">' + y2 + '</div>' +
+          '<div style="font-size:18px;font-weight:800;color:#0d1b2e">' + fmt(v2) + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div style="text-align:center;font-size:13px;font-weight:800;color:' + col + '">' +
+        arrow + ' ' + Math.abs(pct).toFixed(1) + '% (' + (diff>=0?'+':'') + fmt(diff) + ')' +
+      '</div></div>';
+  }
+  html += yoyCard('Revenue (QR)', data1.qr, data2.qr, function(v){ return f2(Math.abs(v)); });
+  html += yoyCard('KG Washed', data1.kg, data2.kg, function(v){ return Math.abs(v).toFixed(1)+'kg'; });
+  html += yoyCard('Total Pieces', data1.pcs, data2.pcs, function(v){ return Math.abs(v).toLocaleString()+'pcs'; });
+  html += '</div>';
+
+  // Dept comparison table
+  html += '<div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;overflow:hidden">' +
+    '<div style="background:#0d1b2e;padding:12px 16px;font-size:12px;font-weight:800;color:#c9a84c">' +
+      '🏢 Department Comparison — ' + MONTH_NAMES[m-1] + ' ' + y1 + ' vs ' + y2 +
+    '</div>' +
+    '<table style="width:100%;border-collapse:collapse;font-size:12px">' +
+    '<thead><tr style="background:#f8fafc">' +
+      '<th style="padding:9px 12px;text-align:left;color:#64748b;font-size:11px">DEPT</th>' +
+      '<th style="padding:9px 12px;text-align:right;color:#0369a1;font-size:11px">' + y1 + ' QR</th>' +
+      '<th style="padding:9px 12px;text-align:right;color:#15803d;font-size:11px">' + y2 + ' QR</th>' +
+      '<th style="padding:9px 12px;text-align:right;font-size:11px">CHANGE</th>' +
+    '</tr></thead><tbody>';
+  DEPT_KEYS.forEach(function(dept, idx) {
+    var d1 = data1.byDept[dept]?.qr || 0;
+    var d2 = data2.byDept[dept]?.qr || 0;
+    var diff2 = d1 - d2; var pct2 = d2 > 0 ? (diff2/d2*100) : 0;
+    var col2 = diff2 >= 0 ? '#16a34a' : '#dc2626';
+    var bg2 = idx%2===0?'#fff':'#f8fafc';
+    html += '<tr style="background:' + bg2 + '">' +
+      '<td style="padding:8px 12px;font-weight:600;color:#0d1b2e">' + (DEPT_ICONS[dept]||'') + ' ' + dept + '</td>' +
+      '<td style="padding:8px 12px;text-align:right;color:#0369a1;font-weight:600">' + (d1>0?f2(d1):'—') + '</td>' +
+      '<td style="padding:8px 12px;text-align:right;color:#15803d;font-weight:600">' + (d2>0?f2(d2):'—') + '</td>' +
+      '<td style="padding:8px 12px;text-align:right;font-weight:700;color:' + col2 + '">' + (d1>0||d2>0 ? (diff2>=0?'+':'') + pct2.toFixed(1)+'%' : '—') + '</td>' +
+    '</tr>';
+  });
+  html += '</tbody></table></div>';
+  wrap.innerHTML = html;
+}
+
+function renderTrends() {
+  var months = parseInt(document.getElementById('trend-months')?.value || 6);
+  var wrap = document.getElementById('trend-wrap');
+  if (!wrap) return;
+  var data = [];
+  var now = new Date();
+  for (var i = months-1; i >= 0; i--) {
+    var d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+    var y = d.getFullYear(), m = d.getMonth()+1;
+    var tot = monthTotals(y, m);
+    data.push({ label: MONTH_NAMES[m-1].slice(0,3)+' '+y, qr: tot.qr, kg: tot.kg, pcs: tot.pcs });
+  }
+  // Calculate rolling avg and best/worst
+  var avgRev = data.reduce(function(a,b){ return a+b.qr; },0) / data.filter(function(d){ return d.qr>0; }).length || 0;
+  var best = data.reduce(function(a,b){ return b.qr>a.qr?b:a; }, data[0]);
+  var worst = data.filter(function(d){ return d.qr>0; }).reduce(function(a,b){ return b.qr<a.qr?b:a; }, data.find(function(d){ return d.qr>0; }) || data[0]);
+
+  var html = '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px">';
+  html += '<div style="background:linear-gradient(135deg,#0369a1,#0284c7);border-radius:12px;padding:16px;color:#fff">' +
+    '<div style="font-size:10px;font-weight:700;opacity:.7;margin-bottom:6px">AVG MONTHLY REVENUE</div>' +
+    '<div style="font-size:22px;font-weight:800">' + f2(avgRev) + ' QR</div>' +
+    '<div style="font-size:11px;opacity:.7">Over ' + months + ' months</div></div>';
+  html += '<div style="background:linear-gradient(135deg,#15803d,#16a34a);border-radius:12px;padding:16px;color:#fff">' +
+    '<div style="font-size:10px;font-weight:700;opacity:.7;margin-bottom:6px">BEST MONTH</div>' +
+    '<div style="font-size:20px;font-weight:800">' + (best?best.label:'—') + '</div>' +
+    '<div style="font-size:13px;font-weight:700">' + (best&&best.qr>0?f2(best.qr)+' QR':'No data') + '</div></div>';
+  html += '<div style="background:linear-gradient(135deg,#b45309,#d97706);border-radius:12px;padding:16px;color:#fff">' +
+    '<div style="font-size:10px;font-weight:700;opacity:.7;margin-bottom:6px">LOWEST MONTH</div>' +
+    '<div style="font-size:20px;font-weight:800">' + (worst?worst.label:'—') + '</div>' +
+    '<div style="font-size:13px;font-weight:700">' + (worst&&worst.qr>0?f2(worst.qr)+' QR':'No data') + '</div></div>';
+  html += '</div>';
+
+  // Trend table
+  html += '<div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;overflow:hidden">' +
+    '<div style="background:#0d1b2e;padding:12px 16px;font-size:12px;font-weight:800;color:#c9a84c">📊 ' + months + '-Month Revenue Trend</div>' +
+    '<table style="width:100%;border-collapse:collapse;font-size:12px">' +
+    '<thead><tr style="background:#f8fafc">' +
+      '<th style="padding:9px 12px;text-align:left;color:#64748b;font-size:11px">MONTH</th>' +
+      '<th style="padding:9px 12px;text-align:right;color:#64748b;font-size:11px">REVENUE (QR)</th>' +
+      '<th style="padding:9px 12px;text-align:right;color:#64748b;font-size:11px">KG</th>' +
+      '<th style="padding:9px 12px;text-align:right;color:#64748b;font-size:11px">vs AVG</th>' +
+      '<th style="padding:9px 12px;text-align:left;color:#64748b;font-size:11px">TREND</th>' +
+    '</tr></thead><tbody>';
+  data.forEach(function(row, idx) {
+    var diff3 = row.qr - avgRev; var pct3 = avgRev > 0 ? (diff3/avgRev*100) : 0;
+    var col3 = row.qr >= avgRev ? '#16a34a' : '#dc2626';
+    var barW = row.qr > 0 ? Math.min(120, (row.qr/best.qr*120)) : 0;
+    var bg3 = idx%2===0?'#fff':'#f8fafc';
+    var isBest = best && row.label===best.label && row.qr>0;
+    html += '<tr style="background:' + (isBest?'#f0fdf4':bg3) + '">' +
+      '<td style="padding:8px 12px;font-weight:700;color:#0d1b2e">' + row.label + (isBest?' 🏆':'') + '</td>' +
+      '<td style="padding:8px 12px;text-align:right;font-weight:700;color:#0369a1">' + (row.qr>0?f2(row.qr):'—') + '</td>' +
+      '<td style="padding:8px 12px;text-align:right;color:#d97706">' + (row.kg>0?row.kg.toFixed(1)+'kg':'—') + '</td>' +
+      '<td style="padding:8px 12px;text-align:right;font-weight:700;color:' + col3 + '">' + (row.qr>0?(diff3>=0?'+':'')+pct3.toFixed(1)+'%':'—') + '</td>' +
+      '<td style="padding:8px 12px">' +
+        '<div style="background:#e2e8f0;border-radius:4px;height:8px;width:120px">' +
+          '<div style="background:' + col3 + ';height:100%;width:' + barW + 'px;border-radius:4px"></div>' +
+        '</div>' +
+      '</td>' +
+    '</tr>';
+  });
+  html += '</tbody></table></div>';
+  wrap.innerHTML = html;
+}
+
 function renderAnalytics() {
   var m = parseInt(document.getElementById('ana-month')?.value || new Date().getMonth() + 1);
   var mName = MONTH_NAMES[m-1];
@@ -6540,6 +7001,68 @@ function renderAnalytics() {
 }
 
 // ── Dashboard mini charts (called from renderDash) ─────────
+function saveDashTarget() {
+  var m = parseInt(document.getElementById('dash-month')?.value || new Date().getMonth()+1);
+  var val = parseFloat(document.getElementById('dash-target')?.value) || 0;
+  saveTarget(CY, m, { revenue: val });
+  toast('✅ Target saved — ' + f2(val) + ' QR for ' + MONTH_NAMES[m-1], 'ok');
+  renderDash();
+}
+
+function renderTargetBar(totalRev, m) {
+  var target = loadTarget(CY, m);
+  var bar = document.getElementById('dash-target-bar');
+  if (!bar) return;
+  if (!target || !target.revenue) { bar.innerHTML = ''; return; }
+  var tgt = target.revenue;
+  var pct = Math.min(100, (totalRev / tgt * 100));
+  var col = pct >= 100 ? '#16a34a' : pct >= 75 ? '#d97706' : '#dc2626';
+  var label = pct >= 100 ? '✅ Target reached!' : pct >= 75 ? '⚡ On track' : '⚠️ Below target';
+  bar.innerHTML =
+    '<div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;padding:14px 18px">' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">' +
+      '<div style="font-size:12px;font-weight:700;color:#0d1b2e">Monthly Revenue Target</div>' +
+      '<div style="font-size:12px;font-weight:800;color:' + col + '">' + label + '</div>' +
+    '</div>' +
+    '<div style="background:#f1f5f9;border-radius:20px;height:10px;overflow:hidden;margin-bottom:6px">' +
+      '<div style="background:' + col + ';height:100%;width:' + pct + '%;border-radius:20px;transition:width .5s ease"></div>' +
+    '</div>' +
+    '<div style="display:flex;justify-content:space-between;font-size:11px;color:#64748b">' +
+      '<span>Actual: <strong style="color:#0d1b2e">' + f2(totalRev) + ' QR</strong></span>' +
+      '<span><strong style="color:' + col + '">' + pct.toFixed(1) + '%</strong> of target</span>' +
+      '<span>Target: <strong style="color:#0d1b2e">' + f2(tgt) + ' QR</strong></span>' +
+    '</div>' +
+    '</div>';
+}
+
+function renderNotifications(m, totalRev, nd) {
+  var el = document.getElementById('dash-notif');
+  if (!el) return;
+  var alerts = [];
+  // Check missing days
+  var missingDays = 0;
+  var today = new Date(); var todayDay = today.getDate();
+  var todayM = today.getMonth()+1; var todayY = today.getFullYear();
+  if (CY === todayY && m === todayM) {
+    for (var d = 1; d < todayDay; d++) {
+      var dt = dayTotals(CY, m, d);
+      if (dt.qr === 0) missingDays++;
+    }
+    if (missingDays > 0) alerts.push({ icon: '⚠️', msg: missingDays + ' day(s) missing data', col: '#dc2626', bg: '#fee2e2' });
+  }
+  // Revenue vs target
+  var target = loadTarget(CY, m);
+  if (target && target.revenue && totalRev > 0) {
+    var pct = totalRev / target.revenue * 100;
+    if (pct >= 100) alerts.push({ icon: '🎉', msg: 'Target reached!', col: '#16a34a', bg: '#f0fdf4' });
+    else if (pct < 50 && todayM === m && todayY === CY) alerts.push({ icon: '📉', msg: 'Revenue below 50% of target', col: '#d97706', bg: '#fffbeb' });
+  }
+  if (alerts.length === 0) { el.innerHTML = ''; return; }
+  el.innerHTML = alerts.map(function(a) {
+    return '<span style="display:inline-flex;align-items:center;gap:5px;background:' + a.bg + ';color:' + a.col + ';padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;margin-left:6px">' + a.icon + ' ' + a.msg + '</span>';
+  }).join('');
+}
+
 function renderDashCharts(m) {
   var nd = dim(CY, m);
   var deptQR = {}, deptKG = {}, totalQR = 0, totalKG = 0;
@@ -6646,7 +7169,7 @@ function renderGuide() {
     ],
 
     // ── 2. DAILY ENTRY ──────────────────────────────────────────
-    ['✏️ Daily Entry — Entering Quantities',
+    ['✏️ Daily Entry — Entering Quantities & Mobile Use',
      '<strong>How to enter data:</strong>' +
      step([
        'Select the <strong>Month</strong>, <strong>Day</strong>, and <strong>Department</strong> from the dropdowns.',
@@ -6695,7 +7218,16 @@ function renderGuide() {
        btn('🔄 Update Prices','#dc2626','#fff') + ' — saves with current prices. Use this if you intentionally want to reprice.',
        'Cancel — nothing saved.'
      ]) +
-     tip('When correcting a quantity mistake on an old day, always choose Keep Old Prices to protect the revenue figures that were already reported.')
+     tip('When correcting a quantity mistake on an old day, always choose Keep Old Prices to protect the revenue figures that were already reported.') +
+     '<br><strong>📱 Mobile Use:</strong>' +
+     '<br><br>Open the same link on your phone or tablet — the system detects the screen size and adapts automatically. On mobile you will see:' +
+     ul([
+       'A <strong>bottom navigation bar</strong> with Dashboard, Entry, Finance, Benchmark, and a <strong>⋯ More</strong> button for other tabs.',
+       'Touch-friendly larger buttons and stat cards.',
+       'The entry table scrolls horizontally so all columns are accessible.',
+       'All data syncs instantly — same Firebase database as desktop.'
+     ]) +
+     tip('Bookmark the link on your phone home screen for one-tap access. Works on iOS Safari and Android Chrome.')
     ],
 
     // ── 3. RECEIVING LOG ────────────────────────────────────────
