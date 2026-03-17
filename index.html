@@ -3447,8 +3447,11 @@ function onEntMonthChange() {
 }
 function onEntDeptChange() {
   entDept = document.getElementById('ent-dept').value;
-  buildTabs('dept-tabs', d => { entDept = d; document.getElementById('ent-dept').value = d; renderEntryTable(); }, entDept);
+  buildTabs('dept-tabs', d => { entDept = d; document.getElementById('ent-dept').value = d; renderEntryTable(); updateEntStats(parseInt(document.getElementById('ent-month')?.value||1), parseInt(document.getElementById('ent-day')?.value||1)); }, entDept);
   renderEntryTable();
+  const m = parseInt(document.getElementById('ent-month')?.value || 1);
+  const day = parseInt(document.getElementById('ent-day')?.value || 1);
+  updateEntStats(m, day);
 }
 
 function renderEntry() {
