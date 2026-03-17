@@ -499,59 +499,111 @@ table.price-t tr:hover td{background:var(--grey3)}
    MOBILE RESPONSIVE — screens ≤ 768px
 ══════════════════════════════════════════════ */
 @media (max-width: 768px) {
-  /* Hide desktop top nav tabs on mobile */
+
+  /* ── TOP NAV ── */
   .tn-tabs { display: none !important; }
   .tn-divider { display: none !important; }
-  .tn-right { gap: 6px !important; }
-  .tn-brand-name { font-size: 12px !important; }
+  .tn-right { gap: 5px !important; margin-left: auto; }
+  .tn-brand-name { font-size: 11px !important; }
   .tn-brand-sub { display: none !important; }
-  .tn-brand { margin-right: 0 !important; }
+  .tn-brand { margin-right: 0 !important; padding: 4px !important; }
+  .tn-brand img { width: 28px !important; height: 28px !important; }
+  #btn-settings-nav { padding: 5px 8px !important; font-size: 11px !important; }
   #btn-settings-nav #tn-name-display { display: none !important; }
-  #btn-settings-nav { padding: 5px 10px !important; font-size: 11px !important; }
   .tn-logout { padding: 5px 10px !important; font-size: 11px !important; }
-  .year-sel { font-size: 11px !important; padding: 4px 6px !important; }
+  .year-sel { font-size: 11px !important; padding: 4px 6px !important; min-width: 60px; }
+  #online-indicator { display: none !important; }
 
-  /* Show mobile bottom nav */
+  /* ── SHOW MOBILE NAV ── */
   #mob-nav { display: flex !important; }
 
-  /* Page padding adjustment for bottom nav */
-  #pg-app { padding-bottom: 64px; }
-  .pg { padding: 16px !important; }
-  .ph h1 { font-size: 18px !important; }
+  /* ── PAGE ── */
+  #pg-app { padding-bottom: 70px; }
+  .pg { padding: 12px !important; max-width: 100% !important; }
+  .ph { margin-bottom: 14px !important; }
+  .ph h1 { font-size: 17px !important; }
+  .ph p { font-size: 11px !important; }
 
-  /* Entry tab mobile */
+  /* ── CONTROLS ROW ── */
   .ctrl { flex-wrap: wrap !important; gap: 8px !important; }
-  .ctrl-group { flex: 1 !important; min-width: 120px; }
-  #ent-stats { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
-  .tscroll { font-size: 12px !important; }
-  .tscroll table { min-width: 600px; }
-  .qi { width: 60px !important; }
-  /* Toolbar buttons — wrap and smaller */
-  .entry-toolbar { flex-wrap: wrap !important; gap: 6px !important; }
-  .btn-save, .btn-clear, .btn-bulk, .btn-import { padding: 8px 12px !important; font-size: 11px !important; }
+  .ctrl-group { flex: 1 !important; min-width: 110px; }
+  .ctrl-group select, .ctrl-group input { font-size: 12px !important; padding: 6px 8px !important; }
 
-  /* Dashboard mobile */
-  #dash-stats { grid-template-columns: 1fr 1fr !important; }
-  .dash-calendar { font-size: 11px !important; }
+  /* ── DASHBOARD ── */
+  .stats { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
+  .sc { padding: 12px 14px !important; }
+  .sc-val { font-size: 20px !important; }
+  .sc-lbl { font-size: 9px !important; }
+  /* Two-column → single column */
+  .two-col { grid-template-columns: 1fr !important; gap: 12px !important; }
+  /* Dashboard target bar */
+  #dash-target { width: 110px !important; }
+  #dash-notif { margin-left: 0 !important; width: 100%; }
+  /* Calendar */
+  .cal-wrap { padding: 12px !important; }
+  .cal-head { flex-wrap: wrap !important; gap: 6px !important; font-size: 11px !important; }
+  .cal-head button { padding: 5px 8px !important; font-size: 10px !important; }
+  .cal-grid { font-size: 10px !important; }
+  .cal-cell { min-height: 46px !important; padding: 4px !important; }
+  .cal-day-num { font-size: 11px !important; }
+  .cal-qr, .cal-kg { font-size: 9px !important; }
+  /* Department breakdown on dashboard */
+  .dept-table { font-size: 11px !important; }
+  .dept-table td, .dept-table th { padding: 6px 8px !important; }
 
-  /* Guide sidebar hidden on mobile — show as dropdown */
-  #tab-guide > div { flex-direction: column !important; height: auto !important; }
-  #guide-sidebar { width: 100% !important; height: auto !important; position: relative !important; top: 0 !important; }
-  #guide-nav { max-height: 200px; }
+  /* ── ENTRY TAB ── */
+  #ent-stats { grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
+  /* Toolbar — wrap all buttons */
+  #tab-entry .ctrl { flex-wrap: wrap !important; }
+  .btn-save { padding: 9px 14px !important; font-size: 12px !important; }
+  .btn-bulk, .btn-clear, .btn-import { padding: 7px 10px !important; font-size: 11px !important; }
+  /* Entry table */
+  .tscroll { overflow-x: auto !important; -webkit-overflow-scrolling: touch; }
+  .tscroll table { min-width: 480px; }
+  table.et th, table.et td { padding: 7px 6px !important; font-size: 11px !important; }
+  .qi { width: 55px !important; padding: 5px !important; font-size: 13px !important; }
+  /* Dept tabs */
+  .dept-tabs { flex-wrap: wrap !important; gap: 4px !important; }
+  .dtab { padding: 6px 10px !important; font-size: 11px !important; }
+
+  /* ── MONTHLY / REPORT / FINANCE — horizontal scroll ── */
+  #monthly-wrap, #report-wrap, #finance-wrap { overflow-x: auto !important; -webkit-overflow-scrolling: touch; }
+  #monthly-wrap table, #report-wrap table, #finance-wrap table { min-width: 600px; font-size: 11px !important; }
+
+  /* ── ANALYTICS ── */
+  #atab-charts .ctrl, #atab-yoy .ctrl, #atab-trend .ctrl { flex-wrap: wrap !important; }
+  #analytics-wrap { overflow-x: auto; }
+  #yoy-wrap > div:first-child { grid-template-columns: 1fr !important; }
+  #trend-wrap > div:first-child { grid-template-columns: 1fr !important; }
+
+  /* ── BENCHMARK ── */
+  #bench-summary-cards { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
+  #bench-occ-grid { grid-template-columns: repeat(auto-fill, minmax(62px, 1fr)) !important; }
+  #bench-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  #bench-dept-wrap > div { grid-template-columns: 1fr !important; }
+  .bench-charts-grid { grid-template-columns: 1fr !important; }
+
+  /* ── PRICES TAB ── */
+  #ptab-tools > div:first-child { grid-template-columns: 1fr !important; }
+  #price-tabs { flex-wrap: wrap !important; }
+  #price-wrap { overflow-x: auto; }
+
+  /* ── GUIDE ── */
+  #tab-guide > div { flex-direction: column !important; height: auto !important; min-height: auto !important; }
+  #guide-sidebar { width: 100% !important; height: auto !important; position: relative !important; top: 0 !important; max-height: 220px; }
+  #guide-nav { max-height: 160px; overflow-y: auto; }
+  #guide-content-area { overflow-y: visible !important; }
   #guide-wrap { padding: 16px !important; }
 
-  /* Benchmark mobile */
-  #bench-summary-cards { grid-template-columns: 1fr 1fr !important; }
-  #bench-occ-grid { grid-template-columns: repeat(auto-fill, minmax(65px, 1fr)) !important; }
+  /* ── BACKUP ── */
+  #tab-backup .two-col { grid-template-columns: 1fr !important; }
 
-  /* Finance & report tables — scrollable */
-  #finance-wrap, #report-wrap, #monthly-wrap { overflow-x: auto; }
+  /* ── MODALS ── */
+  .modal-box { width: 95vw !important; padding: 18px !important; max-height: 85vh; overflow-y: auto; }
 
-  /* Prices tab — stack cards */
-  #ptab-tools > div:first-child { grid-template-columns: 1fr !important; }
-
-  /* Hide non-essential columns on small screens */
+  /* ── MISC ── */
   .mob-hide { display: none !important; }
+  .toast { bottom: 76px !important; left: 12px; right: 12px; font-size: 12px !important; }
 }
 
 /* ── Mobile bottom navigation bar ── */
