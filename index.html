@@ -925,119 +925,160 @@ var _fbDB = null;
 
   <!-- PRICES -->
   <div class="pg" id="tab-prices">
-    <div class="ph"><h1>⚙️ Prices &amp; Weights</h1><p>Edit unit price (QR) and weight (KG per piece) for each item — both affect revenue and KG calculations</p></div>
+    <div class="ph"><h1>⚙️ Prices &amp; Weights</h1><p>Manage unit prices (QR) and weights (KG) per department — changes affect all revenue and KG calculations</p></div>
 
-    <!-- Price Tools -->
-    <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;padding:18px 20px;margin-bottom:18px">
+    <!-- ── TOOL CARDS GRID ── -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px">
 
-      <!-- Section 1: Copy from Year -->
-      <div style="font-size:11px;font-weight:800;letter-spacing:1.5px;color:#94a3b8;text-transform:uppercase;margin-bottom:12px">📋 Copy Prices from Another Year</div>
-      <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;padding-bottom:18px;border-bottom:1.5px solid #f1f5f9;margin-bottom:18px">
-        <div>
-          <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:4px">COPY FROM YEAR</div>
-          <select id="pcopy-from" style="padding:8px 12px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;min-width:100px"></select>
-        </div>
-        <div style="font-size:18px;color:#94a3b8;padding-bottom:6px">→</div>
-        <div>
-          <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:4px">INTO YEAR</div>
-          <select id="pcopy-to" style="padding:8px 12px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;min-width:100px"></select>
-        </div>
-        <div>
-          <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:4px">DEPARTMENT</div>
-          <select id="pcopy-dept" style="padding:8px 12px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;min-width:160px">
-            <option value="ALL">All Departments</option>
-          </select>
-        </div>
-        <button onclick="applyCopyPrices()" style="padding:9px 20px;background:#0284c7;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;white-space:nowrap;align-self:flex-end" onmouseover="this.style.background='#0369a1'" onmouseout="this.style.background='#0284c7'">📋 Copy Prices</button>
-        <div id="pcopy-msg" style="font-size:12px;font-weight:600;color:#16a34a;align-self:flex-end;padding-bottom:8px"></div>
-      </div>
-
-      <!-- Section 2: Adjust % -->
-      <div style="font-size:11px;font-weight:800;letter-spacing:1.5px;color:#94a3b8;text-transform:uppercase;margin-bottom:12px">📊 Bulk Price Adjustment by %</div>
-      <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap">
-        <div>
-          <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:4px">YEAR</div>
-          <select id="padj-year" style="padding:8px 12px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;min-width:100px"></select>
-        </div>
-        <div>
-          <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:4px">DEPARTMENT</div>
-          <select id="padj-dept" style="padding:8px 12px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;min-width:160px">
-            <option value="ALL">All Departments</option>
-          </select>
-        </div>
-        <div>
-          <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:4px">ADJUST %</div>
-          <div style="display:flex;align-items:center;gap:6px">
-            <input id="padj-pct" type="number" step="0.1" placeholder="e.g. -5 or +10" style="padding:8px 12px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;width:140px;outline:none" oninput="previewPadj()">
-            <span style="font-size:15px;font-weight:700;color:#64748b">%</span>
+      <!-- Card 1: Copy from Year -->
+      <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:20px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+          <div style="width:32px;height:32px;background:#eff6ff;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px">📋</div>
+          <div>
+            <div style="font-size:13px;font-weight:800;color:#0d1b2e">Copy Prices from Another Year</div>
+            <div style="font-size:11px;color:#94a3b8">Duplicate a full year's price list</div>
           </div>
         </div>
-        <div>
-          <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:4px">PREVIEW</div>
-          <div id="padj-preview" style="font-size:12px;font-weight:600;color:#64748b;padding:8px 12px;background:#f8fafc;border-radius:7px;min-width:200px;min-height:36px;line-height:1.5">Enter % to preview</div>
+        <div style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap">
+          <div>
+            <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">FROM YEAR</div>
+            <select id="pcopy-from" style="padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;min-width:90px"></select>
+          </div>
+          <div style="font-size:18px;color:#94a3b8;padding-bottom:4px">→</div>
+          <div>
+            <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">INTO YEAR</div>
+            <select id="pcopy-to" style="padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;min-width:90px"></select>
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">DEPARTMENT</div>
+            <select id="pcopy-dept" style="padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;min-width:140px">
+              <option value="ALL">All Departments</option>
+            </select>
+          </div>
         </div>
-        <button onclick="applyPadj()" style="padding:9px 20px;background:var(--navy);color:var(--gold);border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;white-space:nowrap;align-self:flex-end" onmouseover="this.style.background='var(--navy2)'" onmouseout="this.style.background='var(--navy)'">✅ Apply Adjustment</button>
+        <div style="margin-top:12px;display:flex;align-items:center;gap:10px">
+          <button onclick="applyCopyPrices()" style="padding:8px 18px;background:#0284c7;color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer" onmouseover="this.style.background='#0369a1'" onmouseout="this.style.background='#0284c7'">📋 Copy Prices</button>
+          <div id="pcopy-msg" style="font-size:12px;font-weight:600;color:#16a34a"></div>
+        </div>
       </div>
-    </div>
 
-    <!-- Section 3: Effective Date Price Schedule -->
-    <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;padding:18px 20px;margin-bottom:18px">
-      <div style="font-size:11px;font-weight:800;letter-spacing:1.5px;color:#94a3b8;text-transform:uppercase;margin-bottom:4px">📅 Price Change Effective Date</div>
-      <div style="font-size:12px;color:#64748b;margin-bottom:14px">Set new prices starting from a specific date. Data before that date keeps old prices. Data from that date onwards uses new prices automatically.</div>
-      <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;padding-bottom:18px;border-bottom:1.5px solid #f1f5f9;margin-bottom:16px">
+      <!-- Card 2: Bulk Adjust % -->
+      <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:20px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+          <div style="width:32px;height:32px;background:#f0fdf4;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px">📊</div>
+          <div>
+            <div style="font-size:13px;font-weight:800;color:#0d1b2e">Bulk Price Adjustment by %</div>
+            <div style="font-size:11px;color:#94a3b8">Increase or decrease all prices at once</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap">
+          <div>
+            <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">YEAR</div>
+            <select id="padj-year" style="padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;min-width:90px"></select>
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">DEPARTMENT</div>
+            <select id="padj-dept" style="padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;min-width:140px">
+              <option value="ALL">All Departments</option>
+            </select>
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">ADJUST %</div>
+            <div style="display:flex;align-items:center;gap:5px">
+              <input id="padj-pct" type="number" step="0.1" placeholder="e.g. -3.5" style="padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;width:110px;outline:none" oninput="previewPadj()">
+              <span style="font-size:14px;font-weight:700;color:#64748b">%</span>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:10px">
+          <div id="padj-preview" style="font-size:11.5px;font-weight:600;color:#64748b;padding:7px 10px;background:#f8fafc;border-radius:7px;min-height:32px;line-height:1.5;margin-bottom:10px">Enter % to preview changes</div>
+          <button onclick="applyPadj()" style="padding:8px 18px;background:var(--navy);color:var(--gold);border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer" onmouseover="this.style.background='var(--navy2)'" onmouseout="this.style.background='var(--navy)'">✅ Apply Adjustment</button>
+        </div>
+      </div>
+
+    </div><!-- end grid -->
+
+    <!-- Section 3: Effective Date Price Schedule — full width -->
+    <div style="background:#fff;border:1.5px solid #c4b5fd;border-radius:14px;padding:20px;margin-bottom:18px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <div style="width:32px;height:32px;background:#f5f3ff;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px">📅</div>
         <div>
-          <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:4px">EFFECTIVE FROM DATE</div>
-          <input type="date" id="psch-date" style="padding:8px 12px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;outline:none">
+          <div style="font-size:13px;font-weight:800;color:#0d1b2e">Price Change Effective Date</div>
+          <div style="font-size:11px;color:#94a3b8">Set new prices from a specific month or date — old data keeps old prices automatically</div>
+        </div>
+      </div>
+      <div style="font-size:12px;color:#7c3aed;background:#f5f3ff;border-radius:8px;padding:8px 12px;margin-bottom:14px">
+        💡 <strong>Tip:</strong> First save current prices as a schedule for the current period, then apply your adjustment, then save again for the new period.
+      </div>
+      <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;padding-bottom:16px;border-bottom:1.5px solid #f1f5f9;margin-bottom:16px">
+        <div>
+          <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">QUICK MONTH PICK</div>
+          <select id="psch-month-quick" onchange="pschQuickMonth(this.value)" style="padding:7px 10px;border:1.5px solid #c4b5fd;border-radius:7px;font-size:13px;font-weight:600;color:#7c3aed;background:#faf5ff;min-width:140px">
+            <option value="">— Pick a month —</option>
+            <option value="1">January</option><option value="2">February</option><option value="3">March</option>
+            <option value="4">April</option><option value="5">May</option><option value="6">June</option>
+            <option value="7">July</option><option value="8">August</option><option value="9">September</option>
+            <option value="10">October</option><option value="11">November</option><option value="12">December</option>
+          </select>
+        </div>
+        <div style="font-size:12px;color:#94a3b8;padding-bottom:8px">or set exact date →</div>
+        <div>
+          <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">EFFECTIVE FROM DATE</div>
+          <input type="date" id="psch-date" style="padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;outline:none">
         </div>
         <div>
-          <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:4px">APPLY TO YEAR</div>
-          <select id="psch-year" style="padding:8px 12px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;min-width:100px"></select>
+          <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">YEAR</div>
+          <select id="psch-year" style="padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;min-width:90px"></select>
         </div>
         <div>
-          <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:4px">DEPARTMENT</div>
-          <select id="psch-dept" style="padding:8px 12px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;min-width:160px">
+          <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">DEPARTMENT</div>
+          <select id="psch-dept" style="padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;min-width:150px">
             <option value="ALL">All Departments</option>
           </select>
         </div>
-        <div style="display:flex;flex-direction:column;gap:6px;align-self:flex-end">
+        <div style="display:flex;flex-direction:column;gap:5px;align-self:flex-end">
           <button onclick="scheduleCurrentPrices()" style="padding:9px 20px;background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">📅 Save as Scheduled Prices</button>
-          <div style="font-size:11px;color:#94a3b8;text-align:center">Captures current prices table as new schedule</div>
+          <div style="font-size:10px;color:#94a3b8;text-align:center">Captures current prices table as new schedule</div>
         </div>
         <div id="psch-msg" style="font-size:12px;font-weight:600;color:#16a34a;align-self:flex-end;padding-bottom:8px"></div>
       </div>
-      <!-- Active schedules list -->
-      <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:8px">ACTIVE PRICE SCHEDULES</div>
+      <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:8px;letter-spacing:.8px">ACTIVE PRICE SCHEDULES</div>
       <div id="psch-list" style="font-size:12px;color:#64748b">Loading...</div>
     </div>
 
     <!-- Section 4: Import Prices from Excel -->
-    <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;padding:18px 20px;margin-bottom:18px">
-      <div style="font-size:11px;font-weight:800;letter-spacing:1.5px;color:#94a3b8;text-transform:uppercase;margin-bottom:4px">📥 Import Prices from Excel</div>
-      <div style="font-size:12px;color:#64748b;margin-bottom:14px">Upload a .xlsx file to update prices. Rows matched by position — do not add/remove rows. <a id="price-template-dl" href="#" onclick="downloadPriceTemplate();return false;" style="color:#0284c7;font-weight:700;text-decoration:none">⬇️ Download blank template</a></div>
-      <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:14px">
+    <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:20px;margin-bottom:18px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+        <div style="width:32px;height:32px;background:#f0fdf4;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px">📥</div>
         <div>
-          <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:4px">UPDATE YEAR</div>
-          <select id="pxl-year" style="padding:8px 12px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;min-width:100px"></select>
+          <div style="font-size:13px;font-weight:800;color:#0d1b2e">Import Prices from Excel</div>
+          <div style="font-size:11px;color:#94a3b8">Upload .xlsx to update prices/weights · <a href="#" onclick="downloadPriceTemplate();return false;" style="color:#0284c7;font-weight:700;text-decoration:none">⬇️ Download blank template</a></div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:14px">
+        <div>
+          <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">UPDATE YEAR</div>
+          <select id="pxl-year" style="padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;min-width:90px"></select>
         </div>
         <div>
-          <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:4px">IMPORT MODE</div>
-          <select id="pxl-mode" style="padding:8px 12px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;min-width:200px">
+          <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">IMPORT MODE</div>
+          <select id="pxl-mode" style="padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff;min-width:190px">
             <option value="prices">Prices Only (QR)</option>
             <option value="both">Prices + Weight (QR &amp; KG)</option>
           </select>
         </div>
         <div>
-          <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:4px">EXCEL FILE</div>
-          <label style="display:inline-flex;align-items:center;gap:8px;padding:9px 16px;background:#f0fdf4;border:1.5px solid #16a34a;border-radius:7px;font-size:13px;font-weight:700;color:#15803d;cursor:pointer">
+          <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">EXCEL FILE</div>
+          <label style="display:inline-flex;align-items:center;gap:8px;padding:8px 14px;background:#f0fdf4;border:1.5px solid #16a34a;border-radius:7px;font-size:12px;font-weight:700;color:#15803d;cursor:pointer">
             📂 Choose File
             <input type="file" id="pxl-file" accept=".xlsx" style="display:none" onchange="previewPriceXL(this)">
           </label>
         </div>
-        <div id="pxl-filename" style="font-size:12px;font-weight:600;color:#64748b;align-self:flex-end;padding-bottom:8px"></div>
+        <div id="pxl-filename" style="font-size:12px;font-weight:600;color:#64748b;align-self:flex-end;padding-bottom:6px"></div>
       </div>
-      <div id="pxl-preview" style="display:none;margin-bottom:14px"></div>
+      <div id="pxl-preview" style="display:none;margin-bottom:12px"></div>
       <div style="display:flex;gap:10px;align-items:center">
-        <button id="pxl-apply-btn" onclick="applyPriceXL()" style="display:none;padding:9px 22px;background:#0284c7;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer" onmouseover="this.style.background='#0369a1'" onmouseout="this.style.background='#0284c7'">✅ Apply Prices</button>
+        <button id="pxl-apply-btn" onclick="applyPriceXL()" style="display:none;padding:8px 20px;background:#0284c7;color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer" onmouseover="this.style.background='#0369a1'" onmouseout="this.style.background='#0284c7'">✅ Apply Prices</button>
         <div id="pxl-msg" style="font-size:12px;font-weight:600;color:#16a34a"></div>
       </div>
     </div>
@@ -4591,6 +4632,15 @@ function buildYearOpts(el, selectedY) {
 function buildDeptOpts(el, selectedD, includeAll) {
   el.innerHTML = includeAll ? '<option value="ALL">All Departments</option>' : '';
   DEPT_KEYS.forEach(function(d) { var o = document.createElement('option'); o.value = d; o.textContent = DEPT_ICONS[d] + ' ' + d; if (d === selectedD) o.selected = true; el.appendChild(o); });
+}
+
+function pschQuickMonth(m) {
+  if (!m) return;
+  var yr = parseInt(document.getElementById('psch-year').value) || new Date().getFullYear();
+  var mm = String(m).padStart(2,'0');
+  document.getElementById('psch-date').value = yr + '-' + mm + '-01';
+  // Reset dropdown back to placeholder
+  document.getElementById('psch-month-quick').value = '';
 }
 
 function scheduleCurrentPrices() {
