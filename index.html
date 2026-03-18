@@ -1207,6 +1207,7 @@ var _fbDB = null;
       </button>
       <button class="btn-bulk" onclick="event.stopPropagation();openBulk()">📋 Bulk Paste</button>
       <button class="btn-import" onclick="triggerXLFile()">📂 Import Excel</button>
+      <button class="btn-import" onclick="openFullMonthImport()" style="background:#f5f3ff;border-color:#7c3aed;color:#6d28d9">📅 Import Full Month</button>
       <div style="position:relative;display:inline-block">
         <button class="btn-clear" onclick="toggleClearMenu(event)">
           🗑 Clear <span style="font-size:10px;opacity:.65">▾</span>
@@ -2133,6 +2134,53 @@ var _fbDB = null;
     </div>
     <div style="text-align:center;padding:14px 0 12px;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;letter-spacing:0.3px;background:#f8fafc">
       © Reda Salah · All Rights Reserved
+    </div>
+  </div>
+</div>
+
+<!-- FULL MONTH IMPORT MODAL -->
+<div class="modal-overlay hidden" id="fmi-modal">
+  <div class="modal-box" style="width:680px;max-width:96vw">
+    <div style="background:linear-gradient(135deg,#4c1d95,#6d28d9);margin:-28px -32px 24px;padding:20px 28px;border-radius:14px 14px 0 0;display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <div style="font-size:16px;font-weight:700;color:#fff">📅 Import Full Month</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.6);margin-top:3px">Upload one Excel file with all departments for an entire month</div>
+      </div>
+      <button onclick="closeFMI()" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:8px;padding:7px 14px;font-size:13px;cursor:pointer">✕ Close</button>
+    </div>
+
+    <!-- Controls -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px">
+      <div>
+        <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">YEAR</div>
+        <select id="fmi-year" style="width:100%;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff"></select>
+      </div>
+      <div>
+        <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">MONTH</div>
+        <select id="fmi-month" style="width:100%;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;background:#fff"></select>
+      </div>
+      <div style="display:flex;flex-direction:column;justify-content:flex-end">
+        <a id="fmi-template-link" href="#" onclick="downloadFullMonthTemplate();return false;" style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:#f0fdf4;border:1.5px solid #16a34a;border-radius:7px;font-size:12px;font-weight:700;color:#15803d;text-decoration:none">⬇️ Download Template</a>
+      </div>
+    </div>
+
+    <!-- Upload area -->
+    <div style="border:2px dashed #c4b5fd;border-radius:12px;padding:24px;text-align:center;margin-bottom:16px;background:#faf5ff;cursor:pointer" onclick="document.getElementById('fmi-file').click()">
+      <div style="font-size:28px;margin-bottom:8px">📊</div>
+      <div style="font-size:14px;font-weight:700;color:#6d28d9">Click to choose Excel file</div>
+      <div style="font-size:12px;color:#94a3b8;margin-top:4px">One sheet per department · Rows = days · Columns = items</div>
+      <input type="file" id="fmi-file" accept=".xlsx" style="display:none" onchange="previewFMI(this)">
+      <div id="fmi-filename" style="font-size:12px;font-weight:600;color:#7c3aed;margin-top:8px"></div>
+    </div>
+
+    <!-- Preview -->
+    <div id="fmi-preview" style="display:none;max-height:280px;overflow-y:auto;margin-bottom:16px;border:1.5px solid #e2e8f0;border-radius:10px"></div>
+
+    <!-- Actions -->
+    <div style="display:flex;gap:10px;align-items:center">
+      <button id="fmi-apply-btn" onclick="applyFMI()" style="display:none;flex:1;padding:12px;background:linear-gradient(135deg,#4c1d95,#6d28d9);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer">✅ Import All Departments</button>
+      <button onclick="closeFMI()" style="padding:12px 20px;background:#f8fafc;color:#64748b;border:1.5px solid #e2e8f0;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer">Cancel</button>
+      <div id="fmi-msg" style="font-size:12px;font-weight:600;color:#16a34a"></div>
     </div>
   </div>
 </div>
@@ -7837,7 +7885,31 @@ function renderGuide() {
      tip('Use the example template available from the system — it has all sheets pre-built with correct structure, item names in the exact right order, and instructions inside.')
     ],
 
-    // ── 6. DEC 31 CARRY-IN ──────────────────────────────────────
+    // ── 5B. IMPORT FULL MONTH ───────────────────────────────────
+    ['📅 Import Full Month — All Departments at Once',
+     '<strong>What it does:</strong> Upload one Excel file containing all departments and all days for a full month — in one click.' +
+     '<br><br><strong>How to use:</strong>' +
+     step([
+       'Go to <strong>Entry tab</strong> → click ' + btn('📅 Import Full Month','#f5f3ff','#6d28d9','#7c3aed') + '.',
+       'Select the <strong>Year</strong> and <strong>Month</strong> you want to import.',
+       'Click <strong>⬇️ Download Template</strong> — saves an Excel file with one sheet per department.',
+       'Open the Excel file and fill in quantities for each day and item.',
+       'Come back → choose the filled file → system shows a preview of what will be imported.',
+       'Click <strong>✅ Import All Departments</strong> — all data saved at once.'
+     ]) +
+     '<br><strong>Excel file structure:</strong>' +
+     ul([
+       'One sheet per department (sheet names must match department names).',
+       'First row = headers: Day | Item 1 | Item 2 | Item 3 | ...',
+       'Each row after = one day: 1, 22, 6, 18, ...',
+       'Leave cells blank to skip — existing data is kept.',
+       'Use the downloaded template to get the correct format automatically.'
+     ]) +
+     warn('Blank cells are skipped — existing data for that item/day stays. Only cells with numbers are imported. Always download the template first to get correct item names and column order.') +
+     tip('Download the template at start of month, fill it throughout the month as a daily log, then import at end of month in one shot.')
+    ],
+
+        // ── 6. DEC 31 CARRY-IN ──────────────────────────────────────
     ['📥 December 31 Carry-In — January Finance Accuracy',
      '<strong>Why this exists:</strong> Items received on December 31 are posted to finance on January 1 of the next year. Year 2025 exists only to hold this carry-in data.' +
      step([
@@ -8096,53 +8168,54 @@ function renderGuide() {
 
     // ── 16. BENCHMARK ───────────────────────────────────────────
     ['🎯 Benchmark — Occupancy vs Revenue Analysis',
-     '<strong>What it does:</strong> Compares daily laundry revenue and KG against hotel occupancy to understand business performance per occupied room.' +
+     '<strong>What it does:</strong> Compares daily laundry revenue and KG against hotel occupancy % to measure laundry performance per occupied room.' +
      '<br><br><strong>How to set up:</strong>' +
      step([
        'Click <strong>🎯 Benchmark</strong> in the navigation bar.',
-       'Enter the <strong>Total Rooms in Hotel</strong> number — saved automatically.',
+       'Enter the <strong>Total Rooms in Hotel</strong> number — e.g. 200. Saved automatically.',
        'Select the <strong>Month</strong> to analyse.',
-       'Enter the <strong>occupancy % for each day</strong> in the grid — or use <strong>📋 Fill Same %</strong> to fill all days at once.',
-       'Click ' + btn('💾 Save Occupancy','#16a34a','#fff') + ' — occupancy data syncs to Firebase and is available on all devices.',
+       'Enter the <strong>occupancy % for each day</strong> in the grid.',
+       'Or use <strong>📋 Fill Same %</strong> to fill all days with the same occupancy.',
+       'Click ' + btn('💾 Save Occupancy','#16a34a','#fff') + ' — syncs to Firebase for all devices.',
        'Click ' + btn('🔄 Refresh','#0d1b2e','#c9a84c') + ' to update all charts and calculations.'
      ]) +
-     '<strong>📥 Import/Export Occupancy:</strong>' +
+
+     '<br><strong>📊 How each figure is calculated:</strong>' +
+     '<br><br><div style="background:#f8fafc;border-radius:10px;padding:14px 16px;font-size:12px">' +
+     '<table style="width:100%;border-collapse:collapse">' +
+     '<tr style="background:#0d1b2e;color:#c9a84c"><th style="padding:8px 10px;text-align:left">Figure</th><th style="padding:8px 10px;text-align:left">Formula</th><th style="padding:8px 10px;text-align:left">Example</th></tr>' +
+     '<tr style="background:#fff"><td style="padding:8px 10px;font-weight:700">Avg Occupancy %</td><td style="padding:8px 10px;color:#64748b">Sum of daily Occ% ÷ Days with data</td><td style="padding:8px 10px;color:#0369a1">51.5%</td></tr>' +
+     '<tr style="background:#f8fafc"><td style="padding:8px 10px;font-weight:700">Occupied Rooms</td><td style="padding:8px 10px;color:#64748b">Total Rooms × Occ% ÷ 100</td><td style="padding:8px 10px;color:#0369a1">200 × 51.5% = 103 rooms</td></tr>' +
+     '<tr style="background:#fff"><td style="padding:8px 10px;font-weight:700">Revenue / Room</td><td style="padding:8px 10px;color:#64748b">Day Revenue ÷ Occupied Rooms that day</td><td style="padding:8px 10px;color:#0369a1">2,500 ÷ 103 = 24.27 QR</td></tr>' +
+     '<tr style="background:#f8fafc"><td style="padding:8px 10px;font-weight:700">KG / Room</td><td style="padding:8px 10px;color:#64748b">Day KG ÷ Occupied Rooms that day</td><td style="padding:8px 10px;color:#0369a1">1,200 ÷ 103 = 11.65 kg</td></tr>' +
+     '<tr style="background:#fff"><td style="padding:8px 10px;font-weight:700">Avg Rev/Room</td><td style="padding:8px 10px;color:#64748b">Sum of daily Rev/Room ÷ Days tracked</td><td style="padding:8px 10px;color:#0369a1">27.07 QR avg</td></tr>' +
+     '<tr style="background:#f8fafc"><td style="padding:8px 10px;font-weight:700">Avg KG/Room</td><td style="padding:8px 10px;color:#64748b">Sum of daily KG/Room ÷ Days tracked</td><td style="padding:8px 10px;color:#0369a1">13.14 kg avg</td></tr>' +
+     '<tr style="background:#fff"><td style="padding:8px 10px;font-weight:700">RevPOR/Dept</td><td style="padding:8px 10px;color:#64748b">Dept Revenue ÷ Days tracked ÷ Avg Occupied Rooms</td><td style="padding:8px 10px;color:#0369a1">Rooms: 18.50 QR/room/day</td></tr>' +
+     '</table></div>' +
+
+     '<br><strong>Why these numbers matter:</strong>' +
      ul([
-       'Click <strong>⬇️ Download Excel Template</strong> to get the occupancy template.',
-       'Fill Column C (yellow) with occupancy % for each day.',
-       'Click <strong>📂 Import Excel</strong> to upload — all days fill instantly.',
-       'Click <strong>⬇️ Export Excel</strong> to export the full benchmark report as .xlsx.',
-       'Click <strong>🖨️ Print / PDF</strong> to generate a full PDF with all charts, table and department breakdown.'
+       '<strong>Revenue/Room</strong> tells you how much laundry each occupied room generates on average. Useful for benchmarking against industry standards.',
+       '<strong>KG/Room</strong> measures laundry weight per room — helps plan capacity and staffing.',
+       'A high occupancy day with low Revenue/Room means guests are using less laundry — useful to investigate.',
+       'Compare months to see if efficiency is improving.'
      ]) +
-     '<strong>6 Summary Cards:</strong>' +
+
+     '<strong>Occupancy % badges in the table:</strong>' +
      ul([
-       '<strong>Avg Occupancy %</strong> — average for days with data entered.',
-       '<strong>Total Revenue (QR)</strong> — all departments for the month.',
-       '<strong>Total KG</strong> — all departments for the month.',
-       '<strong>Revenue / Room (QR)</strong> — average revenue per occupied room per day.',
-       '<strong>KG / Room</strong> — average KG per occupied room per day.',
-       '<strong>Days Tracked</strong> — how many days have occupancy entered.'
+       badge('≥70%','#dcfce7','#15803d','#86efac') + ' Green — high occupancy day',
+       badge('50–70%','#fef9c3','#92400e','#fde68a') + ' Amber — medium occupancy',
+       badge('<50%','#fee2e2','#dc2626','#fca5a5') + ' Red — low occupancy day'
      ]) +
-     '<strong>Charts:</strong>' +
+
+     '<strong>📥 Import/Export:</strong>' +
      ul([
-       '<strong>Daily Revenue vs Occupancy %</strong> — gradient bar chart with occupancy line overlay.',
-       '<strong>Daily KG vs Occupancy %</strong> — same format for weight data.',
-       'Hover over any bar for exact values in a tooltip.'
+       '<strong>⬇️ Download Template</strong> — Excel file with Day and Occupancy % columns.',
+       '<strong>📂 Import Excel</strong> — upload filled template to populate all days at once.',
+       '<strong>⬇️ Export Excel</strong> — export full benchmark report.',
+       '<strong>🖨️ Print / PDF</strong> — generates PDF with all charts, table, department breakdown.'
      ]) +
-     '<strong>Day-by-Day Table:</strong>' +
-     ul([
-       'Occupancy % badges: ' + badge('≥70%','#dcfce7','#15803d','#86efac') + ' green · ' + badge('50–70%','#fef9c3','#92400e','#fde68a') + ' amber · ' + badge('<50%','#fee2e2','#dc2626','#fca5a5') + ' red.',
-       'Shows: Occupied Rooms, Total Revenue, Total KG, Revenue/Room, KG/Room, Rooms Linen Revenue, Other Departments.',
-       'High revenue days highlighted with a green left border.',
-       'Total row in navy/gold at the bottom.'
-     ]) +
-     '<strong>Department Breakdown:</strong>' +
-     ul([
-       'Each department shown as a colored card with its own color.',
-       'Shows total revenue, % share with progress bar, and average Revenue/Room/Day.',
-       'Colors: Rooms Linen = blue · F&B = green · Spa & Pool = teal · Uniform = purple · Others = amber · Dry Cleaning = orange.'
-     ]) +
-     tip('Enter occupancy data at the start of each month and save. The benchmark automatically updates as you enter daily laundry data throughout the month.')
+     tip('Enter occupancy data at the start of each month and save. The benchmark updates automatically as you enter daily laundry data.')
     ],
 
     // ── 17. CURRENCY & NUMBER FORMAT ────────────────────────────
@@ -8712,6 +8785,185 @@ function mobRenderFinance() {
 
 // Hook into doLogin to init mobile
 var _origDoLogin = null;
+
+// ══════════════════════════════════════════════════════════════
+//  FULL MONTH IMPORT
+// ══════════════════════════════════════════════════════════════
+var _fmiData = null; // parsed sheet data
+
+function openFullMonthImport() {
+  var modal = document.getElementById('fmi-modal');
+  if (!modal) return;
+  // Populate year
+  var yrEl = document.getElementById('fmi-year');
+  if (yrEl && yrEl.options.length === 0) buildYearOpts(yrEl, CY);
+  // Populate month
+  var mEl = document.getElementById('fmi-month');
+  if (mEl && mEl.options.length === 0) {
+    MONTH_NAMES.forEach(function(mn, i) {
+      var o = document.createElement('option');
+      o.value = i+1; o.textContent = mn;
+      if (i+1 === (parseInt(document.getElementById('ent-month')?.value) || new Date().getMonth()+1)) o.selected = true;
+      mEl.appendChild(o);
+    });
+  }
+  // Reset
+  _fmiData = null;
+  document.getElementById('fmi-preview').style.display = 'none';
+  document.getElementById('fmi-apply-btn').style.display = 'none';
+  document.getElementById('fmi-filename').textContent = '';
+  document.getElementById('fmi-msg').textContent = '';
+  var fileEl = document.getElementById('fmi-file');
+  if (fileEl) fileEl.value = '';
+  modal.classList.remove('hidden');
+}
+
+function closeFMI() {
+  document.getElementById('fmi-modal')?.classList.add('hidden');
+}
+
+function downloadFullMonthTemplate() {
+  var y = parseInt(document.getElementById('fmi-year')?.value || CY);
+  var m = parseInt(document.getElementById('fmi-month')?.value || 1);
+  var nd = dim(y, m);
+  var wb = XLSX.utils.book_new();
+
+  DEPT_KEYS.forEach(function(dept) {
+    var items = MASTER[dept];
+    // Header row: Day | Item1 | Item2 | ...
+    var header = ['Day'].concat(items.map(function(it){ return it[0]; }));
+    var rows = [header];
+    // Data rows: one per day
+    for (var d = 1; d <= nd; d++) {
+      var row = [d];
+      items.forEach(function() { row.push(''); });
+      rows.push(row);
+    }
+    var ws = XLSX.utils.aoa_to_sheet(rows);
+    // Style header row width
+    var colWidths = [{ wch: 6 }].concat(items.map(function(it){ return { wch: Math.max(12, it[0].length + 2) }; }));
+    ws['!cols'] = colWidths;
+    // Sheet name = dept name (max 31 chars)
+    var sheetName = dept.substring(0, 31);
+    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+  });
+
+  XLSX.writeFile(wb, 'Pearl_Full_Month_Template_' + MONTH_NAMES[m-1] + '_' + y + '.xlsx');
+}
+
+function previewFMI(input) {
+  var file = input.files[0];
+  if (!file) return;
+  document.getElementById('fmi-filename').textContent = '📄 ' + file.name;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      var wb = XLSX.read(e.target.result, { type: 'array' });
+      _fmiData = {};
+      var summary = [];
+
+      wb.SheetNames.forEach(function(sheetName) {
+        // Match sheet name to department
+        var matchDept = DEPT_KEYS.find(function(d) {
+          return d.toLowerCase().replace(/[^a-z]/g,'') === sheetName.toLowerCase().replace(/[^a-z]/g,'') ||
+                 d.toLowerCase().includes(sheetName.toLowerCase()) ||
+                 sheetName.toLowerCase().includes(d.toLowerCase().split(' ')[0]);
+        });
+        if (!matchDept) return;
+
+        var ws = wb.Sheets[sheetName];
+        var rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+        if (rows.length < 2) return;
+
+        var headerRow = rows[0];
+        var deptData = {};
+        var entriesFound = 0;
+
+        rows.slice(1).forEach(function(row) {
+          var day = parseInt(row[0]);
+          if (!day || day < 1 || day > 31) return;
+          headerRow.slice(1).forEach(function(itemName, colIdx) {
+            if (!itemName) return;
+            var val = parseInt(row[colIdx + 1]) || 0;
+            if (val > 0) {
+              if (!deptData[day]) deptData[day] = {};
+              deptData[day][String(itemName).trim()] = val;
+              entriesFound++;
+            }
+          });
+        });
+
+        if (entriesFound > 0) {
+          _fmiData[matchDept] = deptData;
+          summary.push({ dept: matchDept, entries: entriesFound, days: Object.keys(deptData).length });
+        }
+      });
+
+      // Show preview
+      var prevEl = document.getElementById('fmi-preview');
+      if (Object.keys(_fmiData).length === 0) {
+        prevEl.innerHTML = '<div style="padding:16px;text-align:center;color:#dc2626;font-weight:700">⚠️ No matching departments found. Make sure sheet names match department names.</div>';
+        prevEl.style.display = 'block';
+        return;
+      }
+
+      var html = '<div style="padding:12px 16px;background:#f5f3ff;border-bottom:1px solid #e2e8f0;font-size:12px;font-weight:800;color:#6d28d9">📋 IMPORT PREVIEW</div>';
+      summary.forEach(function(s) {
+        var col = s.entries > 0 ? '#16a34a' : '#94a3b8';
+        html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid #f1f5f9">' +
+          '<div style="font-size:13px;font-weight:700;color:#0d1b2e">' + (DEPT_ICONS[s.dept]||'') + ' ' + s.dept + '</div>' +
+          '<div style="font-size:12px;color:' + col + ';font-weight:700">' + s.entries + ' entries across ' + s.days + ' days</div>' +
+        '</div>';
+      });
+      var totalEntries = summary.reduce(function(a,b){ return a+b.entries; }, 0);
+      html += '<div style="padding:10px 16px;background:#f0fdf4;font-size:12px;font-weight:800;color:#15803d">✅ Ready to import: ' + Object.keys(_fmiData).length + ' departments · ' + totalEntries + ' total entries</div>';
+      prevEl.innerHTML = html;
+      prevEl.style.display = 'block';
+      document.getElementById('fmi-apply-btn').style.display = 'block';
+    } catch(err) {
+      document.getElementById('fmi-preview').innerHTML = '<div style="padding:16px;color:#dc2626;font-weight:700">❌ Error reading file: ' + err.message + '</div>';
+      document.getElementById('fmi-preview').style.display = 'block';
+      console.error('FMI parse error:', err);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function applyFMI() {
+  if (!_fmiData) return;
+  var y = parseInt(document.getElementById('fmi-year')?.value || CY);
+  var m = parseInt(document.getElementById('fmi-month')?.value || 1);
+  var totalSaved = 0;
+
+  Object.keys(_fmiData).forEach(function(dept) {
+    var deptData = _fmiData[dept];
+    Object.keys(deptData).forEach(function(dayStr) {
+      var day = parseInt(dayStr);
+      var dayItems = deptData[dayStr];
+      MASTER[dept].forEach(function(item, i) {
+        var itemName = item[0].trim();
+        if (dayItems[itemName] !== undefined) {
+          setVal(y, m, dept, i, day - 1, dayItems[itemName]);
+          lockPriceAtSave(y, m, dept, i, day - 1);
+          totalSaved++;
+        }
+      });
+      stampTimestamps(y, m, dept, day);
+    });
+  });
+
+  commitSave(y);
+  if (y === CY) {
+    try { renderDash(); } catch(e) {}
+    try { renderEntry(); } catch(e) {}
+  }
+  logAudit('IMPORT_FULL_MONTH', MONTH_NAMES[m-1] + ' ' + y + ' — ' + totalSaved + ' entries');
+  var msg = document.getElementById('fmi-msg');
+  if (msg) msg.textContent = '✅ Imported ' + totalSaved + ' entries for ' + MONTH_NAMES[m-1] + ' ' + y;
+  document.getElementById('fmi-apply-btn').style.display = 'none';
+  toast('✅ Full month imported — ' + totalSaved + ' entries saved', 'ok');
+  setTimeout(autoCloudBackup, 2000);
+}
 
 function showGuideSection(idx) {
   // Hide all sections
