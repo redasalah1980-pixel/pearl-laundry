@@ -1147,9 +1147,9 @@ var _fbDB = null;
         <select id="dash-month" onchange="renderDash()"></select></div>
       <div style="display:flex;align-items:flex-end;gap:8px">
         <div>
-          <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">MONTHLY TARGET (QR) <span id="dash-target-month-lbl" style="color:#c9a84c;font-size:10px"></span></div>
+          <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">MONTHLY TARGET · <span id="dash-target-month-lbl" style="color:#c9a84c"></span></div>
           <input type="number" id="dash-target" placeholder="No target set" min="0"
-            style="padding:7px 12px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;width:140px;outline:none"
+            style="padding:7px 12px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;width:160px;outline:none"
             onchange="saveDashTarget()">
         </div>
         <button onclick="saveDashTarget()" style="padding:7px 14px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer">Set Target</button>
@@ -2647,12 +2647,13 @@ function loadPR(y) {
   try {
     const s = JSON.parse(_STORE.getItem(prKey(y)) || 'null');
     if (s) {
-      // Background sync prices from Firebase — only update global PRICES if same year
+      // Background sync — only update PRICES global for current year, never for other years
       if (window._fbLoadKey) {
         window._fbLoadKey(fbPricePath(y)).then(function(fbPrices) {
           if (fbPrices) {
             try { _STORE.setItem(prKey(y), JSON.stringify(fbPrices)); } catch(e) {}
             if (y === CY) PRICES = fbPrices; // ONLY update global if current year
+            // Never assign to PRICES for a different year
           } else {
             if (window._fbSaveKey) window._fbSaveKey(fbPricePath(y), s);
           }
@@ -2661,8 +2662,16 @@ function loadPR(y) {
       return s;
     }
   } catch(e) {}
+  // No local prices for this year
+  // For non-current years return MASTER copy — do NOT fall back to CY prices
   const p = {};
   DEPT_KEYS.forEach(d => { p[d] = MASTER[d].map(i => [...i]); });
+  // Try loading from Firebase for next render
+  if (window._fbLoadKey) {
+    window._fbLoadKey(fbPricePath(y)).then(function(fbPrices) {
+      if (fbPrices) { try { _STORE.setItem(prKey(y), JSON.stringify(fbPrices)); } catch(e) {} }
+    });
+  }
   return p;
 }
 
@@ -7479,6 +7488,8 @@ function saveDashTarget() {
   var m = parseInt(document.getElementById('dash-month')?.value || new Date().getMonth()+1);
   var val = parseFloat(document.getElementById('dash-target')?.value) || 0;
   saveTarget(CY, m, { revenue: val });
+  // Also save to Firebase immediately for other devices
+  if (window._fbSaveKey) window._fbSaveKey('pearl/targets/' + CY + '/' + m, { revenue: val });
   toast('✅ Target saved — ' + fmtMoney(val) + ' for ' + MONTH_NAMES[m-1], 'ok');
   renderDash();
 }
