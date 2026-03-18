@@ -8087,19 +8087,40 @@ function renderGuide() {
     ['📊 Dashboard — Live Monthly Overview',
      '<strong>5 stat cards at the top:</strong>' +
      ul([
-       '<strong>Monthly Revenue</strong> — total for all departments in the selected month (comma formatted e.g. 32,073.63 QR).',
+       '<strong>Monthly Revenue</strong> — total for all departments in the selected month. Shows % of target in the subtitle: <span style="color:#16a34a;font-weight:700">🎉 +10.5% above target</span> or <span style="color:#dc2626;font-weight:700">46.7% of target</span>.',
        '<strong>Finance Posted Total</strong> — posting view total (shifted +1 day).',
        '<strong>Total KG</strong> — total weight washed.',
-       '<strong>Avg Daily Revenue</strong> — average per active day.',
+       '<strong>Avg Daily Revenue</strong> — average per active day. Shows a live projection line below.',
        '<strong>Avg Daily KG</strong> — average weight per day.'
      ]) +
+
+     '<br><strong>📈 Live Projection on Avg Daily Revenue card:</strong>' +
+     '<br><br>Below the active days count, a small line shows your projected month-end performance based on your current daily average:' +
+     ul([
+       '<strong>Formula:</strong> Avg Daily Revenue × Total days in month = Estimated month close',
+       '<strong>Example:</strong> Avg 2,197 QR/day × 31 days = Est. 68,124 QR close',
+       'If target is set → shows % of target: <span style="color:#d97706;font-weight:700">📊 Est. 68,124.36 QR · 85.2% of target</span>',
+       'If target exceeded → shows: <span style="color:#16a34a;font-weight:700">📈 Est. 88,000.00 QR · 🎉 +10.0% above target</span>',
+       'If no target set → shows estimated close amount only.',
+       '<strong>Updates automatically</strong> every time you save new data — reflects current performance pace.'
+     ]) +
+     '<div style="background:#f0fdf4;border-left:3px solid #16a34a;padding:12px 16px;border-radius:0 8px 8px 0;margin:10px 0;font-size:12px;color:#14532d">' +
+     '<strong>How to read it:</strong><br>' +
+     '• 85% → at current pace you will miss target by 15% — need to push daily numbers up<br>' +
+     '• 100%+ → you are on track to exceed target — keep going<br>' +
+     '• Number changes every day as your average improves or drops' +
+     '</div>' +
      '<strong>🎯 Monthly Revenue Target:</strong>' +
      ul([
        'Set a revenue target for each month separately — each month is independent.',
-       'Enter amount → click <strong>Set Target</strong> → a progress bar appears below the cards.',
+       'Enter amount → click <strong>Set Target</strong> → a color-coded progress bar appears below the cards.',
        'Green ≥75% · Amber ≥50% · Red below 50% · 🎉 when 100% reached.',
-       'Switching months automatically updates the target input to that month\'s target (or clears it if none set).',
-       'The month name shows next to the label so you always know which month you\'re setting.'
+       'The progress bar shows: <strong>Actual amount · % of target · Target amount</strong>',
+       'Below the bar: <strong>remaining amount + days left + required daily revenue</strong> to hit target.',
+       'Example: <em>📉 42,641.46 QR remaining · 13 days left · need 3,280.11 QR/day</em>',
+       'If exceeded: <em>🎉 Exceeded by 5,358.54 QR</em>',
+       'Switching months automatically updates everything to that month\'s target.',
+       'Syncs to Firebase — set once, available on all devices.'
      ]) +
      '<strong>🔔 Smart Notifications:</strong>' +
      ul([
