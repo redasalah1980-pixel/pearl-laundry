@@ -891,7 +891,7 @@ var _fbDB = null;
       <div class="tn-tab" onclick="showTab('benchmark')">🎯 Benchmark</div>
       <div class="tn-tab" onclick="showTab('prices')">⚙️ Prices</div>
       <div class="tn-tab" onclick="showTab('analytics')">📈 Analytics</div>
-      <div class="tn-tab" onclick="showTab('guide')">📖 Guide</div>
+      <div class="tn-tab" onclick="showTab('guide')">💡 Help Center</div>
       <div class="tn-tab" onclick="showTab('backup')" style="color:#c9a84c">🛡️ Backup</div>
     </div>
     <div class="tn-right">
@@ -1799,7 +1799,7 @@ var _fbDB = null;
       <!-- Sidebar -->
       <div style="width:230px;flex-shrink:0;background:#0d1b2e;display:flex;flex-direction:column;overflow:hidden">
         <div style="padding:18px 16px 14px;border-bottom:1px solid rgba(255,255,255,.1)">
-          <div style="font-size:13px;font-weight:800;color:#c9a84c">📖 User Guide</div>
+          <div style="font-size:13px;font-weight:800;color:#c9a84c">💡 Help Center</div>
           <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">Click a section to read</div>
         </div>
         <div id="guide-nav" style="flex:1;overflow-y:auto;padding:8px 0"></div>
@@ -2064,6 +2064,66 @@ var _fbDB = null;
         <div id="audit-log-wrap" style="max-height:52vh;overflow-y:auto;border:1.5px solid #e2e8f0;border-radius:12px"></div>
       </div>
 
+      <!-- ── PANEL: Currency ─────────────────────── -->
+      <div id="spanel-currency" style="display:none">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+          <div style="width:40px;height:40px;background:#f0fdf4;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px">💱</div>
+          <div>
+            <div style="font-size:15px;font-weight:800;color:#0d1b2e">Currency Settings</div>
+            <div style="font-size:12px;color:#64748b;margin-top:2px">Change how amounts display across the whole system. Synced to all devices.</div>
+          </div>
+        </div>
+        <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;padding:20px;margin-bottom:16px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+            <div>
+              <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px;letter-spacing:.8px">CURRENCY SYMBOL</div>
+              <input type="text" id="set-currency-symbol" maxlength="5" placeholder="e.g. QR, $, €"
+                style="width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:15px;font-weight:700;color:#0d1b2e;outline:none;box-sizing:border-box"
+                oninput="updateCurrencyPreview()">
+            </div>
+            <div>
+              <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px;letter-spacing:.8px">DECIMAL PLACES</div>
+              <select id="set-currency-decimals" onchange="updateCurrencyPreview()" style="width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-weight:600;color:#0d1b2e;background:#fff">
+                <option value="0">0 — e.g. 32,074</option>
+                <option value="2" selected>2 — e.g. 32,073.63</option>
+                <option value="3">3 — e.g. 32,073.630</option>
+              </select>
+            </div>
+          </div>
+          <div style="margin-bottom:16px">
+            <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:8px;letter-spacing:.8px">SYMBOL POSITION</div>
+            <div style="display:flex;gap:10px">
+              <label style="display:flex;align-items:center;gap:8px;padding:10px 16px;border:1.5px solid #e2e8f0;border-radius:8px;cursor:pointer;flex:1">
+                <input type="radio" name="currency-pos" id="pos-after" value="after" checked onchange="updateCurrencyPreview()">
+                <div><div style="font-size:13px;font-weight:700;color:#0d1b2e">After</div><div style="font-size:11px;color:#94a3b8">32,073.63 QR</div></div>
+              </label>
+              <label style="display:flex;align-items:center;gap:8px;padding:10px 16px;border:1.5px solid #e2e8f0;border-radius:8px;cursor:pointer;flex:1">
+                <input type="radio" name="currency-pos" id="pos-before" value="before" onchange="updateCurrencyPreview()">
+                <div><div style="font-size:13px;font-weight:700;color:#0d1b2e">Before</div><div style="font-size:11px;color:#94a3b8">QR 32,073.63</div></div>
+              </label>
+            </div>
+          </div>
+          <div style="background:#f8fafc;border-radius:10px;padding:14px;text-align:center">
+            <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:6px;letter-spacing:.8px">LIVE PREVIEW</div>
+            <div id="currency-preview" style="font-size:28px;font-weight:900;color:#0d1b2e">32,073.63 QR</div>
+          </div>
+        </div>
+        <div style="margin-bottom:16px">
+          <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:8px;letter-spacing:.8px">QUICK SELECT</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button onclick="quickCurrency('QR','after',2)" style="padding:7px 14px;border:1.5px solid #e2e8f0;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;background:#fff">QR</button>
+            <button onclick="quickCurrency('$','before',2)" style="padding:7px 14px;border:1.5px solid #e2e8f0;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;background:#fff">$ USD</button>
+            <button onclick="quickCurrency('€','before',2)" style="padding:7px 14px;border:1.5px solid #e2e8f0;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;background:#fff">€ EUR</button>
+            <button onclick="quickCurrency('£','before',2)" style="padding:7px 14px;border:1.5px solid #e2e8f0;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;background:#fff">£ GBP</button>
+            <button onclick="quickCurrency('SAR','after',2)" style="padding:7px 14px;border:1.5px solid #e2e8f0;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;background:#fff">SAR</button>
+            <button onclick="quickCurrency('AED','after',2)" style="padding:7px 14px;border:1.5px solid #e2e8f0;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;background:#fff">AED</button>
+            <button onclick="quickCurrency('KWD','after',3)" style="padding:7px 14px;border:1.5px solid #e2e8f0;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;background:#fff">KWD</button>
+          </div>
+        </div>
+        <div id="currency-msg" style="font-size:12px;font-weight:600;color:#16a34a;margin-bottom:10px"></div>
+        <button onclick="applyCurrencySettings()" style="width:100%;padding:14px;background:linear-gradient(135deg,#0d1b2e,#1e3a5f);color:#c9a84c;border:none;border-radius:11px;font-size:14px;font-weight:700;cursor:pointer">💾 Save Currency Settings</button>
+      </div>
+
     </div>
     <div style="text-align:center;padding:14px 0 12px;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;letter-spacing:0.3px;background:#f8fafc">
       © Reda Salah · All Rights Reserved
@@ -2107,7 +2167,7 @@ var _fbDB = null;
     </div>
     <div style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:8px;padding:9px 14px;margin-bottom:14px;font-size:12px;color:#1b5e20;display:flex;align-items:center;gap:8px">
       <span>&#x2139;&#xFE0F;</span>
-      <span>For full step-by-step instructions, see the <strong onclick="closeXL();showTab('guide')" style="cursor:pointer;text-decoration:underline">&#x1F4D6; User Guide</strong> tab.</span>
+      <span>For full step-by-step instructions, see the <strong onclick="closeXL();showTab('guide')" style="cursor:pointer;text-decoration:underline">&#x1F4D6; Help Center</strong> tab.</span>
     </div>
     <div id="xl-preview" style="display:none;max-height:240px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:12px"></div>
     <div id="xl-summary" style="display:none;padding:10px 14px;background:#e8f5e9;border:1px solid #a5d6a7;border-radius:8px;font-size:12.5px;color:#1b5e20;margin-bottom:14px"></div>
@@ -2160,7 +2220,7 @@ var _fbDB = null;
 
     <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:9px 14px;margin-bottom:14px;font-size:12px;color:#1e3a8a;display:flex;align-items:center;gap:8px">
       <span>&#x2139;&#xFE0F;</span>
-      <span>For full step-by-step instructions, see the <strong onclick="closeBulk();showTab('guide')" style="cursor:pointer;text-decoration:underline">&#x1F4D6; User Guide</strong> tab.</span>
+      <span>For full step-by-step instructions, see the <strong onclick="closeBulk();showTab('guide')" style="cursor:pointer;text-decoration:underline">&#x1F4D6; Help Center</strong> tab.</span>
     </div>
 
     <textarea id="bk-text" style="width:100%;height:110px;padding:12px 14px;border:2px solid #1e3a5f;border-radius:9px;font-family:'Courier New',monospace;font-size:12px;resize:vertical;color:#1a2332;line-height:1.6;outline:none;background:#f8fbff" placeholder="Click here then press Ctrl+V to paste from Excel..." oninput="previewBulk()"></textarea>
@@ -2794,6 +2854,7 @@ window.addEventListener('fb-ready', function() {
   attachFbListener(CY);
   loadPriceSchedule();
   loadAuditLog();
+  loadCurrency();
   // Auto-push any existing local data up to Firebase
   setTimeout(pushLocalDataToFirebase, 2000);
   // One-time migration: stamp locked prices on existing data
@@ -3025,7 +3086,46 @@ function populateSettingsLabels() {
 // ════════════════════════════════════════════════════════════════
 function dim(y, m) { return new Date(y, m, 0).getDate(); }
 function fmtDate(d) { return d.toLocaleDateString('en-GB', {day: '2-digit', month: 'short', year: 'numeric'}); }
-function f2(n) { return (+n).toFixed(2); }
+// ── Currency Settings ─────────────────────────────────────────
+var _CURRENCY = { symbol: 'QR', position: 'after', decimals: 2 };
+
+function loadCurrency() {
+  try {
+    var saved = JSON.parse(_STORE.getItem('pearl_currency') || 'null');
+    if (saved) _CURRENCY = saved;
+  } catch(e) {}
+  if (window._fbLoadKey) {
+    window._fbLoadKey('pearl/settings/currency').then(function(fb) {
+      if (fb) { _CURRENCY = fb; try { _STORE.setItem('pearl_currency', JSON.stringify(fb)); } catch(e) {} }
+    });
+  }
+}
+
+function saveCurrency() {
+  try { _STORE.setItem('pearl_currency', JSON.stringify(_CURRENCY)); } catch(e) {}
+  if (window._fbSaveKey) window._fbSaveKey('pearl/settings/currency', _CURRENCY);
+}
+
+function fmtMoney(n) {
+  var num = parseFloat(n) || 0;
+  var dec = _CURRENCY.decimals !== undefined ? _CURRENCY.decimals : 2;
+  // Format with commas
+  var parts = num.toFixed(dec).split('.');
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  var formatted = parts.join('.');
+  var sym = _CURRENCY.symbol || 'QR';
+  if (_CURRENCY.position === 'before') return sym + ' ' + formatted;
+  return formatted + ' ' + sym;
+}
+
+// Keep f2 as alias for backward compat (plain number, no currency)
+function f2(n) {
+  var num = parseFloat(n) || 0;
+  var dec = _CURRENCY.decimals !== undefined ? _CURRENCY.decimals : 2;
+  var parts = num.toFixed(dec).split('.');
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return parts.join('.');
+}
 function f4(n) { return (+n).toFixed(4); }
 
 // FIX: dayTotals now uses cached reads — fast
@@ -3101,7 +3201,7 @@ var ALL_TABS = [
   {id:'finance',   label:'🏦 Finance Posting', locked: false},
   {id:'prices',    label:'⚙️ Prices',          locked: false},
   {id:'analytics', label:'📈 Analytics',       locked: false},
-  {id:'guide',     label:'📖 Guide',           locked: false},
+  {id:'guide',     label:'💡 Help Center',           locked: false},
   {id:'backup',   label:'🛡️ Backup',           locked: false},
 ];
 
@@ -3162,6 +3262,51 @@ function syncSettingsFromFirebase(callback) {
 }
 
 // ── Settings modal tab switcher ───────────────────────
+function updateCurrencyPreview() {
+  var sym = document.getElementById('set-currency-symbol')?.value || 'QR';
+  var pos = document.querySelector('input[name="currency-pos"]:checked')?.value || 'after';
+  var dec = parseInt(document.getElementById('set-currency-decimals')?.value || 2);
+  var parts = (32073.63).toFixed(dec).split('.');
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  var formatted = parts.join('.');
+  var preview = pos === 'before' ? sym + ' ' + formatted : formatted + ' ' + sym;
+  var el = document.getElementById('currency-preview');
+  if (el) el.textContent = preview;
+}
+function quickCurrency(symbol, position, decimals) {
+  var symEl = document.getElementById('set-currency-symbol');
+  var decEl = document.getElementById('set-currency-decimals');
+  var posEl = document.getElementById('pos-' + position);
+  if (symEl) symEl.value = symbol;
+  if (decEl) decEl.value = String(decimals);
+  if (posEl) posEl.checked = true;
+  updateCurrencyPreview();
+}
+function applyCurrencySettings() {
+  var sym = (document.getElementById('set-currency-symbol')?.value || 'QR').trim();
+  var pos = document.querySelector('input[name="currency-pos"]:checked')?.value || 'after';
+  var dec = parseInt(document.getElementById('set-currency-decimals')?.value || 2);
+  if (!sym) { toast('⚠️ Enter a currency symbol', 'err'); return; }
+  _CURRENCY = { symbol: sym, position: pos, decimals: dec };
+  saveCurrency();
+  var msg = document.getElementById('currency-msg');
+  if (msg) { msg.textContent = '✅ Saved — ' + sym; setTimeout(function(){ msg.textContent=''; }, 3000); }
+  toast('💱 Currency → ' + sym, 'ok');
+  try { renderDash(); } catch(e) {}
+  try { renderEntry(); } catch(e) {}
+  try { renderFinance(); } catch(e) {}
+  try { renderMonthly(); } catch(e) {}
+}
+function openCurrencySettings() {
+  var symEl = document.getElementById('set-currency-symbol');
+  var decEl = document.getElementById('set-currency-decimals');
+  var posEl = document.getElementById('pos-' + (_CURRENCY.position || 'after'));
+  if (symEl) symEl.value = _CURRENCY.symbol || 'QR';
+  if (decEl) decEl.value = String(_CURRENCY.decimals !== undefined ? _CURRENCY.decimals : 2);
+  if (posEl) posEl.checked = true;
+  updateCurrencyPreview();
+}
+
 function renderAuditLog() {
   var wrap = document.getElementById('audit-log-wrap');
   if (!wrap) return;
@@ -3204,7 +3349,7 @@ function clearAuditLog() {
 }
 
 function switchStab(name) {
-  ['admin','team','access','audit'].forEach(function(t) {
+  ['admin','team','access','audit','currency'].forEach(function(t) {
     var btn = document.getElementById('stab-'+t);
     var pan = document.getElementById('spanel-'+t);
     if (btn) btn.classList.toggle('on', t===name);
@@ -3213,6 +3358,7 @@ function switchStab(name) {
   if (name === 'access') buildAccessCheckboxes();
   if (name === 'team') prefillTeam();
   if (name === 'audit') renderAuditLog();
+  if (name === 'currency') openCurrencySettings();
 }
 
 function openSettings() {
@@ -3972,16 +4118,16 @@ function renderDash() {
   document.getElementById('dash-stats').innerHTML =
     '<div class="sc blue">' +
       '<div class="sc-lbl">Monthly Revenue</div>' +
-      '<div class="sc-val">' + f2(qr) + '<span>QR</span></div>' +
+      '<div class="sc-val">' + fmtMoney(qr) + '</div>' +
       '<div class="sc-sub">' + MONTH_NAMES[m-1] + ' ' + CY + ' received</div>' +
     '</div>' +
     '<div class="sc teal">' +
       '<div class="sc-lbl">Finance Posted Total</div>' +
-      '<div class="sc-val">' + f2(financeTotal) + '<span>QR</span></div>' +
+      '<div class="sc-val">' + fmtMoney(financeTotal) + '</div>' +
       '<div class="sc-sub">Carry ' + f2(prevCarry) + ' + Days 1–' + (nd2-1) + ' (excl. last day)</div>' +
     '</div>' +
     '<div class="sc green"><div class="sc-lbl">Total KG Washed</div><div class="sc-val">' + kg.toFixed(1) + '<span>kg</span></div><div class="sc-sub">All departments</div></div>' +
-    '<div class="sc orange"><div class="sc-lbl">Avg Daily Revenue</div><div class="sc-val">' + f2(avgQR) + '<span>QR</span></div><div class="sc-sub">' + act + ' active days</div></div>' +
+    '<div class="sc orange"><div class="sc-lbl">Avg Daily Revenue</div><div class="sc-val">' + fmtMoney(avgQR) + '</div><div class="sc-sub">' + act + ' active days</div></div>' +
     '<div class="sc dark"><div class="sc-lbl">Avg Daily KG</div><div class="sc-val">' + avgKG.toFixed(1) + '<span>kg</span></div><div class="sc-sub">Per working day</div></div>';
   renderCal(m); renderDeptTable(m, qr, byDept); renderDashCharts(m);
   // Update target input and label for this month
@@ -4040,7 +4186,7 @@ function renderCal(m) {
       h += `<div class="cal-day${hd?' has-data':''}${d===td?' today':''}${wk?' wknd-day':''}" style="border-color:${hd?'#d97706':''};" onclick="goToDay(${m},${d})">
         <div class="cdn${wk?' wknd':''}">${DAY_SHORT[dw]}</div>
         <div class="cdnum">${d}</div>
-        ${hd ? carryBadge + `<div class="cdv">${f2(pd.qr)} QR</div><div class="cdd">${pd.kg.toFixed(1)} kg</div>` : ''}
+        ${hd ? carryBadge + `<div class="cdv">${fmtMoney(pd.qr)}</div><div class="cdd">${pd.kg.toFixed(1)} kg</div>` : ''}
         ${overflowNote}
       </div>`;
     }
@@ -4056,7 +4202,7 @@ function renderCal(m) {
       h += `<div class="cal-day${hd?' has-data':''}${d===td?' today':''}${wk?' wknd-day':''}" onclick="goToDay(${m},${d})">
         <div class="cdn${wk?' wknd':''}">${DAY_SHORT[dw]}</div>
         <div class="cdnum">${d}</div>
-        ${hd ? `<div class="cdv">${f2(qr)} QR</div><div class="cdd">${kg.toFixed(1)} kg</div>` : ''}
+        ${hd ? `<div class="cdv">${fmtMoney(qr)}</div><div class="cdd">${kg.toFixed(1)} kg</div>` : ''}
       </div>`;
     }
     document.getElementById('cal-grid').innerHTML = h;
@@ -4098,7 +4244,7 @@ function renderDeptTable(m, totalQR, byDept) {
     const pct = totalQR > 0 ? (qr / totalQR * 100) : 0;
     return `<tr onclick="goDept('${d}')" title="Click to view ${d}">
       <td><div class="dept-name">${DEPT_ICONS[d]} ${d}</div></td>
-      <td style="color:var(--blue);font-family:'Courier New',Courier,monospace;font-weight:600">${f2(qr)}</td>
+      <td style="color:var(--blue);font-family:'Courier New',Courier,monospace;font-weight:600">${fmtMoney(qr)}</td>
       <td style="color:#16a34a;font-family:'Courier New',Courier,monospace">${kg.toFixed(2)}</td>
       <td><span style="font-size:11.5px;color:var(--grey)">${pct.toFixed(1)}%</span>
         <span class="pct-bar-wrap"><span class="pct-bar" style="width:${Math.min(100,pct)}%"></span></span></td>
@@ -4107,9 +4253,25 @@ function renderDeptTable(m, totalQR, byDept) {
 }
 
 function goToDay(m, d) {
-  document.getElementById('ent-month').value = m; buildDaySel(m);
-  setTimeout(() => { document.getElementById('ent-day').value = d; renderEntry(); }, 10);
-  showTab('entry');
+  if (isMobile()) {
+    // Mobile — switch to mobile entry tab and set the day
+    var mMonth = document.getElementById('mob-ent-month');
+    var mDay   = document.getElementById('mob-ent-day');
+    if (mMonth) { mMonth.value = m; mobBuildDays(); }
+    setTimeout(function() {
+      if (mDay) mDay.value = d;
+      mobRenderEntry();
+    }, 30);
+    mobShowTab('entry');
+    // Scroll to top of entry page
+    var pages = document.getElementById('mob-pages');
+    if (pages) pages.scrollTop = 0;
+  } else {
+    // Desktop
+    document.getElementById('ent-month').value = m; buildDaySel(m);
+    setTimeout(() => { document.getElementById('ent-day').value = d; renderEntry(); }, 10);
+    showTab('entry');
+  }
 }
 function goDept(d) {
   entDept = d;
@@ -4162,9 +4324,9 @@ function updateEntStats(m, day) {
   }));
   const dn = DAY_NAMES[new Date(CY, m-1, day).getDay()];
   document.getElementById('ent-stats').innerHTML = `
-    <div class="sc blue"><div class="sc-lbl">Day Total</div><div class="sc-val">${f2(dQR)}<span>QR</span></div><div class="sc-sub">All depts — ${dn} ${day}</div></div>
+    <div class="sc blue"><div class="sc-lbl">Day Total</div><div class="sc-val">${fmtMoney(dQR)}</div><div class="sc-sub">All depts — ${dn} ${day}</div></div>
     <div class="sc green"><div class="sc-lbl">Day KG</div><div class="sc-val">${dKG.toFixed(2)}<span>kg</span></div><div class="sc-sub">All departments</div></div>
-    <div class="sc orange"><div class="sc-lbl">${DEPT_ICONS[entDept]} ${entDept} Revenue</div><div class="sc-val">${f2(depQR)}<span>QR</span></div><div class="sc-sub">${depKG.toFixed(2)} kg</div></div>
+    <div class="sc orange"><div class="sc-lbl">${DEPT_ICONS[entDept]} ${entDept} Revenue</div><div class="sc-val">${fmtMoney(depQR)}</div><div class="sc-sub">${depKG.toFixed(2)} kg</div></div>
     <div class="sc purple"><div class="sc-lbl">${DEPT_ICONS[entDept]} ${entDept} Pieces</div><div class="sc-val">${depPCS.toLocaleString()}<span>pcs</span></div><div class="sc-sub">Total items counted</div></div>`;
 }
 
@@ -4988,7 +5150,7 @@ function previewBulk() {
       ph += '<td style="padding:6px 10px;color:#6b7a8d;font-size:11px">' + DEPT_ICONS[r.dept] + ' ' + r.dept + '</td>';
       ph += '<td style="padding:6px 10px;text-align:center;color:#6b7a8d">' + nz + '/' + rangeLen + ' days</td>';
       ph += '<td style="padding:6px 10px;text-align:right;font-family:monospace;font-weight:700">' + r.total.toLocaleString() + '</td>';
-      ph += '<td style="padding:6px 10px;text-align:right;font-family:monospace;color:#1d4ed8;font-weight:600">' + f2(r.revenue) + ' QR</td>';
+      ph += '<td style="padding:6px 10px;text-align:right;font-family:monospace;color:#1d4ed8;font-weight:600">' + fmtMoney(r.revenue) + '</td>';
       ph += '<td style="padding:6px 10px;text-align:center"><span style="background:#dbeafe;color:#1d4ed8;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700">✓ MATCH</span></td></tr>';
     }
   });
@@ -5005,7 +5167,7 @@ function previewBulk() {
     '<strong>' + unmatched + '</strong> no match &nbsp;|&nbsp; ' +
     '<strong>' + skipped + '</strong> skipped &nbsp;|&nbsp; ' +
     'Days ' + dayFrom + '–' + dayTo + ' → ' + MONTH_NAMES[bm-1] + ' ' + by2 +
-    (matched > 0 ? ' &nbsp;|&nbsp; Total: <strong>' + totalPcs.toLocaleString() + '</strong> pcs, <strong>' + f2(totalRev) + ' QR</strong>' : '');
+    (matched > 0 ? ' &nbsp;|&nbsp; Total: <strong>' + totalPcs.toLocaleString() + '</strong> pcs, <strong>' + fmtMoney(totalRev) + '</strong>' : '');
   document.getElementById('bk-info').style.display = 'block';
   document.getElementById('bk-apply-btn').style.background = matched > 0 ? '#0d1b2e' : '#94a3b8';
 }
@@ -5260,7 +5422,7 @@ function renderMonthly() {
   const {qr, kg, pcs, byDept} = monthTotals(CY, m);
   const nd = dim(CY, m);
   document.getElementById('mon-stats').innerHTML = `
-    <div class="sc blue"><div class="sc-lbl">Total Revenue</div><div class="sc-val">${f2(qr)}<span>QR</span></div><div class="sc-sub">${MONTH_NAMES[m-1]} ${CY}</div></div>
+    <div class="sc blue"><div class="sc-lbl">Total Revenue</div><div class="sc-val">${fmtMoney(qr)}</div><div class="sc-sub">${MONTH_NAMES[m-1]} ${CY}</div></div>
     <div class="sc green"><div class="sc-lbl">Total KG</div><div class="sc-val">${kg.toFixed(1)}<span>kg</span></div><div class="sc-sub">All departments</div></div>
     <div class="sc dark"><div class="sc-lbl">Total Pieces</div><div class="sc-val">${pcs.toLocaleString()}</div><div class="sc-sub">All items</div></div>`;
   const depts = dsel === 'ALL' ? DEPT_KEYS : [dsel];
@@ -5336,14 +5498,14 @@ function renderReport() {
     smRows += '<tr class="dept-subtotal">' +
       '<td>' + DEPT_ICONS[dept] + ' ' + dept + '</td>' +
       '<td>' + s.pcs.toLocaleString() + '</td>' +
-      '<td>' + f2(s.qr) + ' QR</td>' +
+      '<td>' + fmtMoney(s.qr) + '</td>' +
       '<td>' + s.kg.toFixed(2) + ' KG</td>' +
       '</tr>';
   });
   smRows += '<tr>' +
     '<td>🏆 GRAND TOTAL</td>' +
     '<td>' + grandPcs.toLocaleString() + '</td>' +
-    '<td>' + f2(grandQR) + ' QR</td>' +
+    '<td>' + fmtMoney(grandQR) + '</td>' +
     '<td>' + grandKG.toFixed(2) + ' KG</td>' +
     '</tr>';
 
@@ -5365,7 +5527,7 @@ function renderReport() {
     yrRows += '<tr' + (isCurrentMonth ? ' style="background:#e0f2fe;font-weight:700"' : '') + '>' +
       '<td>' + MONTH_NAMES[mi - 1] + (isCurrentMonth ? ' ◀' : '') + '</td>' +
       '<td>' + (mPcs > 0 ? mPcs.toLocaleString() : '—') + '</td>' +
-      '<td>' + (mQR > 0 ? f2(mQR) + ' QR' : '—') + '</td>' +
+      '<td>' + (mQR > 0 ? fmtMoney(mQR) : '—') + '</td>' +
       '<td>' + (mKG > 0 ? mKG.toFixed(2) + ' KG' : '—') + '</td>' +
       '</tr>';
     yrPcs += mPcs; yrQR += mQR; yrKG += mKG;
@@ -5373,7 +5535,7 @@ function renderReport() {
   yrRows += '<tr>' +
     '<td>🏆 YEAR TOTAL ' + ry + '</td>' +
     '<td>' + yrPcs.toLocaleString() + '</td>' +
-    '<td>' + f2(yrQR) + ' QR</td>' +
+    '<td>' + fmtMoney(yrQR) + '</td>' +
     '<td>' + yrKG.toFixed(2) + ' KG</td>' +
     '</tr>';
 
@@ -6632,9 +6794,9 @@ function renderBenchmark() {
   if (cards) {
     var cardData = [
       { icon: '📊', label: 'Avg Occupancy', val: avgOcc.toFixed(1) + '%', sub: 'Days with data', grad: 'linear-gradient(135deg,#0369a1,#0284c7)', shadow: 'rgba(2,132,199,.3)' },
-      { icon: '💰', label: 'Total Revenue', val: f2(totalRev) + ' QR', sub: MONTH_NAMES[m-1] + ' ' + CY, grad: 'linear-gradient(135deg,#15803d,#16a34a)', shadow: 'rgba(22,163,74,.3)' },
+      { icon: '💰', label: 'Total Revenue', val: fmtMoney(totalRev), sub: MONTH_NAMES[m-1] + ' ' + CY, grad: 'linear-gradient(135deg,#15803d,#16a34a)', shadow: 'rgba(22,163,74,.3)' },
       { icon: '⚖️', label: 'Total KG', val: totalKg.toFixed(2) + ' kg', sub: MONTH_NAMES[m-1] + ' ' + CY, grad: 'linear-gradient(135deg,#b45309,#d97706)', shadow: 'rgba(217,119,6,.3)' },
-      { icon: '🛏️', label: 'Revenue / Room', val: avgRevPOR > 0 ? f2(avgRevPOR) + ' QR' : '—', sub: 'Avg per occupied room', grad: 'linear-gradient(135deg,#6d28d9,#7c3aed)', shadow: 'rgba(124,58,237,.3)' },
+      { icon: '🛏️', label: 'Revenue / Room', val: avgRevPOR > 0 ? fmtMoney(avgRevPOR) : '—', sub: 'Avg per occupied room', grad: 'linear-gradient(135deg,#6d28d9,#7c3aed)', shadow: 'rgba(124,58,237,.3)' },
       { icon: '📦', label: 'KG / Room', val: avgKgPOR > 0 ? avgKgPOR.toFixed(3) + ' kg' : '—', sub: 'Avg per occupied room', grad: 'linear-gradient(135deg,#0e7490,#0891b2)', shadow: 'rgba(8,145,178,.3)' },
       { icon: '📅', label: 'Days Tracked', val: dayData.filter(function(x){ return x.occPct > 0; }).length + ' / ' + days, sub: 'Occupancy entered', grad: 'linear-gradient(135deg,#334155,#475569)', shadow: 'rgba(71,85,105,.3)' }
     ];
@@ -6693,7 +6855,7 @@ function renderBenchmark() {
                 var v = ctx2.raw;
                 if (v === null) return null;
                 if (ctx2.dataset.yAxisID === 'y2') return ' ' + ctx2.dataset.label + ': ' + v + '%';
-                return ' ' + ctx2.dataset.label + ': ' + (yLabel1 === 'KG' ? v + ' kg' : f2(v) + ' QR');
+                return ' ' + ctx2.dataset.label + ': ' + (yLabel1 === 'KG' ? v + ' kg' : fmtMoney(v));
               }
             }
           }
@@ -6798,9 +6960,9 @@ function renderBenchmark() {
         '<div style="padding:14px 16px">' +
           '<div style="display:flex;justify-content:space-between;margin-bottom:10px">' +
             '<div><div style="font-size:10px;color:#94a3b8;font-weight:700;letter-spacing:.8px">TOTAL REVENUE</div>' +
-            '<div style="font-size:18px;font-weight:800;color:' + col + '">' + (dRev > 0 ? f2(dRev) + ' QR' : '—') + '</div></div>' +
+            '<div style="font-size:18px;font-weight:800;color:' + col + '">' + (dRev > 0 ? fmtMoney(dRev) : '—') + '</div></div>' +
             '<div style="text-align:right"><div style="font-size:10px;color:#94a3b8;font-weight:700;letter-spacing:.8px">REV/ROOM/DAY</div>' +
-            '<div style="font-size:18px;font-weight:800;color:#7c3aed">' + (rpr !== null ? f2(rpr) + ' QR' : '—') + '</div></div>' +
+            '<div style="font-size:18px;font-weight:800;color:#7c3aed">' + (rpr !== null ? fmtMoney(rpr) : '—') + '</div></div>' +
           '</div>' +
           '<div style="background:#f8fafc;border-radius:6px;overflow:hidden;height:8px">' +
             '<div style="background:' + col + ';height:100%;width:' + Math.min(100,pct) + '%;border-radius:6px;transition:width .5s ease"></div>' +
@@ -7084,7 +7246,7 @@ function renderYoY() {
         arrow + ' ' + Math.abs(pct).toFixed(1) + '% (' + (diff>=0?'+':'') + fmt(diff) + ')' +
       '</div></div>';
   }
-  html += yoyCard('Revenue (QR)', data1.qr, data2.qr, function(v){ return f2(Math.abs(v)); });
+  html += yoyCard('Revenue (QR)', data1.qr, data2.qr, function(v){ return fmtMoney(Math.abs(v)); });
   html += yoyCard('KG Washed', data1.kg, data2.kg, function(v){ return Math.abs(v).toFixed(1)+'kg'; });
   html += yoyCard('Total Pieces', data1.pcs, data2.pcs, function(v){ return Math.abs(v).toLocaleString()+'pcs'; });
   html += '</div>';
@@ -7143,11 +7305,11 @@ function renderTrends() {
   html += '<div style="background:linear-gradient(135deg,#15803d,#16a34a);border-radius:12px;padding:16px;color:#fff">' +
     '<div style="font-size:10px;font-weight:700;opacity:.7;margin-bottom:6px">BEST MONTH</div>' +
     '<div style="font-size:20px;font-weight:800">' + (best?best.label:'—') + '</div>' +
-    '<div style="font-size:13px;font-weight:700">' + (best&&best.qr>0?f2(best.qr)+' QR':'No data') + '</div></div>';
+    '<div style="font-size:13px;font-weight:700">' + (best&&best.qr>0?fmtMoney(best.qr):'No data') + '</div></div>';
   html += '<div style="background:linear-gradient(135deg,#b45309,#d97706);border-radius:12px;padding:16px;color:#fff">' +
     '<div style="font-size:10px;font-weight:700;opacity:.7;margin-bottom:6px">LOWEST MONTH</div>' +
     '<div style="font-size:20px;font-weight:800">' + (worst?worst.label:'—') + '</div>' +
-    '<div style="font-size:13px;font-weight:700">' + (worst&&worst.qr>0?f2(worst.qr)+' QR':'No data') + '</div></div>';
+    '<div style="font-size:13px;font-weight:700">' + (worst&&worst.qr>0?fmtMoney(worst.qr):'No data') + '</div></div>';
   html += '</div>';
 
   // Trend table
@@ -7341,20 +7503,58 @@ function renderTargetBar(totalRev, m) {
     '</div>';
 }
 
+function showMissingDaysPopup(m, missingList) {
+  var existing = document.getElementById('missing-days-popup');
+  if (existing) { existing.remove(); return; }
+  var popup = document.createElement('div');
+  popup.id = 'missing-days-popup';
+  popup.style.cssText = 'position:absolute;top:calc(100% + 8px);right:0;background:#fff;border:1.5px solid #fca5a5;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.15);z-index:600;min-width:240px;overflow:hidden';
+  var html = '<div style="background:#dc2626;padding:10px 14px;font-size:11px;font-weight:800;color:#fff;letter-spacing:.5px">⚠️ MISSING DATA — ' + missingList.length + ' DAY(S)</div>';
+  html += '<div style="max-height:260px;overflow-y:auto">';
+  missingList.forEach(function(d) {
+    var dayName = DAY_NAMES[new Date(CY, m-1, d).getDay()];
+    html += '<div onclick="goToDay(' + m + ',' + d + ');var mp=document.getElementById(\"missing-days-popup\");if(mp)mp.remove()" ' +
+      'style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid #f1f5f9;cursor:pointer;transition:background .1s" ' +
+      'onmouseover="this.style.background=\"#fff5f5\"" onmouseout="this.style.background=\"#fff\"">' +
+      '<div>' +
+        '<div style="font-size:13px;font-weight:700;color:#0d1b2e">' + dayName + ' ' + d + ' ' + MONTH_NAMES[m-1] + '</div>' +
+        '<div style="font-size:10px;color:#94a3b8;margin-top:1px">No data entered</div>' +
+      '</div>' +
+      '<span style="font-size:11px;color:#dc2626;font-weight:700">Enter →</span>' +
+    '</div>';
+  });
+  html += '</div>';
+  html += '<div style="padding:8px 14px;background:#f8fafc;font-size:10px;color:#94a3b8">Click a day to go to entry</div>';
+  popup.innerHTML = html;
+  // Close on outside click
+  setTimeout(function() {
+    document.addEventListener('click', function closePopup(e) {
+      if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', closePopup); }
+    });
+  }, 10);
+  return popup;
+}
+
 function renderNotifications(m, totalRev, nd) {
   var el = document.getElementById('dash-notif');
   if (!el) return;
   var alerts = [];
+  var missingList = [];
   // Check missing days
-  var missingDays = 0;
   var today = new Date(); var todayDay = today.getDate();
   var todayM = today.getMonth()+1; var todayY = today.getFullYear();
   if (CY === todayY && m === todayM) {
     for (var d = 1; d < todayDay; d++) {
       var dt = dayTotals(CY, m, d);
-      if (dt.qr === 0) missingDays++;
+      if (dt.qr === 0) missingList.push(d);
     }
-    if (missingDays > 0) alerts.push({ icon: '⚠️', msg: missingDays + ' day(s) missing data', col: '#dc2626', bg: '#fee2e2' });
+    if (missingList.length > 0) alerts.push({
+      icon: '⚠️',
+      msg: missingList.length + ' day(s) missing data',
+      col: '#dc2626', bg: '#fee2e2',
+      clickable: true,
+      missingList: missingList
+    });
   }
   // Revenue vs target
   var target = loadTarget(CY, m);
@@ -7364,8 +7564,12 @@ function renderNotifications(m, totalRev, nd) {
     else if (pct < 50 && todayM === m && todayY === CY) alerts.push({ icon: '📉', msg: 'Revenue below 50% of target', col: '#d97706', bg: '#fffbeb' });
   }
   if (alerts.length === 0) { el.innerHTML = ''; return; }
+  el.style.position = 'relative';
   el.innerHTML = alerts.map(function(a) {
-    return '<span style="display:inline-flex;align-items:center;gap:5px;background:' + a.bg + ';color:' + a.col + ';padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;margin-left:6px">' + a.icon + ' ' + a.msg + '</span>';
+    var clickAttr = a.clickable
+      ? 'onclick="var p=showMissingDaysPopup(' + m + ',[' + a.missingList.join(',') + ']);if(p)this.parentNode.appendChild(p);" style="cursor:pointer;" title="Click to see missing days"'
+      : '';
+    return '<span ' + clickAttr + ' style="display:inline-flex;align-items:center;gap:5px;background:' + a.bg + ';color:' + a.col + ';padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;margin-left:6px' + (a.clickable?';text-decoration:underline;text-underline-offset:2px':'') + '">' + a.icon + ' ' + a.msg + (a.clickable?' ▾':'') + '</span>';
   }).join('');
 }
 
@@ -7635,21 +7839,35 @@ function renderGuide() {
     ['📊 Dashboard — Live Monthly Overview',
      '<strong>5 stat cards at the top:</strong>' +
      ul([
-       '<strong>Monthly Revenue</strong> — total QR for all departments in the selected month.',
+       '<strong>Monthly Revenue</strong> — total for all departments in the selected month (comma formatted e.g. 32,073.63 QR).',
        '<strong>Finance Posted Total</strong> — posting view total (shifted +1 day).',
        '<strong>Total KG</strong> — total weight washed.',
-       '<strong>Avg Daily Revenue</strong> — average per day.',
+       '<strong>Avg Daily Revenue</strong> — average per active day.',
        '<strong>Avg Daily KG</strong> — average weight per day.'
+     ]) +
+     '<strong>🎯 Monthly Revenue Target:</strong>' +
+     ul([
+       'Set a revenue target for each month separately — each month is independent.',
+       'Enter amount → click <strong>Set Target</strong> → a progress bar appears below the cards.',
+       'Green ≥75% · Amber ≥50% · Red below 50% · 🎉 when 100% reached.',
+       'Switching months automatically updates the target input to that month\'s target (or clears it if none set).',
+       'The month name shows next to the label so you always know which month you\'re setting.'
+     ]) +
+     '<strong>🔔 Smart Notifications:</strong>' +
+     ul([
+       '⚠️ <strong>Missing days</strong> — click the badge to see a popup listing exactly which days have no data. Click any day in the popup to jump directly to it in Entry.',
+       '📉 <strong>Below target</strong> — warns if revenue is under 50% of target mid-month.',
+       '🎉 <strong>Target reached</strong> — celebrates when you hit your goal.'
      ]) +
      '<strong>Calendar:</strong>' +
      ul([
-       'Click any day number to jump directly to that day in Daily Entry.',
-       '<strong>💰 Hide/Show Amounts</strong> — toggles QR values in calendar cells.',
+       'Click any day to jump directly to that day in Daily Entry.',
+       '<strong>💰 Hide/Show Amounts</strong> — toggles revenue values in cells.',
        '<strong>⚖️ Hide/Show KG</strong> — toggles KG values.',
-       '<strong>📥 Receiving Day</strong> — default view. Shows what was received each day.',
-       '<strong>📤 Posting Day</strong> — shifts all data forward by 1 day (finance posting view). Day 1 shows an amber carry badge for Dec 31 data. Cells get amber borders.'
+       '<strong>📥 Receiving Day / 📤 Posting Day</strong> — switch between actual and finance posting view (+1 day shift).'
      ]) +
-     '<strong>Department Breakdown table</strong> — Revenue, KG, Pieces and % share per department for the month.'
+     '<strong>Department Breakdown table</strong> — Revenue, KG, Pieces and % share per department.' +
+     tip('All amounts use comma formatting (32,073.63) for easy reading. Change currency symbol anytime in ⚙️ Settings → 💱 Currency.')
     ],
 
     // ── 9. MONTHLY ──────────────────────────────────────────────
@@ -7900,7 +8118,39 @@ function renderGuide() {
      tip('Enter occupancy data at the start of each month and save. The benchmark automatically updates as you enter daily laundry data throughout the month.')
     ],
 
-    // ── 17. COPYRIGHT ───────────────────────────────────────────
+    // ── 17. CURRENCY & NUMBER FORMAT ────────────────────────────
+    ['💱 Currency & Number Formatting',
+     '<strong>All amounts in the system use comma formatting:</strong>' +
+     ul([
+       '32,073.63 QR — thousands separator makes large numbers easy to read.',
+       '1,234,567.89 — works for any size.',
+       'Consistent across Dashboard, Entry, Finance, Monthly, Analytics, Benchmark, Reports.'
+     ]) +
+     '<strong>To change currency:</strong>' +
+     step([
+       'Click ⚙️ Settings in the top navigation bar.',
+       'Click the <strong>💱 Currency</strong> tab.',
+       'Type your currency symbol (QR, $, €, £, SAR, AED, KWD, or anything custom).',
+       'Choose position — After (32,073.63 QR) or Before ($ 32,073.63).',
+       'Choose decimal places — 0, 2, or 3.',
+       'Check the <strong>Live Preview</strong> to confirm it looks right.',
+       'Click <strong>💾 Save Currency Settings</strong>.'
+     ]) +
+     '<br><strong>Quick Select currencies available:</strong>' +
+     ul([
+       'QR — Qatari Riyal (default)',
+       '$ USD — US Dollar (before, 2 decimals)',
+       '€ EUR — Euro (before, 2 decimals)',
+       '£ GBP — British Pound (before, 2 decimals)',
+       'SAR — Saudi Riyal (after, 2 decimals)',
+       'AED — UAE Dirham (after, 2 decimals)',
+       'KWD — Kuwaiti Dinar (after, 3 decimals)'
+     ]) +
+     warn('Changing currency only affects how numbers are displayed. All data, calculations and stored values remain unchanged. You can switch currency anytime without any risk.') +
+     tip('The currency setting syncs to Firebase — all devices (phone, tablet, other computers) automatically use the same currency format.')
+    ],
+
+    // ── 18. COPYRIGHT ───────────────────────────────────────────
     ['© Copyright & Ownership',
      '<div style="background:linear-gradient(135deg,#0d1b2e,#1e3a5f);border-radius:10px;padding:20px 24px;color:#fff;margin-bottom:12px"><div style="font-size:18px;font-weight:700;color:#c9a84c;letter-spacing:1px;margin-bottom:6px">© 2026 Reda Salah</div><div style="font-size:13px;color:rgba(255,255,255,.75);line-height:1.9">All Rights Reserved.<br><strong style="color:#fff">RS · Pearl Laundry Management System</strong> — proprietary software created and owned by <strong style="color:#c9a84c">Reda Salah</strong>.<br>Developed for professional laundry operations management.<br>Unauthorised copying, distribution, or modification is strictly prohibited.</div></div><div style="font-size:12px;color:#6b7a8d;line-height:1.8">Intellectual property and full ownership: <strong>Reda Salah</strong><br>For support or licensing enquiries, contact the author directly.</div>'
     ],
@@ -8114,9 +8364,9 @@ function mobRenderDash() {
   var cards = document.getElementById('mob-dash-cards');
   if (cards) {
     var cardData = [
-      { label:'Monthly Revenue', val:f2(tot.qr)+' QR', sub:MONTH_NAMES[m-1], grad:'linear-gradient(135deg,#0369a1,#0284c7)', shadow:'rgba(2,132,199,.25)' },
+      { label:'Monthly Revenue', val:fmtMoney(tot.qr), sub:MONTH_NAMES[m-1], grad:'linear-gradient(135deg,#0369a1,#0284c7)', shadow:'rgba(2,132,199,.25)' },
       { label:'Total KG', val:tot.kg.toFixed(1)+' kg', sub:'All depts', grad:'linear-gradient(135deg,#b45309,#d97706)', shadow:'rgba(217,119,6,.25)' },
-      { label:'Avg Daily Rev', val:f2(avgQR)+' QR', sub:act+' active days', grad:'linear-gradient(135deg,#15803d,#16a34a)', shadow:'rgba(22,163,74,.25)' },
+      { label:'Avg Daily Rev', val:fmtMoney(avgQR), sub:act+' active days', grad:'linear-gradient(135deg,#15803d,#16a34a)', shadow:'rgba(22,163,74,.25)' },
       { label:'Avg Daily KG', val:avgKG.toFixed(1)+' kg', sub:'Per working day', grad:'linear-gradient(135deg,#334155,#475569)', shadow:'rgba(71,85,105,.25)' }
     ];
     cards.innerHTML = cardData.map(function(c) {
@@ -8198,7 +8448,7 @@ function mobSaveTarget() {
   // Also sync desktop target
   var dtInp = document.getElementById('dash-target');
   if (dtInp) dtInp.value = val;
-  toast('✅ Target saved — '+f2(val)+' QR', 'ok');
+  toast('✅ Target saved — '+fmtMoney(val), 'ok');
   mobRenderDash();
 }
 
@@ -8296,9 +8546,9 @@ function mobUpdateStats(m, day) {
   if (statsEl) {
     var dn = DAY_NAMES[new Date(CY,m-1,day).getDay()];
     statsEl.innerHTML = [
-      {label:'Day Total',val:f2(dQR)+' QR',sub:'All depts · '+dn+' '+day,col:'#0284c7',bg:'#eff6ff'},
+      {label:'Day Total',val:fmtMoney(dQR),sub:'All depts · '+dn+' '+day,col:'#0284c7',bg:'#eff6ff'},
       {label:'Day KG',val:dKG.toFixed(2)+' kg',sub:'All departments',col:'#16a34a',bg:'#f0fdf4'},
-      {label:_mobEntDept+' Rev',val:f2(depQR)+' QR',sub:depKG.toFixed(2)+' kg',col:'#d97706',bg:'#fffbeb'},
+      {label:_mobEntDept+' Rev',val:fmtMoney(depQR),sub:depKG.toFixed(2)+' kg',col:'#d97706',bg:'#fffbeb'},
       {label:_mobEntDept+' Pcs',val:depPCS+'',sub:'Total pieces',col:'#7c3aed',bg:'#f5f3ff'}
     ].map(function(c) {
       return '<div style="background:'+c.bg+';border-radius:12px;padding:11px 12px;border-left:3px solid '+c.col+'">' +
@@ -8392,9 +8642,9 @@ function mobRenderFinance() {
   var cards=document.getElementById('mob-fin-cards');
   if(cards){
     cards.innerHTML=[
-      {label:'Finance Posted',val:f2(finTotal)+' QR',sub:'Carry + Days 1–'+(nd-1),grad:'linear-gradient(135deg,#0e7490,#0891b2)',shadow:'rgba(8,145,178,.25)'},
-      {label:'Monthly Revenue',val:f2(tot.qr)+' QR',sub:MONTH_NAMES[m-1]+' received',grad:'linear-gradient(135deg,#15803d,#16a34a)',shadow:'rgba(22,163,74,.25)'},
-      {label:'Carry from '+MONTH_NAMES[prevM-1],val:f2(prevCarry)+' QR',sub:'Last day carry-in',grad:'linear-gradient(135deg,#6d28d9,#7c3aed)',shadow:'rgba(124,58,237,.25)'},
+      {label:'Finance Posted',val:fmtMoney(finTotal),sub:'Carry + Days 1–'+(nd-1),grad:'linear-gradient(135deg,#0e7490,#0891b2)',shadow:'rgba(8,145,178,.25)'},
+      {label:'Monthly Revenue',val:fmtMoney(tot.qr),sub:MONTH_NAMES[m-1]+' received',grad:'linear-gradient(135deg,#15803d,#16a34a)',shadow:'rgba(22,163,74,.25)'},
+      {label:'Carry from '+MONTH_NAMES[prevM-1],val:fmtMoney(prevCarry),sub:'Last day carry-in',grad:'linear-gradient(135deg,#6d28d9,#7c3aed)',shadow:'rgba(124,58,237,.25)'},
       {label:'Days Entered',val:String(nd-1),sub:'Days 1–'+(nd-1)+' posted',grad:'linear-gradient(135deg,#334155,#475569)',shadow:'rgba(51,65,85,.25)'}
     ].map(function(c){
       return '<div style="background:'+c.grad+';border-radius:14px;padding:14px 12px;box-shadow:0 6px 18px '+c.shadow+'">' +
