@@ -7575,10 +7575,17 @@ function renderNotifications(m, totalRev, nd) {
     var clickAttr = a.clickable
       ? 'onclick="var p=showMissingDaysPopup(' + m + ',[' + a.missingList.join(',') + ']);if(p)this.parentNode.appendChild(p);" style="cursor:pointer;" title="Click to see missing days"'
       : '';
-    var extraStyle = a.clickable
-      ? ';text-decoration:none;box-shadow:0 0 0 3px rgba(220,38,38,.2);animation:pulse-red 1.5s infinite;border:1.5px solid #dc2626'
-      : '';
-    return '<span ' + clickAttr + ' style="display:inline-flex;align-items:center;gap:6px;background:' + a.bg + ';color:' + a.col + ';padding:6px 14px;border-radius:20px;font-size:12px;font-weight:800;margin-left:6px' + extraStyle + '">' + a.icon + ' ' + a.msg + (a.clickable?' ▾':'') + '</span>';
+    // Missing days → solid red vivid badge. Others → styled per color
+    var bg2    = a.clickable ? '#dc2626' : a.bg;
+    var col2   = a.clickable ? '#fff' : a.col;
+    var shadow = a.clickable ? ';box-shadow:0 4px 18px rgba(220,38,38,.5);animation:pulse-red 1.2s infinite' : (a.col==='#d97706'?';box-shadow:0 3px 10px rgba(217,119,6,.3)':'');
+    var pad    = a.clickable ? '9px 18px' : '6px 14px';
+    var fsize  = a.clickable ? '13px' : '12px';
+    return '<span ' + clickAttr + ' style="display:inline-flex;align-items:center;gap:7px;background:' + bg2 + ';color:' + col2 + ';padding:' + pad + ';border-radius:24px;font-size:' + fsize + ';font-weight:800;margin-left:8px;letter-spacing:.2px' + shadow + '">' +
+      '<span style="font-size:15px">' + a.icon + '</span>' +
+      '<strong>' + a.msg + '</strong>' +
+      (a.clickable ? '<span style="font-size:10px;opacity:.85"> ▾ Click</span>' : '') +
+    '</span>';
   }).join('');
 }
 
