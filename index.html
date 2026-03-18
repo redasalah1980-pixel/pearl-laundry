@@ -3267,10 +3267,11 @@ var ALL_TABS = [
   {id:'monthly',   label:'📅 Monthly',         locked: false},
   {id:'report',    label:'📄 Report & PDF',    locked: false},
   {id:'finance',   label:'🏦 Finance Posting', locked: false},
+  {id:'benchmark', label:'🎯 Benchmark',       locked: false},
   {id:'prices',    label:'⚙️ Prices',          locked: false},
   {id:'analytics', label:'📈 Analytics',       locked: false},
-  {id:'guide',     label:'💡 Help Center',           locked: false},
-  {id:'backup',   label:'🛡️ Backup',           locked: false},
+  {id:'guide',     label:'💡 Help Center',     locked: false},
+  {id:'backup',    label:'🛡️ Backup',          locked: false},
 ];
 
 function getCredentials() {
@@ -6866,7 +6867,15 @@ function renderBenchmark() {
       { icon: '⚖️', label: 'Total KG', val: totalKg.toFixed(2) + ' kg', sub: MONTH_NAMES[m-1] + ' ' + CY, grad: 'linear-gradient(135deg,#b45309,#d97706)', shadow: 'rgba(217,119,6,.3)' },
       { icon: '🛏️', label: 'Revenue / Room', val: avgRevPOR > 0 ? fmtMoney(avgRevPOR) : '—', sub: 'Avg per occupied room', grad: 'linear-gradient(135deg,#6d28d9,#7c3aed)', shadow: 'rgba(124,58,237,.3)' },
       { icon: '📦', label: 'KG / Room', val: avgKgPOR > 0 ? avgKgPOR.toFixed(3) + ' kg' : '—', sub: 'Avg per occupied room', grad: 'linear-gradient(135deg,#0e7490,#0891b2)', shadow: 'rgba(8,145,178,.3)' },
-      { icon: '📅', label: 'Days Tracked', val: dayData.filter(function(x){ return x.occPct > 0; }).length + ' / ' + days, sub: 'Occupancy entered', grad: 'linear-gradient(135deg,#334155,#475569)', shadow: 'rgba(71,85,105,.3)' }
+      { icon: '📅', label: 'Days Tracked', val: dayData.filter(function(x){ return x.occPct > 0; }).length + ' / ' + days, sub: 'Occupancy entered', grad: 'linear-gradient(135deg,#334155,#475569)', shadow: 'rgba(71,85,105,.3)' },
+      (function(){
+        var bestDay = dayData.filter(function(x){ return x.rev > 0; }).reduce(function(a,b){ return b.rev > a.rev ? b : a; }, {rev:0,d:0});
+        return { icon: '🏆', label: 'Best Day', val: bestDay.d > 0 ? (DAY_NAMES[new Date(CY,m-1,bestDay.d).getDay()].slice(0,3)+' '+bestDay.d) : '—', sub: bestDay.d > 0 ? fmtMoney(bestDay.rev) : 'No data', grad: 'linear-gradient(135deg,#b45309,#c9a84c)', shadow: 'rgba(201,168,76,.3)' };
+      })(),
+      (function(){
+        var totalOccRooms = dayData.filter(function(x){ return x.occRooms > 0; }).reduce(function(a,b){ return a + b.occRooms; }, 0);
+        return { icon: '🏨', label: 'Total Occ. Rooms', val: totalRooms > 0 ? totalOccRooms.toLocaleString() : '—', sub: totalRooms > 0 ? 'Set total rooms above' : 'Enter hotel rooms count', grad: 'linear-gradient(135deg,#0e7490,#0891b2)', shadow: 'rgba(8,145,178,.3)' };
+      })()
     ];
     cards.innerHTML = cardData.map(function(c) {
       return '<div style="background:' + c.grad + ';border-radius:16px;padding:20px 18px;box-shadow:0 8px 24px ' + c.shadow + ';position:relative;overflow:hidden">' +
