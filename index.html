@@ -630,6 +630,11 @@ table.price-t tr:hover td{background:var(--grey3)}
   * { box-sizing: border-box; }
 }
 
+@keyframes pulse-red {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(220,38,38,.4); }
+  50% { box-shadow: 0 0 0 6px rgba(220,38,38,0); }
+}
+
 /* ── Mobile bottom navigation bar ── */
 #mob-nav {
   display: none;
@@ -7474,7 +7479,7 @@ function saveDashTarget() {
   var m = parseInt(document.getElementById('dash-month')?.value || new Date().getMonth()+1);
   var val = parseFloat(document.getElementById('dash-target')?.value) || 0;
   saveTarget(CY, m, { revenue: val });
-  toast('✅ Target saved — ' + f2(val) + ' QR for ' + MONTH_NAMES[m-1], 'ok');
+  toast('✅ Target saved — ' + fmtMoney(val) + ' for ' + MONTH_NAMES[m-1], 'ok');
   renderDash();
 }
 
@@ -7551,7 +7556,7 @@ function renderNotifications(m, totalRev, nd) {
     }
     if (missingList.length > 0) alerts.push({
       icon: '⚠️',
-      msg: missingList.length + ' day(s) missing data',
+      msg: missingList.length + (missingList.length === 1 ? ' day missing data' : ' days missing data'),
       col: '#dc2626', bg: '#fee2e2',
       clickable: true,
       missingList: missingList
@@ -7570,7 +7575,10 @@ function renderNotifications(m, totalRev, nd) {
     var clickAttr = a.clickable
       ? 'onclick="var p=showMissingDaysPopup(' + m + ',[' + a.missingList.join(',') + ']);if(p)this.parentNode.appendChild(p);" style="cursor:pointer;" title="Click to see missing days"'
       : '';
-    return '<span ' + clickAttr + ' style="display:inline-flex;align-items:center;gap:5px;background:' + a.bg + ';color:' + a.col + ';padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;margin-left:6px' + (a.clickable?';text-decoration:underline;text-underline-offset:2px':'') + '">' + a.icon + ' ' + a.msg + (a.clickable?' ▾':'') + '</span>';
+    var extraStyle = a.clickable
+      ? ';text-decoration:none;box-shadow:0 0 0 3px rgba(220,38,38,.2);animation:pulse-red 1.5s infinite;border:1.5px solid #dc2626'
+      : '';
+    return '<span ' + clickAttr + ' style="display:inline-flex;align-items:center;gap:6px;background:' + a.bg + ';color:' + a.col + ';padding:6px 14px;border-radius:20px;font-size:12px;font-weight:800;margin-left:6px' + extraStyle + '">' + a.icon + ' ' + a.msg + (a.clickable?' ▾':'') + '</span>';
   }).join('');
 }
 
@@ -8398,7 +8406,7 @@ function mobRenderDash() {
           '<div style="background:'+col+';height:100%;width:'+pct+'%;border-radius:20px"></div>' +
         '</div>' +
         '<div style="display:flex;justify-content:space-between;font-size:10px;color:#64748b">' +
-          '<span>'+f2(tot.qr)+' QR</span><span style="font-weight:800;color:'+col+'">'+pct.toFixed(1)+'%</span><span>'+f2(tgt.revenue)+' QR</span>' +
+          '<span>'+fmtMoney(tot.qr)+'</span><span style="font-weight:800;color:'+col+'">'+pct.toFixed(1)+'%</span><span>'+f2(tgt.revenue)+' QR</span>' +
         '</div></div>';
     } else { tbar.innerHTML = ''; }
   }
