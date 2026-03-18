@@ -2,7 +2,28 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="RS Pearl">
+<meta name="theme-color" content="#0d1b2e">
+<link rel="manifest" href="data:application/json,{
+  &quot;name&quot;: &quot;RS Pearl Laundry System&quot;,
+  &quot;short_name&quot;: &quot;RS Pearl&quot;,
+  &quot;description&quot;: &quot;Laundry Management System&quot;,
+  &quot;start_url&quot;: &quot;./index.html&quot;,
+  &quot;display&quot;: &quot;standalone&quot;,
+  &quot;background_color&quot;: &quot;#0d1b2e&quot;,
+  &quot;theme_color&quot;: &quot;#0d1b2e&quot;,
+  &quot;orientation&quot;: &quot;portrait&quot;,
+  &quot;icons&quot;: [{
+    &quot;src&quot;: &quot;data:image/svg+xml,&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'&gt;&lt;rect width='100' height='100' rx='20' fill='%230d1b2e'/&gt;&lt;text y='.9em' font-size='80' x='50%' text-anchor='middle' fill='%23c9a84c'&gt;RS&lt;/text&gt;&lt;/svg&gt;&quot;,
+    &quot;sizes&quot;: &quot;any&quot;,
+    &quot;type&quot;: &quot;image/svg+xml&quot;,
+    &quot;purpose&quot;: &quot;any maskable&quot;
+  }]
+}">
 <title>RS · Pearl Laundry System v20</title>
 <style>
 /* Offline-safe font stack */
@@ -932,11 +953,15 @@ var _fbDB = null;
         <div id="mob-target-bar" style="margin-bottom:12px"></div>
         <!-- Target input -->
         <div style="background:#fff;border-radius:12px;padding:12px;margin-bottom:12px;box-shadow:0 1px 6px rgba(0,0,0,.06)">
-          <div style="font-size:10px;font-weight:800;color:#64748b;letter-spacing:1px;margin-bottom:6px">🎯 MONTHLY TARGET (QR)</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <div style="font-size:10px;font-weight:800;color:#64748b;letter-spacing:1px">🎯 TARGET</div>
+            <div id="mob-target-month-label" style="font-size:10px;font-weight:700;color:#c9a84c"></div>
+          </div>
           <div style="display:flex;gap:8px">
-            <input type="number" id="mob-dash-target" placeholder="e.g. 80000" style="flex:1;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;font-weight:600;color:#0d1b2e;outline:none">
+            <input type="number" id="mob-dash-target" placeholder="No target set" style="flex:1;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;font-weight:600;color:#0d1b2e;outline:none">
             <button onclick="mobSaveTarget()" style="padding:9px 16px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">Set</button>
           </div>
+          <div style="font-size:10px;color:#94a3b8;margin-top:4px">Each month has its own separate target</div>
         </div>
         <!-- Dept breakdown -->
         <div style="background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.06)">
@@ -1117,8 +1142,8 @@ var _fbDB = null;
         <select id="dash-month" onchange="renderDash()"></select></div>
       <div style="display:flex;align-items:flex-end;gap:8px">
         <div>
-          <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">MONTHLY TARGET (QR)</div>
-          <input type="number" id="dash-target" placeholder="e.g. 80000" min="0"
+          <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">MONTHLY TARGET (QR) <span id="dash-target-month-lbl" style="color:#c9a84c;font-size:10px"></span></div>
+          <input type="number" id="dash-target" placeholder="No target set" min="0"
             style="padding:7px 12px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;width:140px;outline:none"
             onchange="saveDashTarget()">
         </div>
@@ -2734,9 +2759,15 @@ function attachFbListener(y) {
         if (mergedStr !== localStr) {
           _DB[y] = merged;
           try { _STORE.setItem(lsKey(y), mergedStr); } catch(e) {}
-          try { renderDash(); } catch(e) {}
-          try { renderEntry(); } catch(e) {}
-          try { renderMonthly(); } catch(e) {}
+          if (isMobile()) {
+            try { mobRenderDash(); } catch(e) {}
+            try { mobRenderEntry(); } catch(e) {}
+            try { mobRenderFinance(); } catch(e) {}
+          } else {
+            try { renderDash(); } catch(e) {}
+            try { renderEntry(); } catch(e) {}
+            try { renderMonthly(); } catch(e) {}
+          }
         }
       } else if (snap.val() === null) {
         var local2 = _DB[y] || {};
@@ -3724,8 +3755,39 @@ function _bootApp(user) {
   // Show first allowed tab
   var firstTab = allowed[0] || 'dashboard';
   buildYearSel(); buildSelectors(); showTab(firstTab);
-  // Init mobile layout if on phone
-  setTimeout(function() { if (isMobile()) initMobileApp(); }, 400);
+  // Init mobile layout if on phone — wait for Firebase data
+  if (isMobile()) {
+    // Show loading screen immediately
+    var desk3 = document.getElementById('pg-app');
+    var mob3 = document.getElementById('mob-app');
+    if (desk3 && mob3) {
+      desk3.style.display = 'none';
+      mob3.style.display = 'flex';
+      mob3.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;background:#0d1b2e;gap:16px">' +
+        '<div style="width:60px;height:60px;background:#c9a84c;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;color:#0d1b2e">RS</div>' +
+        '<div style="font-size:18px;font-weight:800;color:#fff">RS · Pearl</div>' +
+        '<div style="font-size:12px;color:rgba(255,255,255,.5)">Loading your data...</div>' +
+        '<div style="width:40px;height:4px;background:rgba(255,255,255,.15);border-radius:4px;overflow:hidden;margin-top:8px">' +
+          '<div id="mob-load-bar" style="height:100%;width:0%;background:#c9a84c;border-radius:4px;transition:width 2s ease"></div>' +
+        '</div>' +
+      '</div>';
+      setTimeout(function(){ var b=document.getElementById('mob-load-bar'); if(b) b.style.width='80%'; }, 100);
+    }
+    // Wait for Firebase then init
+    setTimeout(function() {
+      try {
+        // Restore mob-app content by re-running init
+        var mob4 = document.getElementById('mob-app');
+        if (mob4) mob4.innerHTML = _MOB_APP_HTML;
+        initMobileApp();
+      } catch(e) {
+        console.error('Mobile init failed:', e);
+        // Fallback to desktop
+        var d=document.getElementById('pg-app'); if(d) d.style.display='flex';
+        var m=document.getElementById('mob-app'); if(m) m.style.display='none';
+      }
+    }, 1500);
+  }
 }
 
 function buildYearSel() {
@@ -3922,6 +3984,15 @@ function renderDash() {
     '<div class="sc orange"><div class="sc-lbl">Avg Daily Revenue</div><div class="sc-val">' + f2(avgQR) + '<span>QR</span></div><div class="sc-sub">' + act + ' active days</div></div>' +
     '<div class="sc dark"><div class="sc-lbl">Avg Daily KG</div><div class="sc-val">' + avgKG.toFixed(1) + '<span>kg</span></div><div class="sc-sub">Per working day</div></div>';
   renderCal(m); renderDeptTable(m, qr, byDept); renderDashCharts(m);
+  // Update target input and label for this month
+  var tgt2 = loadTarget(CY, m);
+  var tgtInp2 = document.getElementById('dash-target');
+  if (tgtInp2) tgtInp2.value = (tgt2 && tgt2.revenue) ? tgt2.revenue : '';
+  var tgtLbl2 = document.getElementById('dash-target-month-lbl');
+  if (tgtLbl2) tgtLbl2.textContent = MONTH_NAMES[m-1] + ' ' + CY;
+  // Render target progress bar
+  renderTargetBar(qr, m);
+  renderNotifications(m, qr, nd);
 }
 
 function renderCal(m) {
@@ -7890,10 +7961,19 @@ function renderGuide() {
 //  MOBILE APP — dedicated mobile layout
 // ══════════════════════════════════════════════════════════════
 var _mobTab = 'dashboard';
+var _MOB_APP_HTML = ''; // stored on first load
 var _mobEntDept = '';
 var _mobDayClip = null;
 
 function isMobile() { return window.innerWidth <= 768; }
+
+// Store mobile app HTML on first load so we can restore after loading screen
+(function() {
+  window.addEventListener('DOMContentLoaded', function() {
+    var mob = document.getElementById('mob-app');
+    if (mob) _MOB_APP_HTML = mob.innerHTML;
+  });
+})();
 
 function initMobileApp() {
   try {
@@ -7904,6 +7984,10 @@ function initMobileApp() {
     if (!desk || !mob) return;
     desk.style.display = 'none';
     mob.style.display = 'flex';
+    // Restore HTML if loading screen replaced it
+    if (_MOB_APP_HTML && !document.getElementById('mob-tab-dashboard')) {
+      mob.innerHTML = _MOB_APP_HTML;
+    }
     // Populate year selector
     var ys = document.getElementById('mob-year-sel');
     if (ys) {
@@ -8016,6 +8100,9 @@ function mobGoto(tabName) {
 function mobRenderDash() {
   try {
   var m = parseInt(document.getElementById('mob-dash-month')?.value || new Date().getMonth()+1);
+  // Update target month label
+  var tML = document.getElementById('mob-target-month-label');
+  if (tML) tML.textContent = MONTH_NAMES[m-1] + ' ' + CY;
   var tot = monthTotals(CY, m);
   var nd = dim(CY, m);
   var act = 0;
@@ -8044,7 +8131,7 @@ function mobRenderDash() {
   // Target bar
   var tgt = loadTarget(CY, m);
   var tgtInp = document.getElementById('mob-dash-target');
-  if (tgtInp && tgt && tgt.revenue) tgtInp.value = tgt.revenue;
+  if (tgtInp) tgtInp.value = (tgt && tgt.revenue) ? tgt.revenue : '';
   var tbar = document.getElementById('mob-target-bar');
   if (tbar) {
     if (tgt && tgt.revenue) {
@@ -9083,5 +9170,39 @@ function autoCloudBackup() {
   </div>
 </div>
 
+<script>
+// ── Service Worker for offline support ──
+if ('serviceWorker' in navigator) {
+  var swCode = `
+    const CACHE = 'rs-pearl-v1';
+    const URLS = ['./', './index.html'];
+    self.addEventListener('install', function(e) {
+      e.waitUntil(caches.open(CACHE).then(function(c){ return c.addAll(URLS); }));
+      self.skipWaiting();
+    });
+    self.addEventListener('activate', function(e) {
+      e.waitUntil(caches.keys().then(function(keys){
+        return Promise.all(keys.filter(function(k){ return k!==CACHE; }).map(function(k){ return caches.delete(k); }));
+      }));
+      self.clients.claim();
+    });
+    self.addEventListener('fetch', function(e) {
+      if (e.request.method !== 'GET') return;
+      e.respondWith(
+        fetch(e.request).then(function(r){
+          var clone = r.clone();
+          caches.open(CACHE).then(function(c){ c.put(e.request, clone); });
+          return r;
+        }).catch(function(){
+          return caches.match(e.request);
+        })
+      );
+    });
+  `;
+  var blob = new Blob([swCode], {type:'application/javascript'});
+  var swUrl = URL.createObjectURL(blob);
+  navigator.serviceWorker.register(swUrl).catch(function(e){ console.log('SW reg failed:', e); });
+}
+</script>
 </body>
 </html>
