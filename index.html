@@ -4257,7 +4257,14 @@ function renderDash() {
     '<div class="sc blue">' +
       '<div class="sc-lbl">Monthly Revenue</div>' +
       '<div class="sc-val">' + fmtMoney(qr) + '</div>' +
-      '<div class="sc-sub">' + MONTH_NAMES[m-1] + ' ' + CY + ' received</div>' +
+      (function(){
+        var tD = loadTarget(CY, m);
+        if (!tD || !tD.revenue) return '<div class="sc-sub">' + MONTH_NAMES[m-1] + ' ' + CY + ' received</div>';
+        var p = (qr / tD.revenue * 100);
+        var c = p >= 100 ? '#16a34a' : p >= 75 ? '#d97706' : '#dc2626';
+        var lbl = p >= 100 ? '🎉 ' + (p-100).toFixed(1) + '% above target' : p.toFixed(1) + '% of target';
+        return '<div class="sc-sub">' + MONTH_NAMES[m-1] + ' · <span style="color:' + c + ';font-weight:800">' + lbl + '</span></div>';
+      })() +
     '</div>' +
     '<div class="sc teal">' +
       '<div class="sc-lbl">Finance Posted Total</div>' +
@@ -4265,7 +4272,28 @@ function renderDash() {
       '<div class="sc-sub">Carry ' + f2(prevCarry) + ' + Days 1–' + (nd2-1) + ' (excl. last day)</div>' +
     '</div>' +
     '<div class="sc green"><div class="sc-lbl">Total KG Washed</div><div class="sc-val">' + kg.toFixed(1) + '<span>kg</span></div><div class="sc-sub">All departments</div></div>' +
-    '<div class="sc orange"><div class="sc-lbl">Avg Daily Revenue</div><div class="sc-val">' + fmtMoney(avgQR) + '</div><div class="sc-sub">' + act + ' active days</div></div>' +
+    (function(){
+      // Projection calculation
+      var tgtData = loadTarget(CY, m);
+      var tgtRev = tgtData && tgtData.revenue ? tgtData.revenue : 0;
+      var estClose = avgQR * nd; // avg × total days in month
+      var projLine = '';
+      if (avgQR > 0) {
+        if (tgtRev > 0) {
+          var estPct = (estClose / tgtRev * 100);
+          if (estPct >= 100) {
+            var overBy = estPct - 100;
+            projLine = '<div style="font-size:10px;color:#16a34a;font-weight:700;margin-top:3px">📈 Est. ' + fmtMoney(estClose) + ' · 🎉 +' + overBy.toFixed(1) + '% above target</div>';
+          } else {
+            var col2 = estPct >= 75 ? '#d97706' : '#dc2626';
+            projLine = '<div style="font-size:10px;color:' + col2 + ';font-weight:700;margin-top:3px">📊 Est. ' + fmtMoney(estClose) + ' · ' + estPct.toFixed(1) + '% of target</div>';
+          }
+        } else {
+          projLine = '<div style="font-size:10px;color:#94a3b8;margin-top:3px">📊 Est. month close: ' + fmtMoney(estClose) + '</div>';
+        }
+      }
+      return '<div class="sc orange"><div class="sc-lbl">Avg Daily Revenue</div><div class="sc-val">' + fmtMoney(avgQR) + '</div><div class="sc-sub">' + act + ' active days</div>' + projLine + '</div>';
+    })() +
     '<div class="sc dark"><div class="sc-lbl">Avg Daily KG</div><div class="sc-val">' + avgKG.toFixed(1) + '<span>kg</span></div><div class="sc-sub">Per working day</div></div>';
   renderCal(m); renderDeptTable(m, qr, byDept); renderDashCharts(m);
   // Update target input and label for this month
