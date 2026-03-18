@@ -963,7 +963,10 @@ var _fbDB = null;
             <div id="mob-target-month-label" style="font-size:10px;font-weight:700;color:#c9a84c"></div>
           </div>
           <div style="display:flex;gap:8px">
-            <input type="number" id="mob-dash-target" placeholder="No target set" style="flex:1;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;font-weight:600;color:#0d1b2e;outline:none">
+            <input type="text" id="mob-dash-target" placeholder="e.g. 80,000" inputmode="numeric"
+              style="flex:1;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;font-weight:600;color:#0d1b2e;outline:none"
+              onfocus="this.value=this.value.replace(/,/g,'')"
+              onblur="formatTargetInputDisplay(this)">
             <button onclick="mobSaveTarget()" style="padding:9px 16px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">Set</button>
           </div>
           <div style="font-size:10px;color:#94a3b8;margin-top:4px">Each month has its own separate target</div>
@@ -1148,9 +1151,11 @@ var _fbDB = null;
       <div style="display:flex;align-items:flex-end;gap:8px">
         <div>
           <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">MONTHLY TARGET · <span id="dash-target-month-lbl" style="color:#c9a84c"></span></div>
-          <input type="number" id="dash-target" placeholder="No target set" min="0"
+          <input type="text" id="dash-target" placeholder="e.g. 80,000" inputmode="numeric"
             style="padding:7px 12px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;width:160px;outline:none"
-            onchange="saveDashTarget()">
+            onchange="saveDashTarget()"
+            onfocus="this.value=this.value.replace(/,/g,'')"
+            onblur="formatTargetInputDisplay(this)">
         </div>
         <button onclick="saveDashTarget()" style="padding:7px 14px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer">Set Target</button>
       </div>
@@ -4196,7 +4201,7 @@ function renderDash() {
   // Update target input and label for this month
   var tgt2 = loadTarget(CY, m);
   var tgtInp2 = document.getElementById('dash-target');
-  if (tgtInp2) tgtInp2.value = (tgt2 && tgt2.revenue) ? tgt2.revenue : '';
+  if (tgtInp2) tgtInp2.value = (tgt2 && tgt2.revenue) ? f2(tgt2.revenue) : '';
   var tgtLbl2 = document.getElementById('dash-target-month-lbl');
   if (tgtLbl2) tgtLbl2.textContent = MONTH_NAMES[m-1] + ' ' + CY;
   // Render target progress bar
@@ -7532,11 +7537,21 @@ function renderAnalytics() {
 }
 
 // ── Dashboard mini charts (called from renderDash) ─────────
+function formatTargetInputDisplay(inp) {
+  if (!inp) return;
+  var raw = parseFloat(String(inp.value).replace(/,/g,'')) || 0;
+  if (raw > 0) {
+    inp.value = f2(raw); // f2 now adds commas
+  } else {
+    inp.value = '';
+  }
+}
+
 function saveDashTarget() {
   var m = parseInt(document.getElementById('dash-month')?.value || new Date().getMonth()+1);
-  var val = parseFloat(document.getElementById('dash-target')?.value) || 0;
+  var rawVal = String(document.getElementById('dash-target')?.value || '').replace(/,/g,'');
+  var val = parseFloat(rawVal) || 0;
   saveTarget(CY, m, { revenue: val });
-  // Also save to Firebase immediately for other devices
   if (window._fbSaveKey) window._fbSaveKey('pearl/targets/' + CY + '/' + m, { revenue: val });
   toast('✅ Target saved — ' + fmtMoney(val) + ' for ' + MONTH_NAMES[m-1], 'ok');
   renderDash();
@@ -8481,7 +8496,7 @@ function mobRenderDash() {
   // Target bar
   var tgt = loadTarget(CY, m);
   var tgtInp = document.getElementById('mob-dash-target');
-  if (tgtInp) tgtInp.value = (tgt && tgt.revenue) ? tgt.revenue : '';
+  if (tgtInp) tgtInp.value = (tgt && tgt.revenue) ? f2(tgt.revenue) : '';
   var tbar = document.getElementById('mob-target-bar');
   if (tbar) {
     if (tgt && tgt.revenue) {
@@ -8543,7 +8558,8 @@ function mobRenderDash() {
 
 function mobSaveTarget() {
   var m = parseInt(document.getElementById('mob-dash-month')?.value || new Date().getMonth()+1);
-  var val = parseFloat(document.getElementById('mob-dash-target')?.value) || 0;
+  var rawVal = String(document.getElementById('mob-dash-target')?.value || '').replace(/,/g,'');
+  var val = parseFloat(rawVal) || 0;
   saveTarget(CY, m, {revenue:val});
   // Also sync desktop target
   var dtInp = document.getElementById('dash-target');
