@@ -1213,7 +1213,23 @@ var _fbDB = null;
     </div>
     <div class="tn-right">
       <select class="year-sel" id="year-sel" onchange="changeYear(this.value)"></select>
-      <!-- Settings + name combined -->
+      <!-- Firebase LIVE — compact dot + word -->
+      <div id="fb-status" style="display:flex;align-items:center;gap:5px">
+        <div id="fb-dot" style="width:7px;height:7px;border-radius:50%;background:#94a3b8;box-shadow:0 0 0 2px rgba(148,163,184,.15);transition:all .4s ease;flex-shrink:0"></div>
+        <span id="fb-label" style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#94a3b8;transition:color .4s ease">...</span>
+      </div>
+      <!-- Online users — compact dot + count -->
+      <div id="online-indicator" onclick="toggleOnlinePopup(event)" title="Click to see who is online">
+        <div class="online-dot"></div>
+        <span id="online-label">1 online</span>
+        <div id="online-popup">
+          <div class="online-popup-head">👥 Currently Online</div>
+          <div id="online-users-list"></div>
+        </div>
+      </div>
+      <!-- Divider -->
+      <div style="width:1px;height:20px;background:rgba(255,255,255,.15);flex-shrink:0"></div>
+      <!-- Settings + Logout -->
       <span class="tn-uname" id="tn-name" style="display:none">Reda Salah</span>
       <button class="tn-settings" onclick="openSettings()" id="btn-settings-nav" title="Settings">⚙️ <span id="tn-name-display" style="font-size:11px;font-weight:600;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle">Reda Salah</span></button>
       <button class="tn-logout" onclick="doLogout()" title="Logout">⏏ Logout</button>
