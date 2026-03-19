@@ -308,8 +308,8 @@ input,select,textarea{font-family:inherit;outline:none;border:none}
 .tn-tabs{display:flex;align-items:center;gap:0;flex:1;overflow-x:auto;overflow-y:hidden;min-width:0;
   scrollbar-width:none;-ms-overflow-style:none}
 .tn-tabs::-webkit-scrollbar{display:none}
-.tn-tab{display:flex;align-items:center;gap:4px;padding:0 9px;height:54px;
-  font-size:11.5px;font-weight:500;color:rgba(255,255,255,.45);cursor:pointer;
+.tn-tab{display:flex;align-items:center;gap:4px;padding:0 8px;height:54px;
+  font-size:11px;font-weight:500;color:rgba(255,255,255,.45);cursor:pointer;
   border-bottom:2px solid transparent;transition:.15s;white-space:nowrap;flex-shrink:0}
 .tn-tab:hover{color:rgba(255,255,255,.8)}
 .tn-tab.on{color:var(--white);border-bottom-color:var(--gold);font-weight:600}
@@ -328,6 +328,30 @@ input,select,textarea{font-family:inherit;outline:none;border:none}
   padding:6px 14px;border-radius:6px;border:1.5px solid rgba(220,38,38,.5);transition:.18s;
   cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0}
 .tn-logout:hover{color:#fff;background:rgba(220,38,38,.6);border-color:rgba(220,38,38,.9);box-shadow:0 2px 12px rgba(220,38,38,.35)}
+
+/* ── Nav tab tooltip ── */
+.tn-tab[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #0d1b2e;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  border: 1px solid rgba(201,168,76,.2);
+  box-shadow: 0 4px 12px rgba(0,0,0,.3);
+  z-index: 999;
+  pointer-events: none;
+  margin-top: 2px;
+}
+.tn-tab { position: relative; }
+
+/* ── Fix online popup z-index ── */
 
 /* Password field with eye toggle */
 .pw-wrap{position:relative;display:flex;align-items:center}
@@ -352,9 +376,9 @@ input,select,textarea{font-family:inherit;outline:none;border:none}
 @keyframes online-pulse{0%{box-shadow:0 0 0 0 rgba(34,197,94,.5)}70%{box-shadow:0 0 0 5px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
 #online-label{font-size:10px;font-weight:700;letter-spacing:.8px;color:#86efac;text-transform:uppercase}
 /* Online users popup */
-#online-popup{display:none;position:absolute;top:calc(100% + 8px);right:0;
+#online-popup{display:none;position:absolute;top:calc(100% + 10px);right:0;
   background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;
-  box-shadow:0 8px 32px rgba(0,0,0,.15);z-index:500;min-width:220px;overflow:hidden}
+  box-shadow:0 8px 32px rgba(0,0,0,.3);z-index:9999;min-width:220px;overflow:hidden}
 #online-popup.show{display:block}
 .online-popup-head{background:var(--navy);padding:10px 14px;font-size:11px;font-weight:700;
   color:var(--gold);letter-spacing:1px;text-transform:uppercase}
@@ -1199,17 +1223,17 @@ var _fbDB = null;
     </a>
     <div class="tn-divider"></div>
     <div class="tn-tabs">
-      <div class="tn-tab on" onclick="showTab('dashboard')">📊 Dashboard</div>
-      <div class="tn-tab" onclick="showTab('entry')">✏️ Entry</div>
-      <div class="tn-tab" onclick="showTab('monthly')">📅 Monthly</div>
-      <div class="tn-tab" onclick="showTab('report')">📄 Report</div>
-      <div class="tn-tab" onclick="showTab('finance')">🏦 Finance</div>
-      <div class="tn-tab" onclick="showTab('benchmark')">🎯 Benchmark</div>
-      <div class="tn-tab" onclick="showTab('prices')">⚙️ Prices</div>
-      <div class="tn-tab" onclick="showTab('analytics')">📈 Analytics</div>
-      <div class="tn-tab" onclick="showTab('forecast')">🔮 Forecast</div>
-      <div class="tn-tab" onclick="showTab('backup')" style="color:#c9a84c">🛡️ Backup</div>
-      <div class="tn-tab" onclick="showTab('guide')">💡 Help Center</div>
+      <div class="tn-tab on" onclick="showTab('dashboard')" title="Dashboard — Live monthly overview">📊 Dash</div>
+      <div class="tn-tab" onclick="showTab('entry')" title="Daily Entry — Enter quantities per department">✏️ Entry</div>
+      <div class="tn-tab" onclick="showTab('monthly')" title="Monthly Overview — Full month summary & exports">📅 Monthly</div>
+      <div class="tn-tab" onclick="showTab('report')" title="Report & PDF — Print and export reports">📄 Report</div>
+      <div class="tn-tab" onclick="showTab('finance')" title="Finance Posting — Revenue posting view">🏦 Finance</div>
+      <div class="tn-tab" onclick="showTab('benchmark')" title="Benchmark — Occupancy vs revenue analysis">🎯 Bench</div>
+      <div class="tn-tab" onclick="showTab('prices')" title="Prices & Weights — Manage item prices">⚙️ Prices</div>
+      <div class="tn-tab" onclick="showTab('analytics')" title="Analytics — Charts, trends & year-over-year">📈 Analytics</div>
+      <div class="tn-tab" onclick="showTab('forecast')" title="Forecast — Revenue forecasting & annual planning">🔮 Forecast</div>
+      <div class="tn-tab" onclick="showTab('backup')" title="Backup — Cloud & local data backup" style="color:#c9a84c">🛡️ Backup</div>
+      <div class="tn-tab" onclick="showTab('guide')" title="Help Center — Full documentation & guides">💡 Help</div>
     </div>
     <div class="tn-right">
       <select class="year-sel" id="year-sel" onchange="changeYear(this.value)"></select>
