@@ -46,95 +46,236 @@ input,select,textarea{font-family:inherit;outline:none;border:none}
 ::-webkit-scrollbar-thumb{background:#bbb;border-radius:3px}
 
 /* LOGIN */
-/* ── LOGIN PAGE ─────────────────────────────────────────────── */
-#pg-login {
+/* ── LICENCE PAGE ───────────────────────────────────────────── */
+#pg-licence {
+  display: none;
   min-height: 100vh;
-  display: flex;
   align-items: center;
   justify-content: center;
+  background: #06101e;
   position: relative;
   overflow: hidden;
-  background: #06101e;
 }
-/* Animated background particles */
-#pg-login::before {
+#pg-licence::before {
   content: '';
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(ellipse 80% 60% at 20% 20%, rgba(201,168,76,.06) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(13,27,46,.8) 0%, transparent 60%),
-    radial-gradient(ellipse 100% 100% at 50% 50%, #06101e 0%, #0d1b2e 100%);
+  background: radial-gradient(ellipse 80% 60% at 50% 30%, rgba(220,38,38,.06) 0%, transparent 60%);
   pointer-events: none;
 }
-#pg-login::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image:
-    radial-gradient(circle at 15% 85%, rgba(201,168,76,.04) 0%, transparent 40%),
-    radial-gradient(circle at 85% 15%, rgba(201,168,76,.04) 0%, transparent 40%);
-  pointer-events: none;
-  animation: bg-shift 8s ease-in-out infinite alternate;
-}
-@keyframes bg-shift {
-  from { opacity: .5; }
-  to { opacity: 1; }
-}
-.login-card {
-  width: 440px;
+.licence-card {
+  width: 460px;
   max-width: 94vw;
   background: rgba(255,255,255,.03);
-  border: 1px solid rgba(201,168,76,.15);
+  border: 1px solid rgba(220,38,38,.25);
   border-radius: 24px;
   padding: 48px 44px 40px;
   backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  box-shadow:
-    0 0 0 1px rgba(255,255,255,.04),
-    0 32px 80px rgba(0,0,0,.6),
-    0 0 120px rgba(201,168,76,.04);
+  box-shadow: 0 32px 80px rgba(0,0,0,.6);
   animation: rise .7s cubic-bezier(.22,1,.36,1) both;
   position: relative;
   z-index: 1;
 }
-@keyframes logo-pulse {
-  0%, 100% { opacity: .4; transform: scale(1); }
-  50% { opacity: .8; transform: scale(1.05); }
+
+/* ── LOGIN PAGE — Premium Split Layout ───────────────────────── */
+#pg-login {
+  min-height: 100vh;
+  display: flex;
+  align-items: stretch;
+  position: relative;
+  overflow: hidden;
+  background: #06101e;
 }
-@keyframes rise {
-  from { opacity:0; transform:translateY(32px) scale(.98); }
-  to { opacity:1; transform:translateY(0) scale(1); }
+
+/* Left branding panel */
+.login-left {
+  flex: 0 0 55%;
+  background: linear-gradient(145deg, #050e1a 0%, #0d1b2e 35%, #091524 65%, #050e1a 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  padding: 60px 50px;
 }
-/* Decorative corner accent */
-.login-card::before {
+.login-left::before {
   content: '';
   position: absolute;
-  top: 0; left: 0;
-  width: 120px; height: 120px;
-  background: radial-gradient(circle at 0% 0%, rgba(201,168,76,.08) 0%, transparent 70%);
-  border-radius: 24px 0 0 0;
+  inset: 0;
+  background:
+    radial-gradient(circle at 25% 25%, rgba(201,168,76,.07) 0%, transparent 45%),
+    radial-gradient(circle at 75% 75%, rgba(201,168,76,.05) 0%, transparent 45%),
+    radial-gradient(circle at 50% 50%, rgba(201,168,76,.04) 0%, transparent 60%);
+  animation: glow-shift 8s ease-in-out infinite alternate;
   pointer-events: none;
 }
-.l-logo{display:flex;justify-content:center;margin-bottom:24px}
-.l-logo img{width:110px;height:110px;border-radius:50%;object-fit:cover;
-  box-shadow:0 0 40px rgba(201,168,76,.25),0 0 0 2px rgba(201,168,76,.15)}
-.l-sysname{text-align:center;margin-bottom:30px}
-.l-sysname h1{font-family:Georgia,'Times New Roman',serif;font-size:20px;font-weight:700;
-  color:var(--white);letter-spacing:1.5px}
-.l-sysname p{font-size:10px;color:rgba(255,255,255,.35);letter-spacing:3px;text-transform:uppercase;margin-top:3px}
-.lfl{display:block;font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--gold3);margin-bottom:6px}
-.lfi{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(201,168,76,.18);
-  border-radius:8px;padding:12px 15px;color:#fff;font-size:13.5px;transition:.2s;margin-bottom:14px}
-.lfi:focus{border-color:var(--gold);background:rgba(201,168,76,.05)}
-.lfi::placeholder{color:rgba(255,255,255,.2)}
-.lbtn{width:100%;padding:14px;background:var(--gold);color:var(--navy);font-size:13px;
-  font-weight:700;letter-spacing:2px;text-transform:uppercase;border-radius:8px;
-  margin-top:4px;transition:.18s}
-.lbtn:hover{background:var(--gold2);transform:translateY(-1px);box-shadow:0 8px 24px rgba(201,168,76,.3)}
-.lerr{min-height:0;overflow:hidden;transition:all .3s ease}.lerr.show{display:flex;align-items:center;gap:10px;background:rgba(220,53,69,.15);border:1px solid rgba(220,53,69,.4);border-radius:8px;padding:11px 16px;margin-top:12px;color:#ff8888;font-size:13px;font-weight:600;animation:shake .35s ease}
-@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
-.l-copy{text-align:center;font-size:10px;color:rgba(255,255,255,.15);margin-top:20px;letter-spacing:.5px}
+@keyframes glow-shift {
+  from { opacity: .6; transform: scale(1); }
+  to   { opacity: 1;  transform: scale(1.05); }
+}
+/* Animated dot grid */
+.login-left::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle 1.5px at 15% 20%, rgba(201,168,76,.35) 0%, transparent 100%),
+    radial-gradient(circle 1px  at 85% 15%, rgba(201,168,76,.25) 0%, transparent 100%),
+    radial-gradient(circle 1px  at 70% 75%, rgba(201,168,76,.3)  0%, transparent 100%),
+    radial-gradient(circle 1.5px at 30% 85%, rgba(201,168,76,.3) 0%, transparent 100%),
+    radial-gradient(circle 1px  at 90% 55%, rgba(201,168,76,.2)  0%, transparent 100%),
+    radial-gradient(circle 1px  at 8%  60%, rgba(201,168,76,.3)  0%, transparent 100%),
+    radial-gradient(circle 1px  at 55% 10%, rgba(201,168,76,.2)  0%, transparent 100%),
+    radial-gradient(circle 1px  at 45% 90%, rgba(201,168,76,.25) 0%, transparent 100%),
+    radial-gradient(circle 1px  at 20% 48%, rgba(201,168,76,.15) 0%, transparent 100%),
+    radial-gradient(circle 1px  at 62% 38%, rgba(201,168,76,.2)  0%, transparent 100%),
+    radial-gradient(circle 1px  at 38% 62%, rgba(201,168,76,.15) 0%, transparent 100%),
+    radial-gradient(circle 1px  at 78% 42%, rgba(201,168,76,.2)  0%, transparent 100%);
+  animation: dot-drift 14s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+@keyframes dot-drift {
+  from { transform: translate(0,0); }
+  to   { transform: translate(-10px, 14px); }
+}
+
+.login-left-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  max-width: 380px;
+}
+
+/* Right form panel */
+.login-right {
+  flex: 0 0 45%;
+  background: #f5f6f8;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 56px;
+  position: relative;
+}
+.login-right::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent 0%, #c9a84c 30%, #c9a84c 70%, transparent 100%);
+}
+
+.login-form-wrap {
+  width: 100%;
+  max-width: 320px;
+  animation: form-in .65s cubic-bezier(.22,1,.36,1) both;
+  animation-delay: .2s;
+  opacity: 0;
+}
+@keyframes form-in {
+  from { opacity:0; transform:translateX(20px); }
+  to   { opacity:1; transform:translateX(0); }
+}
+
+/* Underline-style inputs */
+.lfl {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  color: #9ca3af;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  margin-top: 20px;
+}
+.lfi {
+  width: 100%;
+  padding: 10px 0;
+  background: transparent;
+  border: none;
+  border-bottom: 1.5px solid #d1d5db;
+  border-radius: 0;
+  color: #1a2332;
+  font-size: 14px;
+  font-weight: 500;
+  outline: none;
+  transition: border-color .2s;
+  box-sizing: border-box;
+}
+.lfi:focus { border-bottom-color: #c9a84c; }
+.lfi::placeholder { color: #c4c9d4; font-size: 13px; }
+
+/* Gold button */
+.lbtn {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #c9a84c 0%, #b8942d 100%);
+  color: #0d1b2e;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all .2s;
+  box-shadow: 0 4px 20px rgba(201,168,76,.35);
+  margin-top: 32px;
+}
+.lbtn:hover {
+  background: linear-gradient(135deg, #d4b45a 0%, #c9a84c 100%);
+  box-shadow: 0 6px 28px rgba(201,168,76,.5);
+  transform: translateY(-1px);
+}
+.lbtn:active { transform: translateY(0); }
+
+/* Error */
+.lerr {
+  min-height: 0;
+  overflow: hidden;
+  transition: all .3s ease;
+}
+.lerr.show {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fee2e2;
+  border-left: 3px solid #dc2626;
+  padding: 10px 14px;
+  margin-top: 14px;
+  color: #b91c1c;
+  font-size: 12px;
+  font-weight: 600;
+  animation: shake .35s ease;
+}
+@keyframes shake {
+  0%,100%{transform:translateX(0)}
+  20%,60%{transform:translateX(-6px)}
+  40%,80%{transform:translateX(6px)}
+}
+@keyframes rise {
+  from { opacity:0; transform:translateY(24px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+@keyframes logo-pulse {
+  0%,100% { opacity:.4; transform:scale(1); }
+  50%     { opacity:.8; transform:scale(1.05); }
+}
+.l-copy { text-align:center; font-size:10px; color:#9ca3af; margin-top:28px; letter-spacing:.5px; }
+
+/* Divider */
+.login-divider { display:flex; align-items:center; gap:12px; margin:20px auto; width:220px; }
+.login-divider-line { flex:1; height:1px; background:linear-gradient(90deg,transparent,rgba(201,168,76,.4),transparent); }
+.login-divider-dot { width:4px; height:4px; border-radius:50%; background:#c9a84c; opacity:.5; }
+
+/* Mobile */
+@media (max-width: 768px) {
+  #pg-login { flex-direction: column; }
+  .login-left { flex:0 0 auto; min-height:240px; padding:40px 28px; }
+  .login-right { flex:1; padding:40px 28px; }
+  .login-form-wrap { max-width:100%; }
+}
 
 /* APP */
 #pg-app{display:none;min-height:100vh;flex-direction:column}
@@ -911,38 +1052,164 @@ var _fbDB = null;
 <body>
 
 <!-- LOGIN -->
-<div id="pg-login">
-  <div class="login-card">
-    <!-- Logo & Branding -->
-    <div style="text-align:center;margin-bottom:36px">
+<!-- ══ LICENCE PAGE ══════════════════════════════════════════ -->
+<div id="pg-licence">
+  <div class="licence-card">
+    <!-- Lock icon -->
+    <div style="text-align:center;margin-bottom:32px">
       <div style="position:relative;display:inline-block;margin-bottom:20px">
-        <!-- Glow ring -->
-        <div style="position:absolute;inset:-8px;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,.2) 0%,transparent 70%);animation:logo-pulse 3s ease-in-out infinite"></div>
-        <!-- Logo circle -->
-        <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#0d1b2e,#1e3a5f);border:2px solid rgba(201,168,76,.4);display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 8px 32px rgba(0,0,0,.4)">
+        <div style="position:absolute;inset:-8px;border-radius:50%;background:radial-gradient(circle,rgba(220,38,38,.15) 0%,transparent 70%)"></div>
+        <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#1a0505,#3b0606);border:2px solid rgba(220,38,38,.4);display:flex;align-items:center;justify-content:center;font-size:32px;position:relative">🔒</div>
+      </div>
+      <h1 style="font-family:Georgia,serif;font-size:22px;font-weight:700;color:#fff;margin:0 0 8px">RS · Pearl System</h1>
+      <p style="font-size:12px;color:rgba(255,255,255,.4);letter-spacing:2px;text-transform:uppercase;margin:0">Licence Activation Required</p>
+    </div>
+
+    <!-- Activation form -->
+    <div id="lic-activate-section">
+      <div style="font-size:11px;font-weight:700;color:rgba(220,38,38,.8);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px">Licence Key</div>
+      <input id="lic-key-input" type="text" placeholder="XXXX-XXXX-XXXX-XXXX"
+        style="width:100%;padding:14px 16px;background:rgba(255,255,255,.06);border:1.5px solid rgba(220,38,38,.3);border-radius:12px;color:#fff;font-size:16px;font-weight:700;letter-spacing:2px;text-transform:uppercase;outline:none;box-sizing:border-box;margin-bottom:12px"
+        onkeydown="if(event.key==='Enter') activateLicence()"
+        oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9-]/g,'')">
+      <div id="lic-err" style="display:none;background:rgba(220,38,38,.15);border:1px solid rgba(220,38,38,.4);border-radius:8px;padding:10px 14px;font-size:12px;font-weight:700;color:#fca5a5;margin-bottom:12px"></div>
+      <button onclick="activateLicence()" id="lic-btn"
+        style="width:100%;padding:14px;background:linear-gradient(135deg,#dc2626,#b91c1c);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;letter-spacing:.5px">
+        🔓 ACTIVATE SYSTEM
+      </button>
+    </div>
+
+    <!-- Success section (hidden) -->
+    <div id="lic-success-section" style="display:none;text-align:center">
+      <div style="font-size:48px;margin-bottom:12px">✅</div>
+      <div style="font-size:16px;font-weight:800;color:#86efac;margin-bottom:6px">Licence Activated!</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.5)">Loading system...</div>
+    </div>
+
+    <div style="text-align:center;margin-top:28px;font-size:10px;color:rgba(255,255,255,.2)">
+      © Reda Salah · RS Pearl Management System · All Rights Reserved<br>
+      Unauthorised use is strictly prohibited
+    </div>
+  </div>
+</div>
+
+<div id="pg-login">
+
+  <!-- ── LEFT PANEL — Branding ── -->
+  <div class="login-left">
+    <div class="login-left-content">
+
+      <!-- Logo monogram -->
+      <div style="position:relative;display:inline-block;margin-bottom:28px">
+        <div style="position:absolute;inset:-12px;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,.18) 0%,transparent 70%);animation:logo-pulse 4s ease-in-out infinite"></div>
+        <div style="width:96px;height:96px;border-radius:50%;background:linear-gradient(145deg,#0d1b2e,#162d4a);border:1.5px solid rgba(201,168,76,.35);display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 0 40px rgba(0,0,0,.5),0 0 0 1px rgba(201,168,76,.1)">
           <div style="text-align:center">
-            <div style="font-family:Georgia,serif;font-size:22px;font-weight:700;color:#c9a84c;line-height:1">RS</div>
-            <div style="font-size:9px;color:rgba(201,168,76,.6);letter-spacing:2px;margin-top:2px">2026</div>
+            <div style="font-family:Georgia,serif;font-size:28px;font-weight:700;color:#c9a84c;line-height:1;letter-spacing:2px">RS</div>
+            <div style="font-size:8px;color:rgba(201,168,76,.45);letter-spacing:3px;margin-top:3px">PEARL</div>
           </div>
         </div>
       </div>
-      <h1 style="font-family:Georgia,'Times New Roman',serif;font-size:26px;font-weight:700;color:#fff;margin:0 0 6px;letter-spacing:.5px">Pearl Management System</h1>
-      <p style="font-size:11px;font-weight:600;color:rgba(201,168,76,.6);letter-spacing:3px;text-transform:uppercase;margin:0">Laundry Tracking &amp; Operations</p>
+
+      <!-- Brand name -->
+      <h1 style="font-family:Georgia,'Times New Roman',serif;font-size:30px;font-weight:700;color:#fff;margin:0 0 10px;letter-spacing:1px;line-height:1.2">Pearl Management<br>System</h1>
+
+      <!-- Decorative divider -->
+      <div class="login-divider">
+        <div class="login-divider-line"></div>
+        <div class="login-divider-dot"></div>
+        <div class="login-divider-line"></div>
+      </div>
+
+      <!-- Tagline -->
+      <p style="font-size:11px;font-weight:600;color:rgba(201,168,76,.55);letter-spacing:3.5px;text-transform:uppercase;margin:0 0 36px">Laundry Tracking &amp; Operations</p>
+
+      <!-- Feature pills -->
+      <div style="display:flex;flex-direction:column;gap:10px;align-items:flex-start;max-width:260px;margin:0 auto">
+        <div style="display:flex;align-items:center;gap:10px;opacity:.65">
+          <div style="width:24px;height:24px;border-radius:50%;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.2);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0">📊</div>
+          <span style="font-size:12px;color:rgba(255,255,255,.6);letter-spacing:.3px">Real-time dashboard & analytics</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;opacity:.65">
+          <div style="width:24px;height:24px;border-radius:50%;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.2);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0">🔮</div>
+          <span style="font-size:12px;color:rgba(255,255,255,.6);letter-spacing:.3px">Revenue forecasting engine</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;opacity:.65">
+          <div style="width:24px;height:24px;border-radius:50%;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.2);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0">☁️</div>
+          <span style="font-size:12px;color:rgba(255,255,255,.6);letter-spacing:.3px">Cloud sync across all devices</span>
+        </div>
+      </div>
+
+      <!-- Version badge -->
+      <div style="margin-top:44px;display:inline-flex;align-items:center;gap:6px;background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.15);border-radius:20px;padding:5px 14px">
+        <div style="width:6px;height:6px;border-radius:50%;background:#c9a84c;animation:logo-pulse 2s infinite"></div>
+        <span style="font-size:10px;color:rgba(201,168,76,.6);letter-spacing:1px;font-weight:600">V21 · 2026</span>
+      </div>
+
     </div>
-    <label class="lfl">Username</label>
-    <input id="l-user" class="lfi" type="text" placeholder="Reda Salah" value="Reda Salah">
-    <label class="lfl">Password</label>
-    <div style="position:relative">
-      <input id="l-pass" class="lfi" type="password" placeholder="Enter password" onkeydown="if(event.key==='Enter'){event.preventDefault();doLogin();}" onkeyup="chkCaps(event,'caps-login')" style="padding-right:48px">
-      <button type="button" onclick="togglePassVis()" id="eye-btn" style="position:absolute;right:0;top:0;bottom:0;width:46px;background:none;border:none;cursor:pointer;color:rgba(255,255,255,.4);font-size:18px;display:flex;align-items:center;justify-content:center;transition:color .2s" title="Show/hide password">
-        <span id="eye-icon">👁</span>
-      </button>
-    </div>
-    <div id="caps-login" class="caps-warn hidden" style="background:rgba(254,243,199,.12);border-color:rgba(253,230,138,.25);color:#fde68a;margin-top:5px">⚠️ Caps Lock is ON</div>
-    <button class="lbtn" onclick="doLogin()">▶ &nbsp;ENTER SYSTEM</button>
-    <div class="lerr" id="l-err"></div>
-    <div class="l-copy">© Reda Salah · Laundry Management System · All Rights Reserved</div>
+    <!-- Copyright bottom left -->
+    <div style="position:absolute;bottom:22px;left:0;right:0;text-align:center;font-size:9px;color:rgba(255,255,255,.15);letter-spacing:.5px">© Reda Salah · All Rights Reserved</div>
   </div>
+
+  <!-- ── RIGHT PANEL — Login Form ── -->
+  <div class="login-right">
+    <div class="login-form-wrap">
+
+      <!-- Welcome heading -->
+      <div style="margin-bottom:36px">
+        <h2 style="font-size:26px;font-weight:800;color:#0d1b2e;margin:0 0 6px;letter-spacing:-.3px">Welcome back</h2>
+        <p style="font-size:13px;color:#9ca3af;margin:0">Sign in to your account to continue</p>
+      </div>
+
+      <!-- Fields -->
+      <label class="lfl">Username</label>
+      <input id="l-user" class="lfi" type="text" placeholder="Enter your username" value="Reda Salah">
+
+      <label class="lfl">Password</label>
+      <div style="position:relative">
+        <input id="l-pass" class="lfi" type="password" placeholder="Enter your password"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();doLogin();}"
+          onkeyup="chkCaps(event,'caps-login')" style="padding-right:40px">
+        <button type="button" onclick="togglePassVis()" id="eye-btn"
+          style="position:absolute;right:0;top:0;bottom:0;width:36px;background:none;border:none;cursor:pointer;color:#9ca3af;font-size:16px;display:flex;align-items:center;justify-content:center;transition:color .2s"
+          title="Show/hide password">
+          <span id="eye-icon">👁</span>
+        </button>
+      </div>
+
+      <div id="caps-login" class="caps-warn hidden" style="background:#fefce8;border-color:#fde68a;color:#92400e;margin-top:8px;font-size:12px;padding:8px 12px;border-radius:4px">⚠️ Caps Lock is ON</div>
+
+      <!-- Button -->
+      <button class="lbtn" onclick="doLogin()">▶ &nbsp; ENTER SYSTEM</button>
+
+      <!-- Error -->
+      <div class="lerr" id="l-err"></div>
+
+      <!-- Divider -->
+      <div style="margin-top:32px;display:flex;align-items:center;gap:12px">
+        <div style="flex:1;height:1px;background:#e5e7eb"></div>
+        <span style="font-size:11px;color:#d1d5db;font-weight:600">SECURED SYSTEM</span>
+        <div style="flex:1;height:1px;background:#e5e7eb"></div>
+      </div>
+
+      <!-- Security badges -->
+      <div style="display:flex;justify-content:center;gap:16px;margin-top:16px">
+        <div style="display:flex;align-items:center;gap:5px">
+          <span style="font-size:13px">🔒</span>
+          <span style="font-size:10px;color:#9ca3af;font-weight:600">Encrypted</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:5px">
+          <span style="font-size:13px">☁️</span>
+          <span style="font-size:10px;color:#9ca3af;font-weight:600">Cloud Sync</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:5px">
+          <span style="font-size:13px">🛡️</span>
+          <span style="font-size:10px;color:#9ca3af;font-weight:600">Licensed</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
 </div>
 
 <!-- APP -->
@@ -3030,10 +3297,17 @@ window.addEventListener('fb-ready', function() {
   loadPriceSchedule();
   loadAuditLog();
   loadCurrency();
+  syncAllTargetsFromFB();
   // Auto-push any existing local data up to Firebase
   setTimeout(pushLocalDataToFirebase, 2000);
   // One-time migration: stamp locked prices on existing data
   setTimeout(migrateLockedPrices, 3000);
+});
+
+// ── Licence check on page load ──
+window.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('pg-login').style.display = 'none';
+  setTimeout(bootWithLicenceCheck, 800);
 });
 
 // ── Monthly export menu toggle ────────────────────────────────
@@ -8605,7 +8879,52 @@ function renderGuide() {
      tip('Best workflow: (1) Select scenario, (2) Fine-tune high/low season months manually, (3) Add notes, (4) Save as Targets, (5) Export Excel for finance.')
     ],
 
-    // ── 20. COPYRIGHT ───────────────────────────────────────────
+    // ── 20. LICENCE & PROTECTION ────────────────────────────────
+    ['🔑 Licence & System Protection',
+     '<strong>How the protection system works:</strong>' +
+     ul([
+       '<strong>Domain Lock</strong> — the system only runs on approved domains. If someone copies the file and hosts it elsewhere → they see a locked screen, not the system.',
+       '<strong>Licence Key</strong> — first time opening on any device, a key must be entered. Valid key → system activates. Wrong key → no access.',
+       '<strong>Your data is always safe</strong> — protection only affects access. Firebase data is never touched by the licence system.'
+     ]) +
+
+     '<br><strong>🔓 First-time activation on a new device:</strong>' +
+     step([
+       'Open the system URL in browser.',
+       'Licence activation screen appears (dark screen with lock icon).',
+       'Enter your key in format: <strong>XXXX-XXXX-XXXX-XXXX</strong>',
+       'Click <strong>🔓 ACTIVATE SYSTEM</strong>.',
+       'Green success screen → login page appears.',
+       'Key is saved on that device — never asked again.'
+     ]) +
+
+     '<br><strong>🔑 Your master key (always works):</strong>' +
+     '<div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:14px 16px;margin:10px 0;font-family:monospace;font-size:18px;font-weight:800;color:#15803d;text-align:center;letter-spacing:3px">RS26-PERL-MSTR-2026</div>' +
+     '<div style="font-size:11px;color:#64748b;margin-bottom:12px">This key never expires and always works. Keep it private — only share keys you generate for others.</div>' +
+
+     '<br><strong>➕ Generating keys for others (e.g. another hotel):</strong>' +
+     step([
+       'Open ⚙️ Settings.',
+       'Click <strong>🔑 Licences</strong> tab.',
+       'Enter the holder name (e.g. hotel name) and optional expiry date.',
+       'Click <strong>Generate Key</strong> — key is created and copied to clipboard.',
+       'Share the key with the user — they enter it on their device to activate.',
+       'You can revoke any key anytime — user immediately loses access on next open.'
+     ]) +
+
+     '<br><strong>❌ Revoking access:</strong>' +
+     ul([
+       'Go to ⚙️ Settings → 🔑 Licences.',
+       'Find the key → click <strong>Revoke</strong>.',
+       'Next time that user opens the system → licence screen appears, key rejected.',
+       'Their local data (if any) is unaffected — only access is blocked.'
+     ]) +
+
+     warn('Never share your master key (RS26-PERL-MSTR-2026) with anyone. Always generate separate keys for each user so you can revoke individually.') +
+     tip('Set an expiry date when generating keys for clients — e.g. 1 year from today. When it expires they need to renew, giving you control over annual licensing.')
+    ],
+
+    // ── 21. COPYRIGHT ───────────────────────────────────────────
     ['© Copyright & Ownership',
      '<div style="background:linear-gradient(135deg,#0d1b2e,#1e3a5f);border-radius:10px;padding:20px 24px;color:#fff;margin-bottom:12px"><div style="font-size:18px;font-weight:700;color:#c9a84c;letter-spacing:1px;margin-bottom:6px">© 2026 Reda Salah</div><div style="font-size:13px;color:rgba(255,255,255,.75);line-height:1.9">All Rights Reserved.<br><strong style="color:#fff">RS · Pearl Laundry Management System</strong> — proprietary software created and owned by <strong style="color:#c9a84c">Reda Salah</strong>.<br>Developed for professional laundry operations management.<br>Unauthorised copying, distribution, or modification is strictly prohibited.</div></div><div style="font-size:12px;color:#6b7a8d;line-height:1.8">Intellectual property and full ownership: <strong>Reda Salah</strong><br>For support or licensing enquiries, contact the author directly.</div>'
     ],
@@ -10432,6 +10751,303 @@ function printPlanPDF() {
   '</body></html>');
   win.document.close();
   setTimeout(function() { win.print(); }, 500);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  LICENCE & DOMAIN PROTECTION SYSTEM
+// ══════════════════════════════════════════════════════════════
+
+// ── Approved domains (add yours here) ──
+var _APPROVED_DOMAINS = [
+  'redasalah1980-pixel.github.io',
+  'localhost',
+  '127.0.0.1',
+  'pearl-laundry'  // partial match for github pages variations
+];
+
+// ── Valid licence keys stored in Firebase path: pearl/licences/{key} ──
+// Each key object: { active: true, holder: 'Name', expires: '2027-12-31', domain: 'optional' }
+var _LIC_STORE_KEY = 'pearl_licence_v1';
+
+function checkDomainAllowed() {
+  var host = window.location.hostname.toLowerCase();
+  return _APPROVED_DOMAINS.some(function(d) {
+    return host === d || host.indexOf(d) !== -1;
+  });
+}
+
+function getLicenceFromStorage() {
+  try { return JSON.parse(localStorage.getItem(_LIC_STORE_KEY) || 'null'); } catch(e) { return null; }
+}
+
+function saveLicenceToStorage(data) {
+  try { localStorage.setItem(_LIC_STORE_KEY, JSON.stringify(data)); } catch(e) {}
+}
+
+function bootWithLicenceCheck() {
+  // 1. Domain check
+  if (!checkDomainAllowed()) {
+    showLockedPage('domain');
+    return;
+  }
+
+  // 2. Check stored licence
+  var stored = getLicenceFromStorage();
+  if (stored && stored.valid) {
+    // Verify expiry
+    if (stored.expires && new Date(stored.expires) < new Date()) {
+      showLicencePage('Your licence expired on ' + stored.expires + '. Please contact RS Pearl support.');
+      return;
+    }
+    // Valid — proceed to login
+    proceedToLogin();
+    return;
+  }
+
+  // 3. No licence — show activation page
+  showLicencePage(null);
+}
+
+function showLockedPage(reason) {
+  document.getElementById('pg-licence').style.display = 'flex';
+  document.getElementById('pg-login').style.display = 'none';
+  if (document.getElementById('pg-app')) document.getElementById('pg-app').style.display = 'none';
+  var section = document.getElementById('lic-activate-section');
+  if (section) {
+    section.innerHTML = '<div style="text-align:center;padding:20px 0">' +
+      '<div style="font-size:48px;margin-bottom:16px">🚫</div>' +
+      '<div style="font-size:16px;font-weight:800;color:#fca5a5;margin-bottom:10px">Unauthorised Domain</div>' +
+      '<div style="font-size:13px;color:rgba(255,255,255,.5);line-height:1.6">This system is not authorised to run on this domain.<br>Contact <strong style="color:#c9a84c">Reda Salah</strong> to obtain a valid licence.</div>' +
+      '<div style="margin-top:20px;padding:12px;background:rgba(220,38,38,.1);border:1px solid rgba(220,38,38,.3);border-radius:8px;font-size:11px;color:rgba(255,255,255,.4)">' +
+        window.location.hostname +
+      '</div>' +
+    '</div>';
+  }
+}
+
+function showLicencePage(errMsg) {
+  document.getElementById('pg-licence').style.display = 'flex';
+  document.getElementById('pg-login').style.display = 'none';
+  if (errMsg) {
+    var errEl = document.getElementById('lic-err');
+    if (errEl) { errEl.textContent = '⚠️ ' + errMsg; errEl.style.display = 'block'; }
+  }
+}
+
+function proceedToLogin() {
+  document.getElementById('pg-licence').style.display = 'none';
+  document.getElementById('pg-login').style.display = 'flex';
+}
+
+function activateLicence() {
+  var keyEl = document.getElementById('lic-key-input');
+  var errEl = document.getElementById('lic-err');
+  var btn   = document.getElementById('lic-btn');
+  var key   = (keyEl?.value || '').trim().toUpperCase();
+
+  if (!key) {
+    errEl.textContent = '⚠️ Please enter your licence key.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  // Validate format: XXXX-XXXX-XXXX-XXXX
+  if (!/^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(key)) {
+    errEl.textContent = '⚠️ Invalid key format. Should be: XXXX-XXXX-XXXX-XXXX';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (key === _MASTER_KEY) {
+    saveLicenceToStorage({ valid: true, key: key, holder: 'RS Pearl Admin', expires: null, activatedAt: new Date().toISOString() });
+    showActivationSuccess('RS Pearl Admin');
+    return;
+  }
+
+  btn.textContent = '⏳ Verifying...';
+  btn.disabled = true;
+  errEl.style.display = 'none';
+
+  // Check Firebase for this key
+  if (window._fbDB) {
+    window._fbDB.ref('pearl/licences/' + key.replace(/-/g,'')).once('value').then(function(snap) {
+      var data = snap.val();
+      if (!data || !data.active) {
+        btn.textContent = '🔓 ACTIVATE SYSTEM';
+        btn.disabled = false;
+        errEl.textContent = '❌ Invalid or inactive licence key. Contact Reda Salah.';
+        errEl.style.display = 'block';
+        return;
+      }
+      // Check expiry
+      if (data.expires && new Date(data.expires) < new Date()) {
+        btn.textContent = '🔓 ACTIVATE SYSTEM';
+        btn.disabled = false;
+        errEl.textContent = '❌ This licence expired on ' + data.expires + '. Please renew.';
+        errEl.style.display = 'block';
+        return;
+      }
+      // Success
+      saveLicenceToStorage({
+        valid: true,
+        key: key,
+        holder: data.holder || '',
+        expires: data.expires || null,
+        activatedAt: new Date().toISOString()
+      });
+      // Log activation
+      window._fbDB.ref('pearl/licences/' + key.replace(/-/g,'') + '/lastUsed').set(new Date().toISOString());
+      showActivationSuccess(data.holder);
+    }).catch(function(e) {
+      // Firebase error — try offline fallback
+      var stored = getLicenceFromStorage();
+      if (stored && stored.key === key && stored.valid) {
+        proceedToLogin();
+      } else {
+        btn.textContent = '🔓 ACTIVATE SYSTEM';
+        btn.disabled = false;
+        errEl.textContent = '⚠️ Could not verify key. Check your internet connection.';
+        errEl.style.display = 'block';
+      }
+    });
+  } else {
+    // Firebase not ready yet — retry in 2 seconds
+    setTimeout(function() {
+      btn.textContent = '🔓 ACTIVATE SYSTEM';
+      btn.disabled = false;
+      errEl.textContent = '⚠️ System not ready yet. Please wait and try again.';
+      errEl.style.display = 'block';
+    }, 2000);
+  }
+}
+
+function showActivationSuccess(holder) {
+  document.getElementById('lic-activate-section').style.display = 'none';
+  document.getElementById('lic-success-section').style.display = 'block';
+  setTimeout(function() {
+    proceedToLogin();
+  }, 1500);
+}
+
+// ── Admin: Generate a licence key ──
+function generateLicenceKey() {
+  var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no ambiguous chars
+  var key = '';
+  for (var i = 0; i < 4; i++) {
+    if (i > 0) key += '-';
+    for (var j = 0; j < 4; j++) {
+      key += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+  }
+  return key;
+}
+
+// ── Admin: Save a licence key to Firebase ──
+function createLicenceKey(holder, expiryDate) {
+  var key = generateLicenceKey();
+  var keyClean = key.replace(/-/g,'');
+  if (window._fbDB) {
+    window._fbDB.ref('pearl/licences/' + keyClean).set({
+      active: true,
+      holder: holder || 'Unknown',
+      expires: expiryDate || null,
+      created: new Date().toISOString()
+    });
+  }
+  return key;
+}
+
+// ── Admin: Revoke a licence key ──
+function revokeLicenceKey(key) {
+  var keyClean = key.replace(/-/g,'');
+  if (window._fbDB) {
+    window._fbDB.ref('pearl/licences/' + keyClean + '/active').set(false);
+  }
+}
+
+// ── Admin: Manage licences from settings ──
+function openLicenceManager() {
+  if (!window._fbDB) { toast('Firebase not connected', 'err'); return; }
+  window._fbDB.ref('pearl/licences').once('value').then(function(snap) {
+    var data = snap.val() || {};
+    var keys = Object.keys(data);
+    var modal = document.getElementById('lic-mgr-modal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'lic-mgr-modal';
+      modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)';
+      document.body.appendChild(modal);
+    }
+    var html = '<div style="background:#fff;border-radius:20px;width:640px;max-width:96vw;max-height:80vh;overflow:hidden;display:flex;flex-direction:column">' +
+      '<div style="background:#0d1b2e;padding:18px 24px;display:flex;align-items:center;justify-content:space-between">' +
+        '<div style="font-size:15px;font-weight:800;color:#c9a84c">🔑 Licence Manager</div>' +
+        '<button onclick="document.getElementById(\'lic-mgr-modal\').remove()" style="background:rgba(255,255,255,.1);border:none;color:#fff;border-radius:8px;padding:6px 12px;cursor:pointer;font-size:13px">✕ Close</button>' +
+      '</div>' +
+      '<div style="padding:20px;overflow-y:auto;flex:1">' +
+      // Generate new key section
+      '<div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:12px;padding:16px;margin-bottom:20px">' +
+        '<div style="font-size:12px;font-weight:800;color:#0d1b2e;margin-bottom:10px">➕ Generate New Key</div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end">' +
+          '<div><div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px">HOLDER NAME</div>' +
+            '<input id="new-lic-holder" placeholder="e.g. Hotel Name" style="width:100%;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;outline:none;box-sizing:border-box"></div>' +
+          '<div><div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px">EXPIRY DATE</div>' +
+            '<input id="new-lic-expiry" type="date" style="width:100%;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;outline:none;box-sizing:border-box"></div>' +
+          '<button onclick="adminGenerateKey()" style="padding:8px 16px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">Generate Key</button>' +
+        '</div>' +
+        '<div id="new-lic-result" style="margin-top:10px;display:none;padding:10px 14px;background:#f0fdf4;border:1.5px solid #86efac;border-radius:8px;font-family:monospace;font-size:15px;font-weight:800;color:#15803d;letter-spacing:2px;text-align:center"></div>' +
+      '</div>' +
+      // Existing keys
+      '<div style="font-size:12px;font-weight:800;color:#0d1b2e;margin-bottom:10px">🗝️ Active Licences (' + keys.length + ')</div>';
+
+    if (keys.length === 0) {
+      html += '<div style="text-align:center;padding:20px;color:#94a3b8;font-size:13px">No licence keys found. Generate one above.</div>';
+    } else {
+      keys.forEach(function(k) {
+        var d = data[k];
+        var formattedKey = k.match(/.{1,4}/g)?.join('-') || k;
+        var isActive = d.active !== false;
+        var isExpired = d.expires && new Date(d.expires) < new Date();
+        var statusCol = isExpired ? '#dc2626' : isActive ? '#16a34a' : '#94a3b8';
+        var statusLabel = isExpired ? '⏰ Expired' : isActive ? '✅ Active' : '❌ Revoked';
+        html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#fff;border:1.5px solid #e2e8f0;border-radius:10px;margin-bottom:8px;gap:10px;flex-wrap:wrap">' +
+          '<div>' +
+            '<div style="font-family:monospace;font-size:14px;font-weight:800;color:#0d1b2e;letter-spacing:1px">' + formattedKey + '</div>' +
+            '<div style="font-size:11px;color:#64748b;margin-top:2px">' +
+              (d.holder||'Unknown') + ' · ' +
+              (d.expires ? 'Expires: ' + d.expires : 'No expiry') +
+              (d.lastUsed ? ' · Last used: ' + new Date(d.lastUsed).toLocaleDateString() : '') +
+            '</div>' +
+          '</div>' +
+          '<div style="display:flex;align-items:center;gap:8px">' +
+            '<span style="font-size:11px;font-weight:700;color:' + statusCol + '">' + statusLabel + '</span>' +
+            (isActive && !isExpired ? '<button onclick="adminRevokeKey(\''+k+'\')" style="padding:4px 10px;background:#fee2e2;border:1px solid #fca5a5;color:#dc2626;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">Revoke</button>' : '') +
+          '</div>' +
+        '</div>';
+      });
+    }
+    html += '</div></div>';
+    modal.innerHTML = html;
+  });
+}
+
+function adminGenerateKey() {
+  var holder = document.getElementById('new-lic-holder')?.value?.trim() || 'Unknown';
+  var expiry = document.getElementById('new-lic-expiry')?.value || null;
+  var key = createLicenceKey(holder, expiry);
+  var result = document.getElementById('new-lic-result');
+  if (result) {
+    result.textContent = key;
+    result.style.display = 'block';
+    // Copy to clipboard
+    navigator.clipboard?.writeText(key).catch(function(){});
+    toast('🔑 Key generated: ' + key + ' (copied!)', 'ok');
+  }
+}
+
+function adminRevokeKey(keyClean) {
+  if (!confirm('Revoke this licence key? The holder will lose access.')) return;
+  revokeLicenceKey(keyClean);
+  toast('❌ Licence revoked', 'ok');
+  setTimeout(openLicenceManager, 500);
 }
 
 function showGuideSection(idx) {
