@@ -965,6 +965,7 @@ var _fbDB = null;
       <div class="tn-tab" onclick="showTab('benchmark')">🎯 Benchmark</div>
       <div class="tn-tab" onclick="showTab('prices')">⚙️ Prices</div>
       <div class="tn-tab" onclick="showTab('analytics')">📈 Analytics</div>
+      <div class="tn-tab" onclick="showTab('forecast')">🔮 Forecast</div>
       <div class="tn-tab" onclick="showTab('guide')">💡 Help Center</div>
       <div class="tn-tab" onclick="showTab('backup')" style="color:#c9a84c">🛡️ Backup</div>
     </div>
@@ -1891,6 +1892,42 @@ var _fbDB = null;
       </div>
     </div>
   </div>
+  <!-- ══ FORECAST TAB ═══════════════════════════════════════════ -->
+  <div class="pg" id="tab-forecast">
+    <div class="ph">
+      <h1>🔮 Forecast</h1>
+      <p>Revenue forecasting based on historical data, occupancy trends and current performance</p>
+    </div>
+
+    <!-- Controls -->
+    <div class="ctrl" style="flex-wrap:wrap;gap:10px;align-items:flex-end;margin-bottom:20px">
+      <div class="ctrl-group">
+        <div class="ctrl-label">Base Year</div>
+        <select id="fc-year" onchange="renderForecast()" style="font-size:13px;font-weight:600"></select>
+      </div>
+      <div class="ctrl-group">
+        <div class="ctrl-label">View</div>
+        <select id="fc-view" onchange="renderForecast()" style="font-size:13px;font-weight:600">
+          <option value="month">📅 This Month</option>
+          <option value="next">📆 Next Month</option>
+          <option value="year">📊 Full Year</option>
+        </select>
+      </div>
+      <div class="ctrl-group" id="fc-month-wrap">
+        <div class="ctrl-label">Month</div>
+        <select id="fc-month" onchange="renderForecast()" style="font-size:13px;font-weight:600"></select>
+      </div>
+      <button onclick="renderForecast()" style="padding:8px 18px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">🔄 Refresh</button>
+    </div>
+
+    <!-- Forecast content -->
+    <div id="forecast-wrap"></div>
+
+  <div style="text-align:center;padding:18px 0 10px;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;margin-top:32px">
+    © Reda Salah · All Rights Reserved
+  </div>
+  </div>
+
   <!-- ══ BACKUP TAB ══════════════════════════════════════════════ -->
   <div class="pg" id="tab-backup">
     <div class="ph"><h1>🛡️ Backup &amp; Restore</h1><p>Download a backup file or save to cloud — your data is always protected</p></div>
@@ -3339,6 +3376,7 @@ var ALL_TABS = [
   {id:'benchmark', label:'🎯 Benchmark',       locked: false},
   {id:'prices',    label:'⚙️ Prices',          locked: false},
   {id:'analytics', label:'📈 Analytics',       locked: false},
+  {id:'forecast',  label:'🔮 Forecast',        locked: false},
   {id:'guide',     label:'💡 Help Center',     locked: false},
   {id:'backup',    label:'🛡️ Backup',          locked: false},
 ];
@@ -4185,7 +4223,7 @@ function showTab(name) {
     if (allowed.indexOf(name) === -1) { toast('🔒 You do not have access to this tab.', 'err'); return; }
   }
   curTab = name;
-  const tabs = ['dashboard', 'entry', 'monthly', 'report', 'finance', 'benchmark', 'prices', 'analytics', 'guide', 'backup'];
+  const tabs = ['dashboard', 'entry', 'monthly', 'report', 'finance', 'benchmark', 'prices', 'analytics', 'forecast', 'guide', 'backup'];
   document.querySelectorAll('.tn-tab').forEach((t, i) => t.classList.toggle('on', tabs[i] === name));
   document.querySelectorAll('.pg').forEach(p => p.classList.remove('on'));
   document.getElementById('tab-' + name)?.classList.add('on');
@@ -4220,7 +4258,9 @@ function refreshTab() {
   else if (curTab === 'prices') renderPriceTable();
   else if (curTab === 'benchmark') initBenchmark();
   else if (curTab === 'analytics') { renderAnalytics(); showAnalyticsTab('charts'); }
+  else if (curTab === 'forecast') renderForecast();
   else if (curTab === 'guide') renderGuide();
+  else if (curTab === 'forecast') renderForecast();
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -8420,7 +8460,78 @@ function renderGuide() {
      tip('The currency setting syncs to Firebase — all devices (phone, tablet, other computers) automatically use the same currency format.')
     ],
 
-    // ── 18. COPYRIGHT ───────────────────────────────────────────
+    // ── 18. FORECAST ────────────────────────────────────────────
+    ['🔮 Forecast — Revenue Forecasting Engine',
+     '<strong>What it does:</strong> Predicts future revenue using three scientific methods — current pace, year-over-year trends, and occupancy-based modelling. Gives you a weighted forecast with a confidence rating.' +
+
+     '<br><br><strong>How to open:</strong>' +
+     step([
+       'Click <strong>🔮 Forecast</strong> in the navigation bar.',
+       'Select the <strong>Base Year</strong> and <strong>View</strong> type.',
+       'For month views, select the <strong>Month</strong>.',
+       'Click <strong>🔄 Refresh</strong> to recalculate.'
+     ]) +
+
+     '<br><strong>3 View Modes:</strong>' +
+     ul([
+       btn('📅 This Month','#0d1b2e','#c9a84c') + ' — detailed forecast for the current or selected month.',
+       btn('📆 Next Month','#4c1d95','#fff') + ' — forecast for the upcoming month using seasonal factors.',
+       btn('📊 Full Year','#0d1b2e','#c9a84c') + ' — complete month-by-month projection for the full year.'
+     ]) +
+
+     '<br><strong>🎯 Confidence Rating:</strong>' +
+     ul([
+       badge('High','#f0fdf4','#15803d','#86efac') + ' — 70%+ days entered AND historical data available. Most accurate.',
+       badge('Medium','#fffbeb','#92400e','#fde68a') + ' — partial data or missing one source. Reasonably reliable.',
+       badge('Low','#fee2e2','#dc2626','#fca5a5') + ' — limited data. Use as rough estimate only.'
+     ]) +
+
+     '<br><strong>📐 The 3 Forecast Methods explained:</strong>' +
+     '<br><br><div style="background:#f8fafc;border-radius:10px;padding:16px;font-size:12px">' +
+     '<table style="width:100%;border-collapse:collapse">' +
+     '<tr style="background:#0d1b2e;color:#c9a84c"><th style="padding:8px 10px;text-align:left">Method</th><th style="padding:8px 10px;text-align:left">Formula</th><th style="padding:8px 10px;text-align:left">When most useful</th></tr>' +
+     '<tr style="background:#fff"><td style="padding:8px 10px;font-weight:700">📈 Current Pace</td><td style="padding:8px 10px;color:#64748b">Avg daily revenue × Total days in month</td><td style="padding:8px 10px;color:#0369a1">Best when 50%+ of month entered</td></tr>' +
+     '<tr style="background:#f8fafc"><td style="padding:8px 10px;font-weight:700">📅 Year-over-Year</td><td style="padding:8px 10px;color:#64748b">Same month last year × (1 + growth %)</td><td style="padding:8px 10px;color:#0369a1">Best early in month with good history</td></tr>' +
+     '<tr style="background:#fff"><td style="padding:8px 10px;font-weight:700">🏨 Occupancy-Based</td><td style="padding:8px 10px;color:#64748b">RevPOR × Avg occupied rooms × Days</td><td style="padding:8px 10px;color:#0369a1">Best when benchmark data is entered</td></tr>' +
+     '<tr style="background:#f5f3ff;font-weight:800"><td style="padding:8px 10px;color:#6d28d9">🎯 Weighted Final</td><td style="padding:8px 10px;color:#6d28d9">Pace 70% + YoY 30% (or reversed if early in month)</td><td style="padding:8px 10px;color:#6d28d9">Always shown — adjusts weights automatically</td></tr>' +
+     '</table></div>' +
+
+     '<br><strong>📅 This Month View includes:</strong>' +
+     ul([
+       '<strong>Forecasted Month Close</strong> — weighted result with color coding vs target.',
+       '<strong>Actual So Far</strong> — revenue entered + active days + daily average.',
+       '<strong>Last Year Same Month</strong> — comparison with YoY % change.',
+       '<strong>Monthly Target</strong> — and how much per day is needed to hit it.',
+       '<strong>Forecast Methodology breakdown</strong> — shows each method result and weight.',
+       '<strong>Day-by-day projection table</strong> — projects each remaining day at current avg, shows running total and % of target.',
+       '<strong>Department Forecast table</strong> — projected close per department with YoY comparison.'
+     ]) +
+
+     '<br><strong>📆 Next Month View includes:</strong>' +
+     ul([
+       '<strong>Forecast amount</strong> — using seasonal factor + YoY growth rate.',
+       '<strong>Seasonal Factor</strong> — ratio of next month vs current month (from last year). Shows if next month is historically stronger or weaker.',
+       '<strong>Suggested Daily Target</strong> — what you need to average per day to hit the forecast.',
+       '<strong>Planning Insight</strong> — compares suggested daily vs target daily so you know if forecast covers the target or not.'
+     ]) +
+
+     '<br><strong>📊 Full Year View includes:</strong>' +
+     ul([
+       '<strong>Actual YTD</strong> — total revenue entered so far this year.',
+       '<strong>Projected Full Year</strong> — all 12 months combined (actual for past + forecast for future).',
+       '<strong>YoY comparison</strong> — projected this year vs full last year.',
+       '<strong>Month-by-month table</strong> — each month with actual, forecast, last year, target, and status.',
+       'Status badges: ' + badge('✅ Hit','#f0fdf4','#15803d','#86efac') + ' ' + badge('⚡ Close','#fffbeb','#92400e','#fde68a') + ' ' + badge('❌ Missed','#fee2e2','#dc2626','#fca5a5') + ' ' + badge('📍 In Progress','#eff6ff','#1d4ed8','#bfdbfe') + ' ' + badge('🔮 Projected','#f5f3ff','#6d28d9','#c4b5fd') + '',
+       'Mini progress bar per month showing forecast vs best month — easy visual scan.',
+       'Totals row at the bottom.'
+     ]) +
+
+     warn('Forecast accuracy improves as you enter more data. Early in the month (less than 30% days entered) the YoY method gets more weight. After 50% days entered, current pace gets more weight as it reflects real performance.') +
+
+     tip('For best accuracy: (1) Enter data daily, (2) Set monthly targets, (3) Keep benchmark occupancy updated. All three feed the forecast engine with richer data.')
+    ],
+
+    // ── 19. COPYRIGHT ───────────────────────────────────────────
     ['© Copyright & Ownership',
      '<div style="background:linear-gradient(135deg,#0d1b2e,#1e3a5f);border-radius:10px;padding:20px 24px;color:#fff;margin-bottom:12px"><div style="font-size:18px;font-weight:700;color:#c9a84c;letter-spacing:1px;margin-bottom:6px">© 2026 Reda Salah</div><div style="font-size:13px;color:rgba(255,255,255,.75);line-height:1.9">All Rights Reserved.<br><strong style="color:#fff">RS · Pearl Laundry Management System</strong> — proprietary software created and owned by <strong style="color:#c9a84c">Reda Salah</strong>.<br>Developed for professional laundry operations management.<br>Unauthorised copying, distribution, or modification is strictly prohibited.</div></div><div style="font-size:12px;color:#6b7a8d;line-height:1.8">Intellectual property and full ownership: <strong>Reda Salah</strong><br>For support or licensing enquiries, contact the author directly.</div>'
     ],
@@ -9134,6 +9245,571 @@ function applyFMI() {
   document.getElementById('fmi-apply-btn').style.display = 'none';
   toast('✅ Full month imported — ' + totalSaved + ' entries saved', 'ok');
   setTimeout(autoCloudBackup, 2000);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  FORECAST ENGINE
+// ══════════════════════════════════════════════════════════════
+
+// Get full month revenue — uses locked prices
+function getMonthRevenue(y, m) {
+  return monthTotals(y, m).qr;
+}
+
+// Get days with data in a month
+function getActiveDays(y, m) {
+  var nd = dim(y, m), count = 0;
+  for (var d = 1; d <= nd; d++) { if (dayTotals(y, m, d).qr > 0) count++; }
+  return count;
+}
+
+// Get avg occupancy for a month from benchmark data
+function getAvgOccupancy(y, m) {
+  var occ = loadBenchOcc(y, m);
+  var total = 0, count = 0;
+  for (var d = 1; d <= dim(y, m); d++) {
+    if (occ[d] > 0) { total += occ[d]; count++; }
+  }
+  return count > 0 ? total / count : 0;
+}
+
+// Get RevPOR for a month
+function getRevPOR(y, m) {
+  var settings = loadBenchSettings();
+  var totalRooms = settings.totalRooms || 0;
+  if (!totalRooms) return 0;
+  var occ = loadBenchOcc(y, m);
+  var nd = dim(y, m);
+  var totalRevPOR = 0, porCount = 0;
+  for (var d = 1; d <= nd; d++) {
+    if (!occ[d]) continue;
+    var occRooms = Math.round(totalRooms * occ[d] / 100);
+    if (occRooms <= 0) continue;
+    var dayRev = dayTotals(y, m, d).qr;
+    if (dayRev > 0) { totalRevPOR += dayRev / occRooms; porCount++; }
+  }
+  return porCount > 0 ? totalRevPOR / porCount : 0;
+}
+
+// Calculate YoY growth rate between two years for a month
+function getGrowthRate(y1, y2, m) {
+  var r1 = getMonthRevenue(y1, m);
+  var r2 = getMonthRevenue(y2, m);
+  if (r1 <= 0 || r2 <= 0) return null;
+  return ((r2 - r1) / r1 * 100);
+}
+
+// Forecast confidence level
+function getConfidence(activeDays, nd, hasOccData, hasLastYear) {
+  var score = 0;
+  var ratio = activeDays / nd;
+  if (ratio >= 0.7) score += 40;
+  else if (ratio >= 0.4) score += 20;
+  else score += 10;
+  if (hasLastYear) score += 35;
+  if (hasOccData) score += 25;
+  if (score >= 85) return { label: 'High', col: '#16a34a', bg: '#f0fdf4' };
+  if (score >= 60) return { label: 'Medium', col: '#d97706', bg: '#fffbeb' };
+  return { label: 'Low', col: '#dc2626', bg: '#fee2e2' };
+}
+
+function renderForecast() {
+  var wrap = document.getElementById('forecast-wrap');
+  if (!wrap) return;
+
+  // Init selectors
+  var yrEl = document.getElementById('fc-year');
+  var mEl  = document.getElementById('fc-month');
+  var view = document.getElementById('fc-view')?.value || 'month';
+
+  if (yrEl && yrEl.options.length === 0) buildYearOpts(yrEl, CY);
+  if (mEl && mEl.options.length === 0) {
+    MONTH_NAMES.forEach(function(mn, i) {
+      var o = document.createElement('option');
+      o.value = i+1; o.textContent = mn;
+      if (i+1 === (new Date().getMonth()+1)) o.selected = true;
+      mEl.appendChild(o);
+    });
+  }
+
+  // Show/hide month selector
+  var mWrap = document.getElementById('fc-month-wrap');
+  if (mWrap) mWrap.style.display = (view === 'year') ? 'none' : 'flex';
+
+  var y   = parseInt(yrEl?.value || CY);
+  var m   = parseInt(mEl?.value || new Date().getMonth()+1);
+  var prevY = y - 1;
+
+  if (view === 'month') wrap.innerHTML = renderMonthForecast(y, m, prevY);
+  else if (view === 'next') {
+    var nextM = m === 12 ? 1 : m + 1;
+    var nextY = m === 12 ? y + 1 : y;
+    wrap.innerHTML = renderNextMonthForecast(y, m, nextM, nextY, prevY);
+  }
+  else wrap.innerHTML = renderYearForecast(y, prevY);
+}
+
+// ── Section 1: This Month Forecast ──
+function renderMonthForecast(y, m, prevY) {
+  var nd = dim(y, m);
+  var today = new Date();
+  var isCurrentMonth = (y === today.getFullYear() && m === today.getMonth()+1);
+  var daysSoFar = isCurrentMonth ? today.getDate() : nd;
+  var actualRev = getMonthRevenue(y, m);
+  var activeDays = getActiveDays(y, m);
+  var avgPerDay = activeDays > 0 ? actualRev / activeDays : 0;
+  var daysRemaining = isCurrentMonth ? Math.max(0, nd - today.getDate()) : 0;
+  var tgt = loadTarget(y, m);
+  var tgtRev = tgt && tgt.revenue ? tgt.revenue : 0;
+
+  // Last year same month
+  var lastYearRev = getMonthRevenue(prevY, m);
+  var yoyGrowth = lastYearRev > 0 ? ((actualRev - lastYearRev) / lastYearRev * 100) : null;
+
+  // Occupancy data
+  var avgOcc = getAvgOccupancy(y, m);
+  var revPOR = getRevPOR(y, m);
+
+  // Forecast methods
+  var fcPace = activeDays > 0 ? (actualRev / activeDays) * nd : 0; // pace-based
+  var fcYoY  = lastYearRev > 0 ? lastYearRev * (1 + (yoyGrowth||0)/100) : 0; // yoy-based
+
+  // Weighted forecast — pace is more reliable if >50% days entered
+  var reliability = activeDays / nd;
+  var fcFinal;
+  if (reliability >= 0.5) {
+    fcFinal = fcPace * 0.7 + (fcYoY > 0 ? fcYoY * 0.3 : fcPace * 0.3);
+  } else if (fcYoY > 0) {
+    fcFinal = fcPace * 0.3 + fcYoY * 0.7;
+  } else {
+    fcFinal = fcPace;
+  }
+
+  var hasOccData = avgOcc > 0;
+  var hasLastYear = lastYearRev > 0;
+  var conf = getConfidence(activeDays, nd, hasOccData, hasLastYear);
+
+  // Needed per day to hit target
+  var neededPerDay = (tgtRev > 0 && daysRemaining > 0) ? Math.max(0, (tgtRev - actualRev) / daysRemaining) : 0;
+
+  var html = '';
+
+  // ── Header banner ──
+  html += '<div style="background:linear-gradient(135deg,#0d1b2e,#1e3a5f);border-radius:16px;padding:22px 24px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">' +
+    '<div>' +
+      '<div style="font-size:18px;font-weight:800;color:#c9a84c">' + MONTH_NAMES[m-1] + ' ' + y + ' — Month Forecast</div>' +
+      '<div style="font-size:12px;color:rgba(255,255,255,.55);margin-top:4px">' +
+        activeDays + ' of ' + nd + ' days entered · ' +
+        (isCurrentMonth ? daysRemaining + ' days remaining' : 'Month complete') +
+      '</div>' +
+    '</div>' +
+    '<div style="display:inline-flex;align-items:center;gap:6px;background:' + conf.bg + ';color:' + conf.col + ';padding:6px 14px;border-radius:20px;font-size:12px;font-weight:800">' +
+      '🎯 ' + conf.label + ' Confidence' +
+    '</div>' +
+  '</div>';
+
+  // ── Main forecast number ──
+  html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:20px">';
+
+  // Forecasted close
+  var pctOfTgt = tgtRev > 0 ? (fcFinal / tgtRev * 100) : 0;
+  var fcCol = pctOfTgt >= 100 ? '#16a34a' : pctOfTgt >= 75 ? '#d97706' : '#dc2626';
+  html += '<div style="background:linear-gradient(135deg,' + (pctOfTgt>=100?'#15803d,#16a34a':pctOfTgt>=75?'#b45309,#d97706':'#b91c1c,#dc2626') + ');border-radius:14px;padding:20px;box-shadow:0 6px 20px rgba(0,0,0,.2)">' +
+    '<div style="font-size:10px;font-weight:800;color:rgba(255,255,255,.7);letter-spacing:1px;margin-bottom:8px">FORECASTED MONTH CLOSE</div>' +
+    '<div style="font-size:26px;font-weight:900;color:#fff">' + fmtMoney(fcFinal) + '</div>' +
+    (tgtRev > 0 ? '<div style="font-size:12px;color:rgba(255,255,255,.75);margin-top:6px">' + (pctOfTgt>=100?'🎉 '+((pctOfTgt-100).toFixed(1))+'% above target':'📊 '+pctOfTgt.toFixed(1)+'% of target') + '</div>' : '') +
+  '</div>';
+
+  // Actual so far
+  html += '<div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:20px">' +
+    '<div style="font-size:10px;font-weight:800;color:#64748b;letter-spacing:1px;margin-bottom:8px">ACTUAL SO FAR</div>' +
+    '<div style="font-size:24px;font-weight:900;color:#0d1b2e">' + fmtMoney(actualRev) + '</div>' +
+    '<div style="font-size:11px;color:#94a3b8;margin-top:4px">' + activeDays + ' active days · ' + fmtMoney(avgPerDay) + '/day avg</div>' +
+  '</div>';
+
+  // Last year comparison
+  html += '<div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:20px">' +
+    '<div style="font-size:10px;font-weight:800;color:#64748b;letter-spacing:1px;margin-bottom:8px">' + MONTH_NAMES[m-1] + ' ' + prevY + ' ACTUAL</div>' +
+    '<div style="font-size:24px;font-weight:900;color:#0d1b2e">' + (lastYearRev > 0 ? fmtMoney(lastYearRev) : '—') + '</div>' +
+    (yoyGrowth !== null ? '<div style="font-size:12px;font-weight:800;color:' + (yoyGrowth>=0?'#16a34a':'#dc2626') + ';margin-top:4px">' + (yoyGrowth>=0?'↑ +':'↓ ') + yoyGrowth.toFixed(1) + '% YoY</div>' : '<div style="font-size:11px;color:#94a3b8;margin-top:4px">No data for ' + prevY + '</div>') +
+  '</div>';
+
+  // Target
+  if (tgtRev > 0) {
+    html += '<div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:20px">' +
+      '<div style="font-size:10px;font-weight:800;color:#64748b;letter-spacing:1px;margin-bottom:8px">MONTHLY TARGET</div>' +
+      '<div style="font-size:24px;font-weight:900;color:#0d1b2e">' + fmtMoney(tgtRev) + '</div>' +
+      (isCurrentMonth && neededPerDay > 0 ? '<div style="font-size:11px;font-weight:700;color:#dc2626;margin-top:4px">Need ' + fmtMoney(neededPerDay) + '/day</div>' : '') +
+    '</div>';
+  }
+
+  html += '</div>';
+
+  // ── Forecast breakdown ──
+  html += '<div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:16px;overflow:hidden;margin-bottom:20px">' +
+    '<div style="background:#0d1b2e;padding:14px 20px;font-size:13px;font-weight:800;color:#c9a84c">📐 Forecast Methodology</div>' +
+    '<div style="padding:20px">';
+
+  // Method 1: Pace
+  var paceConf = Math.min(100, Math.round(reliability * 100));
+  html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #f1f5f9">' +
+    '<div>' +
+      '<div style="font-size:13px;font-weight:700;color:#0d1b2e">📈 Current Pace</div>' +
+      '<div style="font-size:11px;color:#64748b;margin-top:2px">Avg ' + fmtMoney(avgPerDay) + '/day × ' + nd + ' days</div>' +
+    '</div>' +
+    '<div style="text-align:right">' +
+      '<div style="font-size:15px;font-weight:800;color:#0369a1">' + (fcPace > 0 ? fmtMoney(fcPace) : '—') + '</div>' +
+      '<div style="font-size:10px;color:#94a3b8">' + paceConf + '% data entered · Weight: ' + (reliability>=0.5?'70%':'30%') + '</div>' +
+    '</div>' +
+  '</div>';
+
+  // Method 2: YoY
+  html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #f1f5f9">' +
+    '<div>' +
+      '<div style="font-size:13px;font-weight:700;color:#0d1b2e">📅 Year-over-Year Trend</div>' +
+      '<div style="font-size:11px;color:#64748b;margin-top:2px">' + MONTH_NAMES[m-1] + ' ' + prevY + ' adjusted by ' + (yoyGrowth !== null ? (yoyGrowth>=0?'+':'')+yoyGrowth.toFixed(1)+'%' : 'N/A') + '</div>' +
+    '</div>' +
+    '<div style="text-align:right">' +
+      '<div style="font-size:15px;font-weight:800;color:#7c3aed">' + (fcYoY > 0 ? fmtMoney(fcYoY) : '—') + '</div>' +
+      '<div style="font-size:10px;color:#94a3b8">Weight: ' + (reliability>=0.5?'30%':'70%') + '</div>' +
+    '</div>' +
+  '</div>';
+
+  // Method 3: Occupancy
+  if (revPOR > 0 && avgOcc > 0) {
+    var settings2 = loadBenchSettings();
+    var totalRooms2 = settings2.totalRooms || 0;
+    var fcOcc = revPOR * (totalRooms2 * avgOcc / 100) * nd;
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #f1f5f9">' +
+      '<div>' +
+        '<div style="font-size:13px;font-weight:700;color:#0d1b2e">🏨 Occupancy-Based</div>' +
+        '<div style="font-size:11px;color:#64748b;margin-top:2px">' + fmtMoney(revPOR) + '/room × ' + (totalRooms2*(avgOcc/100)).toFixed(0) + ' avg rooms × ' + nd + ' days</div>' +
+      '</div>' +
+      '<div style="text-align:right">' +
+        '<div style="font-size:15px;font-weight:800;color:#0891b2">' + fmtMoney(fcOcc) + '</div>' +
+        '<div style="font-size:10px;color:#94a3b8">Avg occ: ' + avgOcc.toFixed(1) + '%</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  // Weighted result
+  html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;background:#f8fafc;margin:0 -20px;padding:14px 20px;margin-top:8px;border-radius:0 0 0 0">' +
+    '<div>' +
+      '<div style="font-size:14px;font-weight:800;color:#0d1b2e">🎯 Weighted Forecast</div>' +
+      '<div style="font-size:11px;color:#64748b;margin-top:2px">Combined using available data confidence</div>' +
+    '</div>' +
+    '<div style="text-align:right">' +
+      '<div style="font-size:20px;font-weight:900;color:' + fcCol + '">' + fmtMoney(fcFinal) + '</div>' +
+      '<div style="font-size:10px;color:' + conf.col + ';font-weight:700">' + conf.label + ' confidence</div>' +
+    '</div>' +
+  '</div>';
+
+  html += '</div></div>';
+
+  // ── Day-by-day projection for remaining days ──
+  if (isCurrentMonth && daysRemaining > 0 && avgPerDay > 0) {
+    html += '<div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:16px;overflow:hidden;margin-bottom:20px">' +
+      '<div style="background:#0d1b2e;padding:14px 20px;font-size:13px;font-weight:800;color:#c9a84c">📅 Projected Remaining Days (based on current avg)</div>' +
+      '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">' +
+      '<thead><tr style="background:#f8fafc">' +
+        '<th style="padding:9px 12px;text-align:left;color:#64748b;font-size:11px">DAY</th>' +
+        '<th style="padding:9px 12px;text-align:right;color:#64748b;font-size:11px">PROJECTED REV</th>' +
+        '<th style="padding:9px 12px;text-align:right;color:#64748b;font-size:11px">RUNNING TOTAL</th>' +
+        '<th style="padding:9px 12px;text-align:right;color:#64748b;font-size:11px">% OF TARGET</th>' +
+      '</tr></thead><tbody>';
+
+    var running = actualRev;
+    var startDay = today.getDate() + 1;
+    for (var d = startDay; d <= nd; d++) {
+      running += avgPerDay;
+      var pct2 = tgtRev > 0 ? (running / tgtRev * 100) : 0;
+      var rowCol = pct2 >= 100 ? '#f0fdf4' : d % 2 === 0 ? '#f8fafc' : '#fff';
+      html += '<tr style="background:' + rowCol + '">' +
+        '<td style="padding:8px 12px;font-weight:700;color:#0d1b2e">' + DAY_NAMES[new Date(y,m-1,d).getDay()].slice(0,3) + ' ' + d + '</td>' +
+        '<td style="padding:8px 12px;text-align:right;color:#0369a1;font-weight:600">' + fmtMoney(avgPerDay) + '</td>' +
+        '<td style="padding:8px 12px;text-align:right;font-weight:800;color:#0d1b2e">' + fmtMoney(running) + '</td>' +
+        '<td style="padding:8px 12px;text-align:right;font-weight:700;color:' + (pct2>=100?'#16a34a':pct2>=75?'#d97706':'#dc2626') + '">' +
+          (tgtRev > 0 ? (pct2>=100?'🎉 ':'')+pct2.toFixed(1)+'%' : '—') +
+        '</td>' +
+      '</tr>';
+    }
+    html += '</tbody></table></div></div>';
+  }
+
+  // ── Department forecast ──
+  html += '<div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:16px;overflow:hidden">' +
+    '<div style="background:#0d1b2e;padding:14px 20px;font-size:13px;font-weight:800;color:#c9a84c">🏢 Department Forecast</div>' +
+    '<table style="width:100%;border-collapse:collapse;font-size:12px">' +
+    '<thead><tr style="background:#f8fafc">' +
+      '<th style="padding:9px 12px;text-align:left;color:#64748b;font-size:11px">DEPARTMENT</th>' +
+      '<th style="padding:9px 12px;text-align:right;color:#64748b;font-size:11px">ACTUAL SO FAR</th>' +
+      '<th style="padding:9px 12px;text-align:right;color:#64748b;font-size:11px">PROJECTED CLOSE</th>' +
+      '<th style="padding:9px 12px;text-align:right;color:#64748b;font-size:11px">' + MONTH_NAMES[m-1] + ' ' + prevY + '</th>' +
+      '<th style="padding:9px 12px;text-align:right;color:#64748b;font-size:11px">YoY</th>' +
+    '</tr></thead><tbody>';
+
+  var deptColors2 = ['#0284c7','#16a34a','#0891b2','#7c3aed','#d97706','#ea580c'];
+  DEPT_KEYS.forEach(function(dept, idx) {
+    var dActual = monthTotals(y, m).byDept[dept]?.qr || 0;
+    var dAct2 = getActiveDays(y, m);
+    var dAvg = dAct2 > 0 ? dActual / dAct2 : 0;
+    var dFc = dAvg * nd;
+    var dLastY = monthTotals(prevY, m).byDept[dept]?.qr || 0;
+    var dYoY = dLastY > 0 ? ((dFc - dLastY) / dLastY * 100) : null;
+    var col3 = deptColors2[idx % deptColors2.length];
+    html += '<tr style="background:' + (idx%2===0?'#fff':'#f8fafc') + '">' +
+      '<td style="padding:9px 12px;font-weight:700;color:#0d1b2e"><span style="color:' + col3 + '">' + (DEPT_ICONS[dept]||'') + '</span> ' + dept + '</td>' +
+      '<td style="padding:9px 12px;text-align:right;color:#0369a1;font-weight:600">' + (dActual>0?fmtMoney(dActual):'—') + '</td>' +
+      '<td style="padding:9px 12px;text-align:right;font-weight:800;color:' + col3 + '">' + (dFc>0?fmtMoney(dFc):'—') + '</td>' +
+      '<td style="padding:9px 12px;text-align:right;color:#64748b">' + (dLastY>0?fmtMoney(dLastY):'—') + '</td>' +
+      '<td style="padding:9px 12px;text-align:right;font-weight:700;color:' + (dYoY===null?'#94a3b8':dYoY>=0?'#16a34a':'#dc2626') + '">' + (dYoY!==null?(dYoY>=0?'↑ +':'↓ ')+Math.abs(dYoY).toFixed(1)+'%':'—') + '</td>' +
+    '</tr>';
+  });
+  html += '</tbody></table></div>';
+
+  return html;
+}
+
+// ── Section 2: Next Month Forecast ──
+function renderNextMonthForecast(y, m, nextM, nextY, prevY) {
+  var lastYearNextM = getMonthRevenue(prevY, nextM);
+  var lastYearThisM = getMonthRevenue(prevY, m);
+  var thisYearThisM = getMonthRevenue(y, m);
+  var activeDays = getActiveDays(y, m);
+  var nd = dim(y, m);
+
+  // Growth rate this year vs last year this month
+  var yoyGrowthRate = lastYearThisM > 0 ? ((thisYearThisM / nd * dim(y,m)) - lastYearThisM) / lastYearThisM * 100 : 0;
+
+  // Seasonal factor: next month last year vs this month last year
+  var seasonalFactor = (lastYearNextM > 0 && lastYearThisM > 0) ? lastYearNextM / lastYearThisM : 1;
+
+  // Current month pace
+  var avgPerDay = activeDays > 0 ? thisYearThisM / activeDays : 0;
+  var ndNext = dim(nextY, nextM);
+
+  // Method 1: Seasonal adjustment
+  var fcSeasonal = lastYearNextM > 0 ? lastYearNextM * (1 + yoyGrowthRate / 100) : 0;
+  // Method 2: Pace + seasonal
+  var fcPaceSeasonal = avgPerDay * nd * seasonalFactor;
+  // Weighted
+  var fcFinal = fcSeasonal > 0 ? (fcSeasonal * 0.6 + fcPaceSeasonal * 0.4) : fcPaceSeasonal;
+
+  var tgtNext = loadTarget(nextY, nextM);
+  var tgtRev = tgtNext && tgtNext.revenue ? tgtNext.revenue : 0;
+  var pctOfTgt = tgtRev > 0 ? (fcFinal / tgtRev * 100) : 0;
+  var fcCol = pctOfTgt >= 100 ? '#16a34a' : pctOfTgt >= 75 ? '#d97706' : '#dc2626';
+
+  var hasLY = lastYearNextM > 0;
+  var conf = getConfidence(activeDays, nd, false, hasLY);
+
+  var html = '';
+
+  // Header
+  html += '<div style="background:linear-gradient(135deg,#4c1d95,#6d28d9);border-radius:16px;padding:22px 24px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">' +
+    '<div>' +
+      '<div style="font-size:18px;font-weight:800;color:#fff">' + MONTH_NAMES[nextM-1] + ' ' + nextY + ' — Next Month Forecast</div>' +
+      '<div style="font-size:12px;color:rgba(255,255,255,.6);margin-top:4px">Based on ' + MONTH_NAMES[m-1] + ' ' + y + ' performance + seasonal trends</div>' +
+    '</div>' +
+    '<div style="display:inline-flex;align-items:center;gap:6px;background:' + conf.bg + ';color:' + conf.col + ';padding:6px 14px;border-radius:20px;font-size:12px;font-weight:800">' +
+      '🎯 ' + conf.label + ' Confidence' +
+    '</div>' +
+  '</div>';
+
+  // Main cards
+  html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:20px">';
+
+  html += '<div style="background:linear-gradient(135deg,#4c1d95,#6d28d9);border-radius:14px;padding:20px;box-shadow:0 6px 20px rgba(109,40,217,.25)">' +
+    '<div style="font-size:10px;font-weight:800;color:rgba(255,255,255,.7);letter-spacing:1px;margin-bottom:8px">FORECAST ' + MONTH_NAMES[nextM-1].toUpperCase() + ' ' + nextY + '</div>' +
+    '<div style="font-size:26px;font-weight:900;color:#fff">' + fmtMoney(fcFinal) + '</div>' +
+    (tgtRev > 0 ? '<div style="font-size:12px;color:rgba(255,255,255,.75);margin-top:6px">' + pctOfTgt.toFixed(1) + '% of target</div>' : '') +
+  '</div>';
+
+  html += '<div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:20px">' +
+    '<div style="font-size:10px;font-weight:800;color:#64748b;letter-spacing:1px;margin-bottom:8px">' + MONTH_NAMES[nextM-1].toUpperCase() + ' ' + prevY + ' ACTUAL</div>' +
+    '<div style="font-size:24px;font-weight:900;color:#0d1b2e">' + (lastYearNextM>0?fmtMoney(lastYearNextM):'—') + '</div>' +
+    '<div style="font-size:11px;color:#94a3b8;margin-top:4px">' + (lastYearNextM>0?'Last year reference':'No historical data') + '</div>' +
+  '</div>';
+
+  html += '<div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:20px">' +
+    '<div style="font-size:10px;font-weight:800;color:#64748b;letter-spacing:1px;margin-bottom:8px">SEASONAL FACTOR</div>' +
+    '<div style="font-size:24px;font-weight:900;color:#0d1b2e">' + (seasonalFactor !== 1 ? (seasonalFactor > 1 ? '↑ ' : '↓ ') + (seasonalFactor*100-100).toFixed(1) + '%' : 'Neutral') + '</div>' +
+    '<div style="font-size:11px;color:#94a3b8;margin-top:4px">' + MONTH_NAMES[nextM-1] + ' vs ' + MONTH_NAMES[m-1] + ' (' + prevY + ')</div>' +
+  '</div>';
+
+  if (tgtRev > 0) {
+    html += '<div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:20px">' +
+      '<div style="font-size:10px;font-weight:800;color:#64748b;letter-spacing:1px;margin-bottom:8px">TARGET ' + MONTH_NAMES[nextM-1].toUpperCase() + '</div>' +
+      '<div style="font-size:24px;font-weight:900;color:' + fcCol + '">' + fmtMoney(tgtRev) + '</div>' +
+      '<div style="font-size:11px;color:' + fcCol + ';font-weight:700;margin-top:4px">' + (pctOfTgt>=100?'🎉 On track':'Need ' + fmtMoney(Math.max(0,tgtRev-fcFinal)) + ' more') + '</div>' +
+    '</div>';
+  }
+
+  html += '</div>';
+
+  // Methodology
+  html += '<div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:16px;overflow:hidden;margin-bottom:20px">' +
+    '<div style="background:#4c1d95;padding:14px 20px;font-size:13px;font-weight:800;color:#fff">📐 Forecast Methodology</div>' +
+    '<div style="padding:20px">';
+
+  html += '<div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid #f1f5f9">' +
+    '<div><div style="font-size:13px;font-weight:700;color:#0d1b2e">📅 Seasonal + YoY Growth</div>' +
+    '<div style="font-size:11px;color:#64748b">' + MONTH_NAMES[nextM-1] + ' ' + prevY + ' × (1 + ' + yoyGrowthRate.toFixed(1) + '% growth)</div></div>' +
+    '<div style="text-align:right"><div style="font-size:15px;font-weight:800;color:#7c3aed">' + (fcSeasonal>0?fmtMoney(fcSeasonal):'—') + '</div>' +
+    '<div style="font-size:10px;color:#94a3b8">Weight: 60%</div></div></div>';
+
+  html += '<div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid #f1f5f9">' +
+    '<div><div style="font-size:13px;font-weight:700;color:#0d1b2e">📈 Pace × Seasonal Factor</div>' +
+    '<div style="font-size:11px;color:#64748b">' + fmtMoney(avgPerDay) + '/day × ' + nd + ' days × ' + seasonalFactor.toFixed(2) + ' factor</div></div>' +
+    '<div style="text-align:right"><div style="font-size:15px;font-weight:800;color:#0369a1">' + fmtMoney(fcPaceSeasonal) + '</div>' +
+    '<div style="font-size:10px;color:#94a3b8">Weight: 40%</div></div></div>';
+
+  html += '<div style="display:flex;justify-content:space-between;padding:14px 0;background:#f8fafc;margin:8px -20px 0;padding:14px 20px">' +
+    '<div><div style="font-size:14px;font-weight:800;color:#0d1b2e">🎯 Weighted Forecast</div></div>' +
+    '<div><div style="font-size:20px;font-weight:900;color:#4c1d95">' + fmtMoney(fcFinal) + '</div></div></div>';
+
+  html += '</div></div>';
+
+  // Suggested daily target
+  var suggestedDaily = fcFinal / ndNext;
+  html += '<div style="background:#f5f3ff;border:1.5px solid #c4b5fd;border-radius:14px;padding:18px 20px">' +
+    '<div style="font-size:13px;font-weight:800;color:#6d28d9;margin-bottom:10px">💡 Planning Insight</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">' +
+      '<div style="background:#fff;border-radius:10px;padding:12px">' +
+        '<div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px">SUGGESTED DAILY TARGET</div>' +
+        '<div style="font-size:18px;font-weight:800;color:#7c3aed">' + fmtMoney(suggestedDaily) + '</div>' +
+        '<div style="font-size:11px;color:#94a3b8;margin-top:2px">To reach forecast of ' + fmtMoney(fcFinal) + '</div>' +
+      '</div>' +
+      (tgtRev > 0 ? '<div style="background:#fff;border-radius:10px;padding:12px">' +
+        '<div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px">DAILY NEEDED FOR TARGET</div>' +
+        '<div style="font-size:18px;font-weight:800;color:' + (tgtRev/ndNext > suggestedDaily ? '#dc2626' : '#16a34a') + '">' + fmtMoney(tgtRev/ndNext) + '</div>' +
+        '<div style="font-size:11px;color:#94a3b8;margin-top:2px">' + (tgtRev/ndNext > suggestedDaily ? '⚠️ Higher than forecast' : '✅ Forecast covers target') + '</div>' +
+      '</div>' : '') +
+    '</div>' +
+  '</div>';
+
+  return html;
+}
+
+// ── Section 3: Full Year Forecast ──
+function renderYearForecast(y, prevY) {
+  var html = '';
+
+  // Header
+  html += '<div style="background:linear-gradient(135deg,#0d1b2e,#1e3a5f);border-radius:16px;padding:22px 24px;margin-bottom:20px">' +
+    '<div style="font-size:18px;font-weight:800;color:#c9a84c">' + y + ' Full Year Forecast</div>' +
+    '<div style="font-size:12px;color:rgba(255,255,255,.55);margin-top:4px">Month-by-month projection based on actual data + YoY trends</div>' +
+  '</div>';
+
+  // Summary cards
+  var totalActual = 0, totalForecast = 0, monthsWithData = 0;
+  var monthData = [];
+
+  for (var m2 = 1; m2 <= 12; m2++) {
+    var actual = getMonthRevenue(y, m2);
+    var lastY = getMonthRevenue(prevY, m2);
+    var activeDays2 = getActiveDays(y, m2);
+    var nd2 = dim(y, m2);
+    var today2 = new Date();
+    var isPast = (y < today2.getFullYear()) || (y === today2.getFullYear() && m2 < today2.getMonth()+1);
+    var isCurrent = (y === today2.getFullYear() && m2 === today2.getMonth()+1);
+    var avgD = activeDays2 > 0 ? actual / activeDays2 : 0;
+    var fc = isPast ? actual : (isCurrent ? (avgD * nd2) : (lastY > 0 ? lastY * (actual > 0 ? actual/lastY : 1) : 0));
+    var tgtM = loadTarget(y, m2);
+    var tgtV = tgtM && tgtM.revenue ? tgtM.revenue : 0;
+    totalActual += actual;
+    totalForecast += fc;
+    if (actual > 0) monthsWithData++;
+    monthData.push({ m: m2, actual: actual, fc: fc, lastY: lastY, tgt: tgtV, isPast: isPast, isCurrent: isCurrent });
+  }
+
+  html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-bottom:20px">';
+  html += '<div style="background:linear-gradient(135deg,#0369a1,#0284c7);border-radius:14px;padding:18px;color:#fff">' +
+    '<div style="font-size:10px;font-weight:800;opacity:.7;margin-bottom:6px">ACTUAL YTD</div>' +
+    '<div style="font-size:22px;font-weight:900">' + fmtMoney(totalActual) + '</div>' +
+    '<div style="font-size:11px;opacity:.65;margin-top:4px">' + monthsWithData + ' months of data</div>' +
+  '</div>';
+  html += '<div style="background:linear-gradient(135deg,#6d28d9,#7c3aed);border-radius:14px;padding:18px;color:#fff">' +
+    '<div style="font-size:10px;font-weight:800;opacity:.7;margin-bottom:6px">PROJECTED FULL YEAR</div>' +
+    '<div style="font-size:22px;font-weight:900">' + fmtMoney(totalForecast) + '</div>' +
+    '<div style="font-size:11px;opacity:.65;margin-top:4px">Based on pace + history</div>' +
+  '</div>';
+
+  var lyTotal = 0;
+  for (var mi = 1; mi <= 12; mi++) lyTotal += getMonthRevenue(prevY, mi);
+  if (lyTotal > 0) {
+    var yoyFull = ((totalForecast - lyTotal) / lyTotal * 100);
+    html += '<div style="background:linear-gradient(135deg,' + (yoyFull>=0?'#15803d,#16a34a':'#b91c1c,#dc2626') + ');border-radius:14px;padding:18px;color:#fff">' +
+      '<div style="font-size:10px;font-weight:800;opacity:.7;margin-bottom:6px">VS ' + prevY + ' FULL YEAR</div>' +
+      '<div style="font-size:22px;font-weight:900">' + fmtMoney(lyTotal) + '</div>' +
+      '<div style="font-size:12px;font-weight:800;margin-top:4px">' + (yoyFull>=0?'↑ +':'↓ ') + yoyFull.toFixed(1) + '% YoY</div>' +
+    '</div>';
+  }
+  html += '</div>';
+
+  // Month-by-month table
+  html += '<div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:16px;overflow:hidden">' +
+    '<div style="background:#0d1b2e;padding:14px 20px;font-size:13px;font-weight:800;color:#c9a84c">📊 Month-by-Month Forecast — ' + y + '</div>' +
+    '<table style="width:100%;border-collapse:collapse;font-size:12px">' +
+    '<thead><tr style="background:#f8fafc">' +
+      '<th style="padding:10px 12px;text-align:left;color:#64748b;font-size:11px">MONTH</th>' +
+      '<th style="padding:10px 12px;text-align:right;color:#64748b;font-size:11px">ACTUAL</th>' +
+      '<th style="padding:10px 12px;text-align:right;color:#64748b;font-size:11px">FORECAST</th>' +
+      '<th style="padding:10px 12px;text-align:right;color:#64748b;font-size:11px">' + prevY + '</th>' +
+      '<th style="padding:10px 12px;text-align:right;color:#64748b;font-size:11px">TARGET</th>' +
+      '<th style="padding:10px 12px;text-align:left;color:#64748b;font-size:11px">STATUS</th>' +
+    '</tr></thead><tbody>';
+
+  monthData.forEach(function(row, idx) {
+    var status, statusCol;
+    var today3 = new Date();
+    if (row.isPast) {
+      if (row.actual <= 0) { status = '—'; statusCol = '#94a3b8'; }
+      else if (row.tgt > 0) {
+        var p = row.actual / row.tgt * 100;
+        status = p >= 100 ? '✅ Hit' : p >= 75 ? '⚡ Close' : '❌ Missed';
+        statusCol = p >= 100 ? '#16a34a' : p >= 75 ? '#d97706' : '#dc2626';
+      } else { status = '✓ Complete'; statusCol = '#64748b'; }
+    } else if (row.isCurrent) {
+      status = '📍 In Progress'; statusCol = '#0369a1';
+    } else {
+      status = row.fc > 0 ? '🔮 Projected' : '⏳ Upcoming'; statusCol = '#7c3aed';
+    }
+
+    var bg = row.isCurrent ? '#eff6ff' : idx%2===0 ? '#fff' : '#f8fafc';
+    var fcCol2 = row.tgt > 0 ? (row.fc >= row.tgt ? '#16a34a' : row.fc >= row.tgt*0.75 ? '#d97706' : '#dc2626') : '#0369a1';
+
+    // Progress bar width
+    var maxVal = Math.max(row.actual, row.fc, row.lastY, row.tgt, 1);
+    var barW = Math.round((row.fc / maxVal) * 100);
+
+    html += '<tr style="background:' + bg + '">' +
+      '<td style="padding:10px 12px;font-weight:700;color:#0d1b2e">' + MONTH_NAMES[row.m-1] + '</td>' +
+      '<td style="padding:10px 12px;text-align:right;color:#0369a1;font-weight:600">' + (row.actual>0?fmtMoney(row.actual):'—') + '</td>' +
+      '<td style="padding:10px 12px;text-align:right">' +
+        '<div style="font-weight:800;color:' + fcCol2 + '">' + (row.fc>0?fmtMoney(row.fc):'—') + '</div>' +
+        (row.fc>0?'<div style="background:#e2e8f0;border-radius:3px;height:4px;width:80px;margin:3px 0 0 auto;overflow:hidden">' +
+          '<div style="background:' + fcCol2 + ';height:100%;width:' + barW + '%"></div>' +
+        '</div>':'') +
+      '</td>' +
+      '<td style="padding:10px 12px;text-align:right;color:#64748b">' + (row.lastY>0?fmtMoney(row.lastY):'—') + '</td>' +
+      '<td style="padding:10px 12px;text-align:right;color:#94a3b8">' + (row.tgt>0?fmtMoney(row.tgt):'—') + '</td>' +
+      '<td style="padding:10px 12px;font-weight:700;color:' + statusCol + '">' + status + '</td>' +
+    '</tr>';
+  });
+
+  // Totals row
+  html += '<tr style="background:#0d1b2e;color:#c9a84c;font-weight:800">' +
+    '<td style="padding:10px 12px">TOTAL</td>' +
+    '<td style="padding:10px 12px;text-align:right">' + fmtMoney(totalActual) + '</td>' +
+    '<td style="padding:10px 12px;text-align:right">' + fmtMoney(totalForecast) + '</td>' +
+    '<td style="padding:10px 12px;text-align:right">' + (lyTotal>0?fmtMoney(lyTotal):'—') + '</td>' +
+    '<td style="padding:10px 12px;text-align:right">—</td>' +
+    '<td style="padding:10px 12px"></td>' +
+  '</tr>';
+
+  html += '</tbody></table></div>';
+  return html;
 }
 
 function showGuideSection(idx) {
