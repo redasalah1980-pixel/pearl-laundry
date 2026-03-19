@@ -1911,6 +1911,7 @@ var _fbDB = null;
           <option value="month">📅 This Month</option>
           <option value="next">📆 Next Month</option>
           <option value="year">📊 Full Year</option>
+          <option value="plan">📋 Plan Next Year</option>
         </select>
       </div>
       <div class="ctrl-group" id="fc-month-wrap">
@@ -8531,7 +8532,80 @@ function renderGuide() {
      tip('For best accuracy: (1) Enter data daily, (2) Set monthly targets, (3) Keep benchmark occupancy updated. All three feed the forecast engine with richer data.')
     ],
 
-    // ── 19. COPYRIGHT ───────────────────────────────────────────
+    // ── 19. PLAN NEXT YEAR ──────────────────────────────────────
+    ['📋 Plan Next Year — Annual Budget Planning Tool',
+     '<strong>What it does:</strong> A professional annual budget planning tool. Enter your expected growth % and occupancy % for each month of next year — the system calculates forecasted revenue and KG for all 12 months, shows totals, YoY comparison, and lets you export a finance-ready Excel sheet.' +
+
+     '<br><br><strong>How to open:</strong>' +
+     step([
+       'Click <strong>🔮 Forecast</strong> tab.',
+       'Change <strong>View</strong> to <strong>📋 Plan Next Year</strong>.',
+       'Select your <strong>Base Year</strong> (e.g. 2026) — next year is calculated automatically.',
+       'The planning table appears with all 12 months.'
+     ]) +
+
+     '<br><strong>🎯 3 Quick Scenarios:</strong>' +
+     ul([
+       '<span style="font-weight:700;color:#64748b">🔵 Conservative</span> — 3% growth · 0% occupancy increase. Use for pessimistic planning.',
+       '<span style="font-weight:700;color:#92400e">🟡 Moderate</span> — 7% growth · +2% occupancy. Standard planning assumption.',
+       '<span style="font-weight:700;color:#15803d">🟢 Optimistic</span> — 12% growth · +5% occupancy. Best-case scenario.'
+     ]) +
+
+     '<br><strong>📊 The Planning Table rows explained:</strong>' +
+     '<br><br><div style="background:#f8fafc;border-radius:10px;padding:14px 16px;font-size:12px">' +
+     '<table style="width:100%;border-collapse:collapse">' +
+     '<tr style="background:#0d1b2e;color:#c9a84c"><th style="padding:7px 10px;text-align:left">Row</th><th style="padding:7px 10px;text-align:left">What it shows</th><th style="padding:7px 10px;text-align:left">Editable?</th></tr>' +
+     '<tr style="background:#fff"><td style="padding:7px 10px;font-weight:700">Occ %</td><td style="padding:7px 10px;color:#64748b">Expected occupancy for each month of next year</td><td style="padding:7px 10px;color:#16a34a">✅ Yes — per month</td></tr>' +
+     '<tr style="background:#f8fafc"><td style="padding:7px 10px;font-weight:700">Growth %</td><td style="padding:7px 10px;color:#64748b">Your target revenue growth vs same month in base year</td><td style="padding:7px 10px;color:#16a34a">✅ Yes — per month</td></tr>' +
+     '<tr style="background:#fff"><td style="padding:7px 10px;font-weight:700">Occupied Rooms</td><td style="padding:7px 10px;color:#64748b">Occ% × Total rooms × Days in month</td><td style="padding:7px 10px;color:#94a3b8">Auto-calculated</td></tr>' +
+     '<tr style="background:#f8fafc"><td style="padding:7px 10px;font-weight:700">Laundry Revenue</td><td style="padding:7px 10px;color:#64748b">60% growth-based + 40% occupancy-based blend</td><td style="padding:7px 10px;color:#94a3b8">Auto-calculated</td></tr>' +
+     '<tr style="background:#fff"><td style="padding:7px 10px;font-weight:700">vs Base Year</td><td style="padding:7px 10px;color:#64748b">% change vs same month in base year</td><td style="padding:7px 10px;color:#94a3b8">Auto-calculated</td></tr>' +
+     '<tr style="background:#f8fafc"><td style="padding:7px 10px;font-weight:700">KG Forecast</td><td style="padding:7px 10px;color:#64748b">Projected laundry weight using same blend method</td><td style="padding:7px 10px;color:#94a3b8">Auto-calculated</td></tr>' +
+     '<tr style="background:#fff"><td style="padding:7px 10px;font-weight:700">vs Base Year KG</td><td style="padding:7px 10px;color:#64748b">% change in KG vs same month in base year</td><td style="padding:7px 10px;color:#94a3b8">Auto-calculated</td></tr>' +
+     '</table></div>' +
+
+     '<br><strong>🧮 The Revenue Forecast Formula:</strong>' +
+     ul([
+       '<strong>Growth-based:</strong> Base month revenue × (1 + Growth%)',
+       '<strong>Occupancy-based:</strong> Base month revenue × (New Occ% ÷ Base Occ%)',
+       '<strong>Final blend:</strong> Growth-based × 60% + Occupancy-based × 40%',
+       'If no base occupancy data → uses growth-based only (100%)',
+       'Same formula applies to KG forecast'
+     ]) +
+
+     '<br><strong>⚡ Quick Fill tools:</strong>' +
+     ul([
+       '<strong>Apply same growth % to all</strong> — type one number, click Apply → fills all 12 months at once.',
+       '<strong>Apply same occ % to all</strong> — type one occupancy %, click Apply → fills all 12 months.',
+       'You can then fine-tune individual months manually.'
+     ]) +
+
+     '<br><strong>💾 Save as Targets:</strong>' +
+     ul([
+       'Click <strong>💾 Save as Targets</strong> → saves all 12 months as monthly revenue targets in one click.',
+       'These targets then appear in the Dashboard progress bar and Forecast confidence calculations.',
+       'You can always update individual month targets from the Dashboard.'
+     ]) +
+
+     '<br><strong>⬇️ Export Excel:</strong>' +
+     ul([
+       'Exports a clean Excel file: <strong>Pearl_Budget_Plan_2027.xlsx</strong>',
+       'Includes all rows: Occ%, Growth%, Revenue Forecast, vs Base Year, KG Forecast, vs Base KG.',
+       'Total Year column on the right — matches the finance submission format.',
+       'Add planning notes before exporting — they appear at the bottom of the sheet.'
+     ]) +
+
+     '<br><strong>🖨️ Print / PDF:</strong>' +
+     ul([
+       'Opens a clean print window with summary cards + full table + notes.',
+       'Use browser Print → Save as PDF to share with finance team.',
+       'Includes RS Pearl branding, preparation date, and YoY growth summary.'
+     ]) +
+
+     tip('Best workflow: (1) Select scenario, (2) Fine-tune high/low season months manually, (3) Add notes, (4) Save as Targets, (5) Export Excel for finance.')
+    ],
+
+    // ── 20. COPYRIGHT ───────────────────────────────────────────
     ['© Copyright & Ownership',
      '<div style="background:linear-gradient(135deg,#0d1b2e,#1e3a5f);border-radius:10px;padding:20px 24px;color:#fff;margin-bottom:12px"><div style="font-size:18px;font-weight:700;color:#c9a84c;letter-spacing:1px;margin-bottom:6px">© 2026 Reda Salah</div><div style="font-size:13px;color:rgba(255,255,255,.75);line-height:1.9">All Rights Reserved.<br><strong style="color:#fff">RS · Pearl Laundry Management System</strong> — proprietary software created and owned by <strong style="color:#c9a84c">Reda Salah</strong>.<br>Developed for professional laundry operations management.<br>Unauthorised copying, distribution, or modification is strictly prohibited.</div></div><div style="font-size:12px;color:#6b7a8d;line-height:1.8">Intellectual property and full ownership: <strong>Reda Salah</strong><br>For support or licensing enquiries, contact the author directly.</div>'
     ],
@@ -9346,6 +9420,7 @@ function renderForecast() {
     var nextY = m === 12 ? y + 1 : y;
     wrap.innerHTML = renderNextMonthForecast(y, m, nextM, nextY, prevY);
   }
+  else if (view === 'plan') renderPlanNextYear(y);
   else wrap.innerHTML = renderYearForecast(y, prevY);
 }
 
@@ -9810,6 +9885,553 @@ function renderYearForecast(y, prevY) {
 
   html += '</tbody></table></div>';
   return html;
+}
+
+// ══════════════════════════════════════════════════════════════
+//  PLAN NEXT YEAR — Annual Budget Planning Tool
+// ══════════════════════════════════════════════════════════════
+var _planData = {}; // { targetYear, baseYear, scenario, months: [{occ, growth, revFc, kgFc}] }
+
+function renderPlanNextYear(baseY) {
+  var wrap = document.getElementById('forecast-wrap');
+  if (!wrap) return;
+
+  var targetY = baseY + 1;
+
+  // Init _planData if not set or year changed
+  if (!_planData.targetYear || _planData.targetYear !== targetY || _planData.baseYear !== baseY) {
+    _planData = {
+      targetYear: targetY,
+      baseYear: baseY,
+      scenario: 'moderate',
+      months: []
+    };
+    // Pre-fill from base year data
+    for (var m = 1; m <= 12; m++) {
+      var baseRev = getMonthRevenue(baseY, m);
+      var baseKG  = monthTotals(baseY, m).kg;
+      var baseOcc = getAvgOccupancy(baseY, m);
+      // Default growth by scenario
+      var defGrowth = 5; // moderate default
+      _planData.months.push({
+        occ:    baseOcc > 0 ? Math.min(100, Math.round(baseOcc + 2)) : 70,
+        growth: defGrowth,
+        baseRev: baseRev,
+        baseKG:  baseKG,
+        baseOcc: baseOcc
+      });
+    }
+  }
+
+  wrap.innerHTML = buildPlanHTML(baseY, targetY);
+  recalcPlan();
+}
+
+function buildPlanHTML(baseY, targetY) {
+  var MONTH_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var settings = loadBenchSettings();
+  var totalRooms = settings.totalRooms || 0;
+
+  var html = '';
+
+  // ── Top Header ──
+  html += '<div style="background:linear-gradient(135deg,#0d1b2e,#1e3a5f);border-radius:16px;padding:22px 24px;margin-bottom:20px">' +
+    '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">' +
+      '<div>' +
+        '<div style="font-size:20px;font-weight:800;color:#c9a84c">📋 Annual Budget Plan — ' + targetY + '</div>' +
+        '<div style="font-size:12px;color:rgba(255,255,255,.55);margin-top:4px">Based on ' + baseY + ' actual data · Adjust growth % and occupancy per month</div>' +
+      '</div>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
+        '<button onclick="exportPlanExcel()" style="padding:8px 16px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">⬇️ Export Excel</button>' +
+        '<button onclick="savePlanAsTargets()" style="padding:8px 16px;background:#c9a84c;color:#0d1b2e;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">💾 Save as Targets</button>' +
+        '<button onclick="printPlanPDF()" style="padding:8px 16px;background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">🖨️ Print / PDF</button>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+
+  // ── Scenario + Quick Fill Controls ──
+  html += '<div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:18px 20px;margin-bottom:16px">' +
+    '<div style="display:flex;align-items:center;flex-wrap:wrap;gap:16px">' +
+      // Scenario
+      '<div>' +
+        '<div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:6px;letter-spacing:.8px">SCENARIO</div>' +
+        '<div style="display:flex;gap:6px">' +
+          '<button id="sc-btn-conservative" onclick="setPlanScenario(\'conservative\')" style="padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid #e2e8f0;background:#fff;color:#64748b">🔵 Conservative</button>' +
+          '<button id="sc-btn-moderate"     onclick="setPlanScenario(\'moderate\')"     style="padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid #c9a84c;background:#fefce8;color:#92400e">🟡 Moderate</button>' +
+          '<button id="sc-btn-optimistic"   onclick="setPlanScenario(\'optimistic\')"   style="padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid #e2e8f0;background:#fff;color:#64748b">🟢 Optimistic</button>' +
+        '</div>' +
+      '</div>' +
+      // Quick fill growth
+      '<div>' +
+        '<div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:6px;letter-spacing:.8px">APPLY SAME GROWTH % TO ALL</div>' +
+        '<div style="display:flex;gap:6px;align-items:center">' +
+          '<input type="number" id="plan-fill-growth" placeholder="e.g. 10" style="width:80px;padding:6px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#0d1b2e;outline:none">' +
+          '<button onclick="fillAllGrowth()" style="padding:6px 12px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer">Apply</button>' +
+        '</div>' +
+      '</div>' +
+      // Quick fill occ
+      '<div>' +
+        '<div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:6px;letter-spacing:.8px">APPLY SAME OCC % TO ALL</div>' +
+        '<div style="display:flex;gap:6px;align-items:center">' +
+          '<input type="number" id="plan-fill-occ" placeholder="e.g. 75" style="width:80px;padding:6px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#0d1b2e;outline:none">' +
+          '<button onclick="fillAllOcc()" style="padding:6px 12px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer">Apply</button>' +
+        '</div>' +
+      '</div>' +
+      (totalRooms > 0 ? '<div style="background:#f8fafc;border-radius:8px;padding:8px 12px">' +
+        '<div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:2px">HOTEL ROOMS</div>' +
+        '<div style="font-size:16px;font-weight:800;color:#0d1b2e">' + totalRooms + ' rooms</div>' +
+      '</div>' : '<div style="background:#fff5f5;border:1px solid #fca5a5;border-radius:8px;padding:8px 12px;font-size:11px;color:#dc2626;font-weight:700">⚠️ Set hotel rooms in Benchmark</div>') +
+    '</div>' +
+  '</div>';
+
+  // ── Planning Table ──
+  html += '<div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:16px;overflow:hidden;margin-bottom:16px">' +
+    '<div style="overflow-x:auto">' +
+    '<table id="plan-table" style="width:100%;border-collapse:collapse;font-size:12px;min-width:1100px">' +
+    '<thead>' +
+    // Year header row
+    '<tr style="background:#0d1b2e">' +
+      '<td style="padding:10px 14px;font-weight:800;color:#c9a84c;width:160px;min-width:160px">' + targetY + '</td>';
+
+  for (var m = 1; m <= 12; m++) {
+    html += '<td style="padding:10px 8px;text-align:center;font-weight:800;color:#c9a84c;min-width:90px">' + MONTH_SHORT[m-1] + '-' + String(targetY).slice(2) + '</td>';
+  }
+  html += '<td style="padding:10px 8px;text-align:center;font-weight:800;color:#16a34a;background:#0a2e0a;min-width:110px">Total Year</td>';
+  html += '</tr>' +
+
+  // Sub-header: base year ref
+  '<tr style="background:#1e3a5f">' +
+    '<td style="padding:6px 14px;font-size:10px;color:rgba(255,255,255,.5);font-weight:600">Base: ' + baseY + ' actual</td>';
+  for (var m2 = 1; m2 <= 12; m2++) {
+    var bRev = getMonthRevenue(baseY, m2);
+    html += '<td style="padding:6px 8px;text-align:center;font-size:10px;color:rgba(255,255,255,.45)">' + (bRev>0?f2(bRev/1000).replace('.00','')+'K':'—') + '</td>';
+  }
+  var baseTotalRev = 0;
+  for (var m3=1;m3<=12;m3++) baseTotalRev += getMonthRevenue(baseY, m3);
+  html += '<td style="padding:6px 8px;text-align:center;font-size:10px;color:rgba(22,163,74,.7)">' + f2(baseTotalRev/1000).replace('.00','') + 'K</td>';
+  html += '</tr></thead><tbody>';
+
+  // ── ROW 1: Occupancy % (editable) ──
+  html += '<tr style="background:#f8fafc">' +
+    '<td style="padding:10px 14px;font-weight:700;color:#0d1b2e;border-right:2px solid #e2e8f0">' +
+      '<div>Occ %</div>' +
+      '<div style="font-size:10px;color:#94a3b8;margin-top:2px">Expected occupancy</div>' +
+    '</td>';
+  for (var m4 = 1; m4 <= 12; m4++) {
+    var baseOcc2 = _planData.months[m4-1].baseOcc;
+    html += '<td style="padding:6px 4px;text-align:center">' +
+      '<input type="number" id="plan-occ-' + m4 + '" min="0" max="100" step="1" ' +
+        'value="' + _planData.months[m4-1].occ + '" ' +
+        'onchange="onPlanChange()" ' +
+        'style="width:68px;padding:5px 4px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:12px;font-weight:700;text-align:center;color:#0369a1;background:#eff6ff;outline:none">' +
+      (baseOcc2 > 0 ? '<div style="font-size:9px;color:#94a3b8;margin-top:2px">' + baseY + ': ' + baseOcc2.toFixed(0) + '%</div>' : '') +
+    '</td>';
+  }
+  html += '<td id="plan-total-occ" style="padding:10px 8px;text-align:center;font-weight:800;color:#0369a1;background:#eff6ff">—</td>';
+  html += '</tr>';
+
+  // ── ROW 2: Growth % (editable) ──
+  html += '<tr style="background:#fff">' +
+    '<td style="padding:10px 14px;font-weight:700;color:#0d1b2e;border-right:2px solid #e2e8f0">' +
+      '<div>Growth %</div>' +
+      '<div style="font-size:10px;color:#94a3b8;margin-top:2px">vs ' + baseY + ' same month</div>' +
+    '</td>';
+  for (var m5 = 1; m5 <= 12; m5++) {
+    html += '<td style="padding:6px 4px;text-align:center">' +
+      '<input type="number" id="plan-growth-' + m5 + '" min="-50" max="200" step="0.5" ' +
+        'value="' + _planData.months[m5-1].growth + '" ' +
+        'onchange="onPlanChange()" ' +
+        'style="width:68px;padding:5px 4px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:12px;font-weight:700;text-align:center;color:#15803d;background:#f0fdf4;outline:none">' +
+    '</td>';
+  }
+  html += '<td id="plan-avg-growth" style="padding:10px 8px;text-align:center;font-weight:800;color:#15803d;background:#f0fdf4">—</td>';
+  html += '</tr>';
+
+  // ── ROW 3: Occupied Rooms (calculated) ──
+  if (totalRooms > 0) {
+    html += '<tr style="background:#f8fafc">' +
+      '<td style="padding:10px 14px;font-weight:700;color:#0d1b2e;border-right:2px solid #e2e8f0">' +
+        '<div>Occupied Rooms</div>' +
+        '<div style="font-size:10px;color:#94a3b8;margin-top:2px">Projected room-nights</div>' +
+      '</td>';
+    for (var m6 = 1; m6 <= 12; m6++) {
+      html += '<td id="plan-rooms-' + m6 + '" style="padding:10px 8px;text-align:center;font-weight:700;color:#64748b">—</td>';
+    }
+    html += '<td id="plan-total-rooms" style="padding:10px 8px;text-align:center;font-weight:800;color:#64748b;background:#f8fafc">—</td>';
+    html += '</tr>';
+  }
+
+  // ── ROW 4: Laundry Revenue Forecast ──
+  html += '<tr style="background:#fff;border-top:2px solid #c9a84c">' +
+    '<td style="padding:12px 14px;font-weight:800;color:#0d1b2e;border-right:2px solid #e2e8f0">' +
+      '<div style="color:#0d1b2e">Laundry Revenue</div>' +
+      '<div style="font-size:10px;color:#94a3b8;margin-top:2px">Forecast ' + targetY + '</div>' +
+    '</td>';
+  for (var m7 = 1; m7 <= 12; m7++) {
+    html += '<td id="plan-rev-' + m7 + '" style="padding:10px 8px;text-align:center;font-weight:800;font-size:13px;color:#0d1b2e">—</td>';
+  }
+  html += '<td id="plan-total-rev" style="padding:10px 8px;text-align:center;font-weight:900;font-size:14px;color:#16a34a;background:#f0fdf4">—</td>';
+  html += '</tr>';
+
+  // ── ROW 5: vs Base Year ──
+  html += '<tr style="background:#f8fafc">' +
+    '<td style="padding:8px 14px;font-size:11px;font-weight:700;color:#64748b;border-right:2px solid #e2e8f0">' +
+      'vs ' + baseY + ' Revenue' +
+    '</td>';
+  for (var m8 = 1; m8 <= 12; m8++) {
+    html += '<td id="plan-vs-rev-' + m8 + '" style="padding:8px;text-align:center;font-size:11px;font-weight:700">—</td>';
+  }
+  html += '<td id="plan-total-vs-rev" style="padding:8px;text-align:center;font-size:11px;font-weight:800;background:#f8fafc">—</td>';
+  html += '</tr>';
+
+  // ── ROW 6: KG Forecast ──
+  html += '<tr style="background:#fff;border-top:2px solid #e2e8f0">' +
+    '<td style="padding:12px 14px;font-weight:800;color:#0d1b2e;border-right:2px solid #e2e8f0">' +
+      '<div>KG Forecast</div>' +
+      '<div style="font-size:10px;color:#94a3b8;margin-top:2px">Total KG washed ' + targetY + '</div>' +
+    '</td>';
+  for (var m9 = 1; m9 <= 12; m9++) {
+    html += '<td id="plan-kg-' + m9 + '" style="padding:10px 8px;text-align:center;font-weight:700;color:#b45309">—</td>';
+  }
+  html += '<td id="plan-total-kg" style="padding:10px 8px;text-align:center;font-weight:900;color:#b45309;background:#fffbeb">—</td>';
+  html += '</tr>';
+
+  // ── ROW 7: vs Base Year KG ──
+  html += '<tr style="background:#f8fafc">' +
+    '<td style="padding:8px 14px;font-size:11px;font-weight:700;color:#64748b;border-right:2px solid #e2e8f0">' +
+      'vs ' + baseY + ' KG' +
+    '</td>';
+  for (var m10 = 1; m10 <= 12; m10++) {
+    html += '<td id="plan-vs-kg-' + m10 + '" style="padding:8px;text-align:center;font-size:11px;font-weight:700">—</td>';
+  }
+  html += '<td id="plan-total-vs-kg" style="padding:8px;text-align:center;font-size:11px;font-weight:800;background:#f8fafc">—</td>';
+  html += '</tr>';
+
+  html += '</tbody></table></div></div>';
+
+  // ── Summary Cards ──
+  html += '<div id="plan-summary-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:16px"></div>';
+
+  // ── Notes box ──
+  html += '<div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;padding:16px;margin-bottom:16px">' +
+    '<div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:8px;letter-spacing:.8px">📝 PLANNING NOTES</div>' +
+    '<textarea id="plan-notes" placeholder="Add notes for finance team..." style="width:100%;height:70px;border:1.5px solid #e2e8f0;border-radius:8px;padding:10px;font-size:12px;color:#0d1b2e;resize:vertical;outline:none;box-sizing:border-box"></textarea>' +
+  '</div>';
+
+  return html;
+}
+
+function onPlanChange() {
+  // Read inputs
+  for (var m = 1; m <= 12; m++) {
+    var occEl = document.getElementById('plan-occ-' + m);
+    var grEl  = document.getElementById('plan-growth-' + m);
+    if (occEl) _planData.months[m-1].occ    = parseFloat(occEl.value) || 0;
+    if (grEl)  _planData.months[m-1].growth = parseFloat(grEl.value)  || 0;
+  }
+  recalcPlan();
+}
+
+function recalcPlan() {
+  if (!_planData.months || _planData.months.length === 0) return;
+  var baseY = _planData.baseYear;
+  var targetY = _planData.targetYear;
+  var settings = loadBenchSettings();
+  var totalRooms = settings.totalRooms || 0;
+  var MONTH_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  var totalRevFc = 0, totalKgFc = 0, totalOccRooms = 0;
+  var totalBaseRev = 0, totalBaseKg = 0;
+  var totalGrowth = 0;
+  var totalBaseOcc = 0, occCount = 0;
+
+  for (var m = 1; m <= 12; m++) {
+    var md = _planData.months[m-1];
+    var baseRev = getMonthRevenue(baseY, m);
+    var baseKG  = monthTotals(baseY, m).kg;
+    md.baseRev = baseRev;
+    md.baseKG  = baseKG;
+
+    // Revenue forecast
+    // Blend: growth-based + occupancy-adjusted
+    var growthFc = baseRev * (1 + md.growth / 100);
+
+    // Occupancy adjustment factor
+    var baseOcc = md.baseOcc || getAvgOccupancy(baseY, m);
+    var occFactor = (baseOcc > 0 && md.occ > 0) ? md.occ / baseOcc : 1;
+    var occFc = baseRev * occFactor;
+
+    // If both available → blend 60% growth, 40% occupancy
+    var revFc = baseOcc > 0 ? (growthFc * 0.6 + occFc * 0.4) : growthFc;
+    md.revFc = revFc;
+
+    // KG forecast — same ratio as revenue growth, adjusted by occupancy
+    var kgGrowthFc = baseKG * (1 + md.growth / 100);
+    var kgOccFc = baseKG * occFactor;
+    md.kgFc = baseOcc > 0 ? (kgGrowthFc * 0.6 + kgOccFc * 0.4) : kgGrowthFc;
+
+    // Occupied rooms
+    var nd = dim(targetY, m);
+    var occRooms = totalRooms > 0 ? Math.round(totalRooms * md.occ / 100) * nd : 0;
+    md.occRooms = occRooms;
+
+    totalRevFc    += revFc;
+    totalKgFc     += md.kgFc;
+    totalOccRooms += occRooms;
+    totalBaseRev  += baseRev;
+    totalBaseKg   += baseKG;
+    totalGrowth   += md.growth;
+    if (md.occ > 0) { totalBaseOcc += md.occ; occCount++; }
+
+    // Update cells
+    var revEl = document.getElementById('plan-rev-' + m);
+    if (revEl) revEl.textContent = revFc > 0 ? fmtMoney(revFc) : '—';
+
+    var vsRevEl = document.getElementById('plan-vs-rev-' + m);
+    if (vsRevEl) {
+      if (baseRev > 0 && revFc > 0) {
+        var vsPct = ((revFc - baseRev) / baseRev * 100);
+        vsRevEl.textContent = (vsPct >= 0 ? '↑ +' : '↓ ') + vsPct.toFixed(1) + '%';
+        vsRevEl.style.color = vsPct >= 0 ? '#16a34a' : '#dc2626';
+      } else { vsRevEl.textContent = '—'; vsRevEl.style.color = '#94a3b8'; }
+    }
+
+    var kgEl = document.getElementById('plan-kg-' + m);
+    if (kgEl) kgEl.textContent = md.kgFc > 0 ? md.kgFc.toFixed(0) + ' kg' : '—';
+
+    var vsKgEl = document.getElementById('plan-vs-kg-' + m);
+    if (vsKgEl) {
+      if (baseKG > 0 && md.kgFc > 0) {
+        var vsKgPct = ((md.kgFc - baseKG) / baseKG * 100);
+        vsKgEl.textContent = (vsKgPct >= 0 ? '↑ +' : '↓ ') + vsKgPct.toFixed(1) + '%';
+        vsKgEl.style.color = vsKgPct >= 0 ? '#16a34a' : '#dc2626';
+      } else { vsKgEl.textContent = '—'; vsKgEl.style.color = '#94a3b8'; }
+    }
+
+    var roomsEl = document.getElementById('plan-rooms-' + m);
+    if (roomsEl) roomsEl.textContent = occRooms > 0 ? occRooms.toLocaleString() : '—';
+  }
+
+  // Totals
+  var totalOccAvg = occCount > 0 ? totalBaseOcc / occCount : 0;
+  var totalVsRev = totalBaseRev > 0 ? ((totalRevFc - totalBaseRev) / totalBaseRev * 100) : 0;
+  var totalVsKg  = totalBaseKg  > 0 ? ((totalKgFc  - totalBaseKg)  / totalBaseKg  * 100) : 0;
+
+  var el = function(id) { return document.getElementById(id); };
+  if (el('plan-total-occ'))    el('plan-total-occ').textContent    = totalOccAvg.toFixed(1) + '% avg';
+  if (el('plan-avg-growth'))   el('plan-avg-growth').textContent   = (totalGrowth/12).toFixed(1) + '% avg';
+  if (el('plan-total-rooms'))  el('plan-total-rooms').textContent  = totalOccRooms > 0 ? totalOccRooms.toLocaleString() : '—';
+  if (el('plan-total-rev'))    el('plan-total-rev').textContent    = totalRevFc > 0 ? fmtMoney(totalRevFc) : '—';
+  if (el('plan-total-kg'))     el('plan-total-kg').textContent     = totalKgFc > 0 ? totalKgFc.toFixed(0) + ' kg' : '—';
+  if (el('plan-total-vs-rev')) {
+    el('plan-total-vs-rev').textContent = (totalVsRev>=0?'↑ +':'↓ ') + totalVsRev.toFixed(1) + '%';
+    el('plan-total-vs-rev').style.color = totalVsRev >= 0 ? '#16a34a' : '#dc2626';
+  }
+  if (el('plan-total-vs-kg')) {
+    el('plan-total-vs-kg').textContent = (totalVsKg>=0?'↑ +':'↓ ') + totalVsKg.toFixed(1) + '%';
+    el('plan-total-vs-kg').style.color = totalVsKg >= 0 ? '#16a34a' : '#dc2626';
+  }
+
+  // Summary cards
+  var cards = document.getElementById('plan-summary-cards');
+  if (cards) {
+    cards.innerHTML = [
+      { label: 'Total Revenue Forecast', val: fmtMoney(totalRevFc), sub: (totalVsRev>=0?'↑ +':'↓ ')+totalVsRev.toFixed(1)+'% vs '+baseY, grad: 'linear-gradient(135deg,#15803d,#16a34a)', shadow: 'rgba(22,163,74,.25)' },
+      { label: 'Total KG Forecast', val: totalKgFc.toFixed(0)+' kg', sub: (totalVsKg>=0?'↑ +':'↓ ')+totalVsKg.toFixed(1)+'% vs '+baseY, grad: 'linear-gradient(135deg,#b45309,#d97706)', shadow: 'rgba(217,119,6,.25)' },
+      { label: 'Avg Monthly Revenue', val: fmtMoney(totalRevFc/12), sub: 'Per month average', grad: 'linear-gradient(135deg,#0369a1,#0284c7)', shadow: 'rgba(2,132,199,.25)' },
+      { label: 'Avg Occupancy', val: totalOccAvg.toFixed(1)+'%', sub: 'Projected '+targetY, grad: 'linear-gradient(135deg,#6d28d9,#7c3aed)', shadow: 'rgba(109,40,217,.25)' },
+      ( totalOccRooms > 0 ? { label: 'Total Room-Nights', val: totalOccRooms.toLocaleString(), sub: 'Projected occupied', grad: 'linear-gradient(135deg,#0e7490,#0891b2)', shadow: 'rgba(8,145,178,.25)' } :
+        { label: 'Avg Growth Rate', val: (totalGrowth/12).toFixed(1)+'%', sub: 'Applied across all months', grad: 'linear-gradient(135deg,#334155,#475569)', shadow: 'rgba(71,85,105,.25)' } )
+    ].map(function(c) {
+      return '<div style="background:'+c.grad+';border-radius:14px;padding:16px;box-shadow:0 6px 18px '+c.shadow+'">' +
+        '<div style="font-size:9px;font-weight:800;color:rgba(255,255,255,.65);letter-spacing:1px;margin-bottom:6px;text-transform:uppercase">'+c.label+'</div>' +
+        '<div style="font-size:18px;font-weight:900;color:#fff">'+c.val+'</div>' +
+        '<div style="font-size:10px;color:rgba(255,255,255,.6);margin-top:3px">'+c.sub+'</div>' +
+      '</div>';
+    }).join('');
+  }
+}
+
+function setPlanScenario(sc) {
+  _planData.scenario = sc;
+  var rates = { conservative: 3, moderate: 7, optimistic: 12 };
+  var occAdj = { conservative: 0, moderate: 2, optimistic: 5 };
+  var rate = rates[sc] || 7;
+  var adj  = occAdj[sc] || 0;
+  for (var m = 1; m <= 12; m++) {
+    var grEl  = document.getElementById('plan-growth-' + m);
+    var occEl = document.getElementById('plan-occ-'    + m);
+    if (grEl) { grEl.value = rate; _planData.months[m-1].growth = rate; }
+    if (occEl && _planData.months[m-1].baseOcc > 0) {
+      var newOcc = Math.min(100, _planData.months[m-1].baseOcc + adj);
+      occEl.value = newOcc.toFixed(0);
+      _planData.months[m-1].occ = newOcc;
+    }
+  }
+  // Update button styles
+  ['conservative','moderate','optimistic'].forEach(function(s) {
+    var btn = document.getElementById('sc-btn-' + s);
+    if (!btn) return;
+    var isActive = s === sc;
+    btn.style.background = isActive ? '#0d1b2e' : '#fff';
+    btn.style.color = isActive ? '#c9a84c' : '#64748b';
+    btn.style.borderColor = isActive ? '#0d1b2e' : '#e2e8f0';
+  });
+  recalcPlan();
+}
+
+function fillAllGrowth() {
+  var val = parseFloat(document.getElementById('plan-fill-growth')?.value) || 0;
+  for (var m = 1; m <= 12; m++) {
+    var el = document.getElementById('plan-growth-' + m);
+    if (el) { el.value = val; _planData.months[m-1].growth = val; }
+  }
+  recalcPlan();
+}
+
+function fillAllOcc() {
+  var val = parseFloat(document.getElementById('plan-fill-occ')?.value) || 0;
+  for (var m = 1; m <= 12; m++) {
+    var el = document.getElementById('plan-occ-' + m);
+    if (el) { el.value = val; _planData.months[m-1].occ = val; }
+  }
+  recalcPlan();
+}
+
+function savePlanAsTargets() {
+  if (!_planData.months) return;
+  var y = _planData.targetYear;
+  var saved = 0;
+  _planData.months.forEach(function(md, idx) {
+    var m = idx + 1;
+    if (md.revFc > 0) {
+      saveTarget(y, m, { revenue: Math.round(md.revFc) });
+      saved++;
+    }
+  });
+  logAudit('PLAN_TARGETS', 'Saved ' + saved + ' monthly targets for ' + y);
+  toast('✅ Saved ' + saved + ' monthly targets for ' + y, 'ok');
+}
+
+function exportPlanExcel() {
+  if (!_planData.months) return;
+  var baseY = _planData.baseYear;
+  var targetY = _planData.targetYear;
+  var MONTH_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var wb = XLSX.utils.book_new();
+
+  // Build rows
+  var header = [targetY + ' Budget Plan'].concat(MONTH_SHORT.map(function(mn){ return mn+'-'+String(targetY).slice(2); })).concat(['Total Year']);
+  var baseRevRow = ['Base (' + baseY + ') Revenue'];
+  var occRow = ['Occ %'];
+  var growthRow = ['Growth %'];
+  var revRow = ['Laundry Revenue'];
+  var vsRevRow = ['vs ' + baseY + ' Revenue'];
+  var kgRow = ['KG Forecast'];
+  var vsKgRow = ['vs ' + baseY + ' KG'];
+
+  var totalRevFc = 0, totalKgFc = 0, totalBaseRev = 0, totalBaseKg = 0;
+
+  _planData.months.forEach(function(md, idx) {
+    baseRevRow.push(md.baseRev > 0 ? md.baseRev : 0);
+    occRow.push(md.occ);
+    growthRow.push(md.growth + '%');
+    revRow.push(md.revFc > 0 ? Math.round(md.revFc) : 0);
+    var vsRev = md.baseRev > 0 && md.revFc > 0 ? ((md.revFc - md.baseRev)/md.baseRev*100).toFixed(1)+'%' : '—';
+    vsRevRow.push(vsRev);
+    kgRow.push(md.kgFc > 0 ? Math.round(md.kgFc) : 0);
+    var vsKg = md.baseKG > 0 && md.kgFc > 0 ? ((md.kgFc - md.baseKG)/md.baseKG*100).toFixed(1)+'%' : '—';
+    vsKgRow.push(vsKg);
+    totalRevFc += md.revFc || 0;
+    totalKgFc  += md.kgFc  || 0;
+    totalBaseRev += md.baseRev || 0;
+    totalBaseKg  += md.baseKG  || 0;
+  });
+
+  baseRevRow.push(Math.round(totalBaseRev));
+  occRow.push('');
+  growthRow.push('');
+  revRow.push(Math.round(totalRevFc));
+  vsRevRow.push(totalBaseRev > 0 ? ((totalRevFc-totalBaseRev)/totalBaseRev*100).toFixed(1)+'%' : '—');
+  kgRow.push(Math.round(totalKgFc));
+  vsKgRow.push(totalBaseKg > 0 ? ((totalKgFc-totalBaseKg)/totalBaseKg*100).toFixed(1)+'%' : '—');
+
+  var rows = [header, baseRevRow, [], occRow, growthRow, [], revRow, vsRevRow, [], kgRow, vsKgRow];
+  var notes = document.getElementById('plan-notes')?.value || '';
+  if (notes) rows.push([], ['Notes:', notes]);
+
+  var ws = XLSX.utils.aoa_to_sheet(rows);
+
+  // Column widths
+  ws['!cols'] = [{ wch: 22 }].concat(Array(12).fill({ wch: 11 })).concat([{ wch: 14 }]);
+
+  XLSX.utils.book_append_sheet(wb, ws, targetY + ' Budget');
+  XLSX.writeFile(wb, 'Pearl_Budget_Plan_' + targetY + '.xlsx');
+  toast('⬇️ Excel exported — Pearl_Budget_Plan_' + targetY + '.xlsx', 'ok');
+}
+
+function printPlanPDF() {
+  if (!_planData.months) return;
+  var baseY = _planData.baseYear;
+  var targetY = _planData.targetYear;
+  var MONTH_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  var totalRevFc = 0, totalKgFc = 0, totalBaseRev = 0;
+  _planData.months.forEach(function(md) { totalRevFc += md.revFc||0; totalKgFc += md.kgFc||0; totalBaseRev += md.baseRev||0; });
+  var yoyPct = totalBaseRev > 0 ? ((totalRevFc-totalBaseRev)/totalBaseRev*100).toFixed(1) : '—';
+
+  var win = window.open('', '_blank');
+  var css = '<style>body{font-family:Arial,sans-serif;font-size:11px;color:#1a2332;margin:20px}' +
+    'h1{font-size:16px;color:#0d1b2e;margin-bottom:4px}' +
+    '.sub{font-size:11px;color:#64748b;margin-bottom:16px}' +
+    'table{width:100%;border-collapse:collapse;margin-bottom:16px}' +
+    'th{background:#0d1b2e;color:#c9a84c;padding:6px 8px;text-align:center;font-size:10px}' +
+    'td{padding:5px 8px;text-align:center;border:1px solid #e2e8f0;font-size:10px}' +
+    '.row-lbl{text-align:left;font-weight:700;background:#f8fafc}' +
+    '.total-col{background:#0d1b2e;color:#c9a84c;font-weight:800}' +
+    '.rev-row td{font-weight:800;font-size:11px}' +
+    '.footer{font-size:10px;color:#94a3b8;text-align:center;border-top:1px solid #e2e8f0;padding-top:10px;margin-top:20px}' +
+    '@media print{body{margin:10px}}</style>';
+
+  var tableHTML = '<table><thead><tr>' +
+    '<th style="text-align:left;width:130px">' + targetY + '</th>';
+  MONTH_SHORT.forEach(function(mn) { tableHTML += '<th>' + mn + '-' + String(targetY).slice(2) + '</th>'; });
+  tableHTML += '<th style="background:#1a5e1a">Total Year</th></tr></thead><tbody>';
+
+  // Rows
+  var rowDefs = [
+    { label: 'Occ %', key: 'occ', fmt: function(v){ return v.toFixed(0)+'%'; }, cls: '' },
+    { label: 'Growth %', key: 'growth', fmt: function(v){ return v.toFixed(1)+'%'; }, cls: '' },
+    { label: 'Laundry Revenue', key: 'revFc', fmt: function(v){ return v>0?fmtMoney(v):'—'; }, cls: 'rev-row', total: totalRevFc },
+    { label: 'KG Forecast', key: 'kgFc', fmt: function(v){ return v>0?v.toFixed(0)+' kg':'—'; }, cls: '', total: totalKgFc }
+  ];
+
+  rowDefs.forEach(function(row) {
+    tableHTML += '<tr class="' + row.cls + '"><td class="row-lbl">' + row.label + '</td>';
+    _planData.months.forEach(function(md) {
+      tableHTML += '<td>' + row.fmt(md[row.key]||0) + '</td>';
+    });
+    tableHTML += '<td class="total-col">' + (row.total !== undefined ? row.fmt(row.total) : '') + '</td></tr>';
+  });
+
+  tableHTML += '</tbody></table>';
+
+  var notes = document.getElementById('plan-notes')?.value || '';
+
+  win.document.write('<!DOCTYPE html><html><head><title>Budget Plan ' + targetY + '</title>' + css + '</head><body>' +
+    '<h1>RS · Pearl Laundry — Budget Plan ' + targetY + '</h1>' +
+    '<div class="sub">Prepared ' + new Date().toLocaleDateString() + ' · Base year: ' + baseY + ' · YoY forecast: ' + (yoyPct !== '—' ? (yoyPct > 0 ? '+' : '') + yoyPct + '%' : '—') + '</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px">' +
+      '<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:12px"><div style="font-size:9px;font-weight:700;color:#64748b;margin-bottom:4px">TOTAL REVENUE FORECAST</div><div style="font-size:18px;font-weight:800;color:#15803d">' + fmtMoney(totalRevFc) + '</div></div>' +
+      '<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:12px"><div style="font-size:9px;font-weight:700;color:#64748b;margin-bottom:4px">TOTAL KG FORECAST</div><div style="font-size:18px;font-weight:800;color:#b45309">' + totalKgFc.toFixed(0) + ' kg</div></div>' +
+      '<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:12px"><div style="font-size:9px;font-weight:700;color:#64748b;margin-bottom:4px">YoY GROWTH</div><div style="font-size:18px;font-weight:800;color:#1d4ed8">' + (yoyPct !== '—' ? (yoyPct > 0 ? '+' : '') + yoyPct + '%' : '—') + '</div></div>' +
+    '</div>' +
+    tableHTML +
+    (notes ? '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;font-size:11px"><strong>Notes:</strong> ' + notes + '</div>' : '') +
+    '<div class="footer">© Reda Salah · RS Pearl Laundry Management System · All Rights Reserved</div>' +
+  '</body></html>');
+  win.document.close();
+  setTimeout(function() { win.print(); }, 500);
 }
 
 function showGuideSection(idx) {
