@@ -753,7 +753,6 @@ table.price-t tr:hover td{background:var(--grey3)}
   #online-indicator { display: none !important; }
   #fb-status { padding: 3px 7px !important; }
   #fb-label { display: none !important; }
-  #status-bar { display: none !important; }
 
   /* ── BOTTOM NAV ── */
   #mob-nav { display: flex !important; }
@@ -1222,22 +1221,7 @@ var _fbDB = null;
   </nav>
 
   <!-- ── Floating status bar (LIVE + ONLINE) ── -->
-  <div id="status-bar" style="position:fixed;bottom:14px;right:16px;z-index:500;display:flex;align-items:center;gap:8px">
-    <!-- Online users -->
-    <div id="online-indicator" onclick="toggleOnlinePopup(event)" style="cursor:pointer">
-      <div class="online-dot"></div>
-      <span id="online-label">1 online</span>
-      <div id="online-popup">
-        <div class="online-popup-head">👥 Currently Online</div>
-        <div id="online-users-list"></div>
-      </div>
-    </div>
-    <!-- Firebase status -->
-    <div id="fb-status" style="display:flex;align-items:center;gap:5px;background:rgba(13,27,46,.85);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:5px 11px;backdrop-filter:blur(8px);box-shadow:0 2px 12px rgba(0,0,0,.2)">
-      <div id="fb-dot" style="width:7px;height:7px;border-radius:50%;background:#94a3b8;box-shadow:0 0 0 2px rgba(148,163,184,.2);transition:all .4s ease;flex-shrink:0"></div>
-      <span id="fb-label" style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#94a3b8;transition:color .4s ease">...</span>
-    </div>
-  </div>
+
   <!-- ══════════════════════════════════════════════════════════
        MOBILE APP — completely separate layout, phone only
   ══════════════════════════════════════════════════════════ -->
@@ -4379,8 +4363,6 @@ function _bootApp(user) {
   // Init mobile layout if on phone — wait for Firebase data
   // Show status bar for desktop
   if (!isMobile()) {
-    var sb2 = document.getElementById('status-bar');
-    if (sb2) sb2.style.display = 'flex';
   }
 
   if (isMobile()) {
@@ -10888,7 +10870,6 @@ function showLicencePage(errMsg) {
 function proceedToLogin() {
   document.getElementById('pg-licence').style.display = 'none';
   document.getElementById('pg-login').style.display = 'flex';
-  var sb3 = document.getElementById('status-bar'); if (sb3) sb3.style.display = 'none';
 }
 
 function activateLicence() {
