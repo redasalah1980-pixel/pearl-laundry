@@ -77,136 +77,155 @@ input,select,textarea{font-family:inherit;outline:none;border:none}
   z-index: 1;
 }
 
-/* ── LOGIN PAGE — Premium Split Layout ───────────────────────── */
+/* ── LOGIN PAGE — Full Immersive Dark Background ─────────────── */
 #pg-login {
   min-height: 100vh;
   display: flex;
-  align-items: stretch;
-  position: relative;
-  overflow: hidden;
-  background: #06101e;
-}
-
-/* Left branding panel */
-.login-left {
-  flex: 0 0 55%;
-  background: linear-gradient(145deg, #050e1a 0%, #0d1b2e 35%, #091524 65%, #050e1a 100%);
-  display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   position: relative;
   overflow: hidden;
-  padding: 60px 50px;
-}
-.login-left::before {
-  content: '';
-  position: absolute;
-  inset: 0;
+  /* Deep dark layered background — one unified scene */
   background:
-    radial-gradient(circle at 25% 25%, rgba(201,168,76,.07) 0%, transparent 45%),
-    radial-gradient(circle at 75% 75%, rgba(201,168,76,.05) 0%, transparent 45%),
-    radial-gradient(circle at 50% 50%, rgba(201,168,76,.04) 0%, transparent 60%);
-  animation: glow-shift 8s ease-in-out infinite alternate;
-  pointer-events: none;
+    radial-gradient(ellipse 120% 80% at 15% 50%, rgba(13,27,46,.95) 0%, transparent 55%),
+    radial-gradient(ellipse 100% 100% at 85% 20%, rgba(5,14,26,.98) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 60% at 50% 90%, rgba(9,20,36,.9) 0%, transparent 50%),
+    linear-gradient(145deg, #020810 0%, #06101e 25%, #0d1b2e 50%, #060f1c 75%, #020810 100%);
 }
-@keyframes glow-shift {
-  from { opacity: .6; transform: scale(1); }
-  to   { opacity: 1;  transform: scale(1.05); }
-}
-/* Animated dot grid */
-.login-left::after {
+
+/* ── Animated star field layer ── */
+#pg-login::before {
   content: '';
   position: absolute;
   inset: 0;
   background-image:
-    radial-gradient(circle 1.5px at 15% 20%, rgba(201,168,76,.35) 0%, transparent 100%),
-    radial-gradient(circle 1px  at 85% 15%, rgba(201,168,76,.25) 0%, transparent 100%),
-    radial-gradient(circle 1px  at 70% 75%, rgba(201,168,76,.3)  0%, transparent 100%),
-    radial-gradient(circle 1.5px at 30% 85%, rgba(201,168,76,.3) 0%, transparent 100%),
-    radial-gradient(circle 1px  at 90% 55%, rgba(201,168,76,.2)  0%, transparent 100%),
-    radial-gradient(circle 1px  at 8%  60%, rgba(201,168,76,.3)  0%, transparent 100%),
-    radial-gradient(circle 1px  at 55% 10%, rgba(201,168,76,.2)  0%, transparent 100%),
-    radial-gradient(circle 1px  at 45% 90%, rgba(201,168,76,.25) 0%, transparent 100%),
-    radial-gradient(circle 1px  at 20% 48%, rgba(201,168,76,.15) 0%, transparent 100%),
-    radial-gradient(circle 1px  at 62% 38%, rgba(201,168,76,.2)  0%, transparent 100%),
-    radial-gradient(circle 1px  at 38% 62%, rgba(201,168,76,.15) 0%, transparent 100%),
-    radial-gradient(circle 1px  at 78% 42%, rgba(201,168,76,.2)  0%, transparent 100%);
-  animation: dot-drift 14s ease-in-out infinite alternate;
+    radial-gradient(circle 1.5px at  8% 12%, rgba(201,168,76,.7) 0%, transparent 100%),
+    radial-gradient(circle 1px  at 23% 28%, rgba(201,168,76,.4) 0%, transparent 100%),
+    radial-gradient(circle 1px  at 67% 8%,  rgba(201,168,76,.5) 0%, transparent 100%),
+    radial-gradient(circle 2px  at 89% 18%, rgba(201,168,76,.35) 0%, transparent 100%),
+    radial-gradient(circle 1px  at 45% 5%,  rgba(255,255,255,.25) 0%, transparent 100%),
+    radial-gradient(circle 1px  at 78% 35%, rgba(255,255,255,.2) 0%, transparent 100%),
+    radial-gradient(circle 1.5px at 12% 45%, rgba(201,168,76,.45) 0%, transparent 100%),
+    radial-gradient(circle 1px  at 92% 55%, rgba(201,168,76,.3) 0%, transparent 100%),
+    radial-gradient(circle 1px  at 34% 72%, rgba(255,255,255,.15) 0%, transparent 100%),
+    radial-gradient(circle 1.5px at 56% 82%, rgba(201,168,76,.4) 0%, transparent 100%),
+    radial-gradient(circle 1px  at 18% 88%, rgba(255,255,255,.2) 0%, transparent 100%),
+    radial-gradient(circle 1px  at 73% 92%, rgba(201,168,76,.35) 0%, transparent 100%),
+    radial-gradient(circle 1px  at 40% 95%, rgba(255,255,255,.15) 0%, transparent 100%),
+    radial-gradient(circle 2px  at 5%  68%, rgba(201,168,76,.3) 0%, transparent 100%),
+    radial-gradient(circle 1px  at 95% 78%, rgba(255,255,255,.2) 0%, transparent 100%),
+    radial-gradient(circle 1px  at 28% 52%, rgba(201,168,76,.25) 0%, transparent 100%),
+    radial-gradient(circle 1px  at 62% 48%, rgba(255,255,255,.15) 0%, transparent 100%),
+    radial-gradient(circle 1px  at 83% 65%, rgba(201,168,76,.2) 0%, transparent 100%);
+  animation: star-drift 20s ease-in-out infinite alternate;
   pointer-events: none;
 }
-@keyframes dot-drift {
-  from { transform: translate(0,0); }
-  to   { transform: translate(-10px, 14px); }
-}
 
-.login-left-content {
-  position: relative;
-  z-index: 2;
-  text-align: center;
-  max-width: 380px;
-}
-
-/* Right form panel */
-.login-right {
-  flex: 0 0 45%;
-  background: #f5f6f8;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 56px;
-  position: relative;
-}
-.login-right::before {
+/* ── Ambient gold glow — like light source in scene ── */
+#pg-login::after {
   content: '';
   position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, transparent 0%, #c9a84c 30%, #c9a84c 70%, transparent 100%);
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 20% 30%, rgba(201,168,76,.04) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 60% at 80% 70%, rgba(13,27,46,.6) 0%, transparent 50%),
+    radial-gradient(ellipse 50% 40% at 50% 100%, rgba(201,168,76,.03) 0%, transparent 50%);
+  animation: ambient-shift 12s ease-in-out infinite alternate;
+  pointer-events: none;
 }
 
-.login-form-wrap {
-  width: 100%;
-  max-width: 320px;
-  animation: form-in .65s cubic-bezier(.22,1,.36,1) both;
-  animation-delay: .2s;
-  opacity: 0;
+@keyframes star-drift {
+  from { transform: translate(0, 0) scale(1); opacity: .7; }
+  to   { transform: translate(-6px, 10px) scale(1.02); opacity: 1; }
 }
-@keyframes form-in {
-  from { opacity:0; transform:translateX(20px); }
-  to   { opacity:1; transform:translateX(0); }
+@keyframes ambient-shift {
+  from { opacity: .6; }
+  to   { opacity: 1; }
 }
 
-/* Underline-style inputs */
+/* ── Floating glass card ── */
+.login-card {
+  width: 420px;
+  max-width: 94vw;
+  background: rgba(10, 20, 35, 0.75);
+  border: 1px solid rgba(201,168,76,.2);
+  border-radius: 20px;
+  padding: 46px 44px 40px;
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  box-shadow:
+    0 0 0 1px rgba(201,168,76,.06),
+    0 32px 80px rgba(0,0,0,.7),
+    0 0 100px rgba(0,0,0,.5),
+    inset 0 1px 0 rgba(201,168,76,.08);
+  animation: card-rise .8s cubic-bezier(.22,1,.36,1) both;
+  position: relative;
+  z-index: 2;
+}
+/* Gold shimmer line at top of card */
+.login-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 10%; right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(201,168,76,.6) 30%, rgba(201,168,76,.6) 70%, transparent);
+  border-radius: 1px;
+}
+/* Subtle inner corner glow */
+.login-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 150px; height: 150px;
+  background: radial-gradient(circle at 0% 0%, rgba(201,168,76,.06) 0%, transparent 65%);
+  border-radius: 20px 0 0 0;
+  pointer-events: none;
+}
+
+@keyframes card-rise {
+  from { opacity:0; transform:translateY(28px) scale(.97); }
+  to   { opacity:1; transform:translateY(0) scale(1); }
+}
+@keyframes logo-pulse {
+  0%,100% { opacity:.3; transform:scale(1); }
+  50%     { opacity:.7; transform:scale(1.08); }
+}
+@keyframes rise {
+  from { opacity:0; transform:translateY(20px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* ── Form elements ── */
 .lfl {
   display: block;
   font-size: 10px;
   font-weight: 700;
-  color: #9ca3af;
-  letter-spacing: 1.8px;
+  color: rgba(201,168,76,.65);
+  letter-spacing: 2px;
   text-transform: uppercase;
-  margin-bottom: 4px;
-  margin-top: 20px;
+  margin-bottom: 6px;
 }
 .lfi {
   width: 100%;
-  padding: 10px 0;
-  background: transparent;
-  border: none;
-  border-bottom: 1.5px solid #d1d5db;
-  border-radius: 0;
-  color: #1a2332;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(201,168,76,.15);
+  border-radius: 8px;
+  padding: 12px 15px;
+  color: #fff;
   font-size: 14px;
   font-weight: 500;
   outline: none;
-  transition: border-color .2s;
+  transition: all .2s;
+  margin-bottom: 18px;
   box-sizing: border-box;
 }
-.lfi:focus { border-bottom-color: #c9a84c; }
-.lfi::placeholder { color: #c4c9d4; font-size: 13px; }
+.lfi:focus {
+  border-color: rgba(201,168,76,.5);
+  background: rgba(201,168,76,.04);
+  box-shadow: 0 0 0 3px rgba(201,168,76,.07);
+}
+.lfi::placeholder { color: rgba(255,255,255,.2); font-size: 13px; }
 
-/* Gold button */
 .lbtn {
   width: 100%;
   padding: 14px;
@@ -217,20 +236,19 @@ input,select,textarea{font-family:inherit;outline:none;border:none}
   letter-spacing: 2px;
   text-transform: uppercase;
   border: none;
-  border-radius: 3px;
+  border-radius: 8px;
   cursor: pointer;
   transition: all .2s;
-  box-shadow: 0 4px 20px rgba(201,168,76,.35);
-  margin-top: 32px;
+  box-shadow: 0 4px 20px rgba(201,168,76,.3), 0 0 0 1px rgba(201,168,76,.2);
+  margin-top: 6px;
 }
 .lbtn:hover {
   background: linear-gradient(135deg, #d4b45a 0%, #c9a84c 100%);
-  box-shadow: 0 6px 28px rgba(201,168,76,.5);
+  box-shadow: 0 6px 28px rgba(201,168,76,.5), 0 0 0 1px rgba(201,168,76,.3);
   transform: translateY(-1px);
 }
 .lbtn:active { transform: translateY(0); }
 
-/* Error */
 .lerr {
   min-height: 0;
   overflow: hidden;
@@ -240,11 +258,12 @@ input,select,textarea{font-family:inherit;outline:none;border:none}
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #fee2e2;
-  border-left: 3px solid #dc2626;
+  background: rgba(220,38,38,.15);
+  border: 1px solid rgba(220,38,38,.35);
+  border-radius: 8px;
   padding: 10px 14px;
-  margin-top: 14px;
-  color: #b91c1c;
+  margin-top: 12px;
+  color: #fca5a5;
   font-size: 12px;
   font-weight: 600;
   animation: shake .35s ease;
@@ -254,27 +273,20 @@ input,select,textarea{font-family:inherit;outline:none;border:none}
   20%,60%{transform:translateX(-6px)}
   40%,80%{transform:translateX(6px)}
 }
-@keyframes rise {
-  from { opacity:0; transform:translateY(24px); }
-  to   { opacity:1; transform:translateY(0); }
-}
-@keyframes logo-pulse {
-  0%,100% { opacity:.4; transform:scale(1); }
-  50%     { opacity:.8; transform:scale(1.05); }
-}
-.l-copy { text-align:center; font-size:10px; color:#9ca3af; margin-top:28px; letter-spacing:.5px; }
 
-/* Divider */
-.login-divider { display:flex; align-items:center; gap:12px; margin:20px auto; width:220px; }
-.login-divider-line { flex:1; height:1px; background:linear-gradient(90deg,transparent,rgba(201,168,76,.4),transparent); }
-.login-divider-dot { width:4px; height:4px; border-radius:50%; background:#c9a84c; opacity:.5; }
+.l-copy {
+  text-align: center;
+  font-size: 10px;
+  color: rgba(255,255,255,.18);
+  margin-top: 22px;
+  letter-spacing: .5px;
+}
+.login-divider { display:flex; align-items:center; gap:12px; margin:18px auto; width:220px; }
+.login-divider-line { flex:1; height:1px; background:linear-gradient(90deg,transparent,rgba(201,168,76,.35),transparent); }
+.login-divider-dot  { width:4px; height:4px; border-radius:50%; background:#c9a84c; opacity:.5; }
 
-/* Mobile */
-@media (max-width: 768px) {
-  #pg-login { flex-direction: column; }
-  .login-left { flex:0 0 auto; min-height:240px; padding:40px 28px; }
-  .login-right { flex:1; padding:40px 28px; }
-  .login-form-wrap { max-width:100%; }
+@media (max-width: 600px) {
+  .login-card { padding: 36px 28px 32px; }
 }
 
 /* APP */
@@ -1094,122 +1106,80 @@ var _fbDB = null;
 </div>
 
 <div id="pg-login">
+  <div class="login-card">
 
-  <!-- ── LEFT PANEL — Branding ── -->
-  <div class="login-left">
-    <div class="login-left-content">
-
-      <!-- Logo monogram -->
-      <div style="position:relative;display:inline-block;margin-bottom:28px">
-        <div style="position:absolute;inset:-12px;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,.18) 0%,transparent 70%);animation:logo-pulse 4s ease-in-out infinite"></div>
-        <div style="width:96px;height:96px;border-radius:50%;background:linear-gradient(145deg,#0d1b2e,#162d4a);border:1.5px solid rgba(201,168,76,.35);display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 0 40px rgba(0,0,0,.5),0 0 0 1px rgba(201,168,76,.1)">
+    <!-- Brand top -->
+    <div style="text-align:center;margin-bottom:30px">
+      <!-- Monogram with glow rings -->
+      <div style="position:relative;display:inline-block;margin-bottom:18px">
+        <div style="position:absolute;inset:-14px;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,.15) 0%,transparent 70%);animation:logo-pulse 4s ease-in-out infinite"></div>
+        <div style="position:absolute;inset:-6px;border-radius:50%;border:1px solid rgba(201,168,76,.12)"></div>
+        <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(145deg,#0d1b2e,#162d4a);border:1.5px solid rgba(201,168,76,.35);display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 8px 32px rgba(0,0,0,.6),0 0 0 1px rgba(201,168,76,.08)">
           <div style="text-align:center">
-            <div style="font-family:Georgia,serif;font-size:28px;font-weight:700;color:#c9a84c;line-height:1;letter-spacing:2px">RS</div>
-            <div style="font-size:8px;color:rgba(201,168,76,.45);letter-spacing:3px;margin-top:3px">PEARL</div>
+            <div style="font-family:Georgia,serif;font-size:24px;font-weight:700;color:#c9a84c;line-height:1;letter-spacing:2px">RS</div>
+            <div style="font-size:7px;color:rgba(201,168,76,.45);letter-spacing:3px;margin-top:2px">PEARL</div>
           </div>
         </div>
       </div>
 
-      <!-- Brand name -->
-      <h1 style="font-family:Georgia,'Times New Roman',serif;font-size:30px;font-weight:700;color:#fff;margin:0 0 10px;letter-spacing:1px;line-height:1.2">Pearl Management<br>System</h1>
+      <!-- Title -->
+      <h1 style="font-family:Georgia,'Times New Roman',serif;font-size:22px;font-weight:700;color:#fff;margin:0 0 5px;letter-spacing:.8px">Pearl Management System</h1>
 
-      <!-- Decorative divider -->
-      <div class="login-divider">
+      <!-- Divider -->
+      <div class="login-divider" style="margin:12px auto">
         <div class="login-divider-line"></div>
         <div class="login-divider-dot"></div>
         <div class="login-divider-line"></div>
       </div>
 
-      <!-- Tagline -->
-      <p style="font-size:11px;font-weight:600;color:rgba(201,168,76,.55);letter-spacing:3.5px;text-transform:uppercase;margin:0 0 36px">Laundry Tracking &amp; Operations</p>
-
-      <!-- Feature pills -->
-      <div style="display:flex;flex-direction:column;gap:10px;align-items:flex-start;max-width:260px;margin:0 auto">
-        <div style="display:flex;align-items:center;gap:10px;opacity:.65">
-          <div style="width:24px;height:24px;border-radius:50%;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.2);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0">📊</div>
-          <span style="font-size:12px;color:rgba(255,255,255,.6);letter-spacing:.3px">Real-time dashboard & analytics</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;opacity:.65">
-          <div style="width:24px;height:24px;border-radius:50%;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.2);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0">🔮</div>
-          <span style="font-size:12px;color:rgba(255,255,255,.6);letter-spacing:.3px">Revenue forecasting engine</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;opacity:.65">
-          <div style="width:24px;height:24px;border-radius:50%;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.2);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0">☁️</div>
-          <span style="font-size:12px;color:rgba(255,255,255,.6);letter-spacing:.3px">Cloud sync across all devices</span>
-        </div>
-      </div>
-
-      <!-- Version badge -->
-      <div style="margin-top:44px;display:inline-flex;align-items:center;gap:6px;background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.15);border-radius:20px;padding:5px 14px">
-        <div style="width:6px;height:6px;border-radius:50%;background:#c9a84c;animation:logo-pulse 2s infinite"></div>
-        <span style="font-size:10px;color:rgba(201,168,76,.6);letter-spacing:1px;font-weight:600">V21 · 2026</span>
-      </div>
-
+      <p style="font-size:10px;font-weight:600;color:rgba(201,168,76,.5);letter-spacing:3.5px;text-transform:uppercase;margin:0">Laundry Tracking &amp; Operations</p>
     </div>
-    <!-- Copyright bottom left -->
-    <div style="position:absolute;bottom:22px;left:0;right:0;text-align:center;font-size:9px;color:rgba(255,255,255,.15);letter-spacing:.5px">© Reda Salah · All Rights Reserved</div>
-  </div>
 
-  <!-- ── RIGHT PANEL — Login Form ── -->
-  <div class="login-right">
-    <div class="login-form-wrap">
+    <!-- Fields -->
+    <label class="lfl">Username</label>
+    <input id="l-user" class="lfi" type="text" placeholder="Enter username" value="Reda Salah">
 
-      <!-- Welcome heading -->
-      <div style="margin-bottom:36px">
-        <h2 style="font-size:26px;font-weight:800;color:#0d1b2e;margin:0 0 6px;letter-spacing:-.3px">Welcome back</h2>
-        <p style="font-size:13px;color:#9ca3af;margin:0">Sign in to your account to continue</p>
-      </div>
-
-      <!-- Fields -->
-      <label class="lfl">Username</label>
-      <input id="l-user" class="lfi" type="text" placeholder="Enter your username" value="Reda Salah">
-
-      <label class="lfl">Password</label>
-      <div style="position:relative">
-        <input id="l-pass" class="lfi" type="password" placeholder="Enter your password"
-          onkeydown="if(event.key==='Enter'){event.preventDefault();doLogin();}"
-          onkeyup="chkCaps(event,'caps-login')" style="padding-right:40px">
-        <button type="button" onclick="togglePassVis()" id="eye-btn"
-          style="position:absolute;right:0;top:0;bottom:0;width:36px;background:none;border:none;cursor:pointer;color:#9ca3af;font-size:16px;display:flex;align-items:center;justify-content:center;transition:color .2s"
-          title="Show/hide password">
-          <span id="eye-icon">👁</span>
-        </button>
-      </div>
-
-      <div id="caps-login" class="caps-warn hidden" style="background:#fefce8;border-color:#fde68a;color:#92400e;margin-top:8px;font-size:12px;padding:8px 12px;border-radius:4px">⚠️ Caps Lock is ON</div>
-
-      <!-- Button -->
-      <button class="lbtn" onclick="doLogin()">▶ &nbsp; ENTER SYSTEM</button>
-
-      <!-- Error -->
-      <div class="lerr" id="l-err"></div>
-
-      <!-- Divider -->
-      <div style="margin-top:32px;display:flex;align-items:center;gap:12px">
-        <div style="flex:1;height:1px;background:#e5e7eb"></div>
-        <span style="font-size:11px;color:#d1d5db;font-weight:600">SECURED SYSTEM</span>
-        <div style="flex:1;height:1px;background:#e5e7eb"></div>
-      </div>
-
-      <!-- Security badges -->
-      <div style="display:flex;justify-content:center;gap:16px;margin-top:16px">
-        <div style="display:flex;align-items:center;gap:5px">
-          <span style="font-size:13px">🔒</span>
-          <span style="font-size:10px;color:#9ca3af;font-weight:600">Encrypted</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:5px">
-          <span style="font-size:13px">☁️</span>
-          <span style="font-size:10px;color:#9ca3af;font-weight:600">Cloud Sync</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:5px">
-          <span style="font-size:13px">🛡️</span>
-          <span style="font-size:10px;color:#9ca3af;font-weight:600">Licensed</span>
-        </div>
-      </div>
-
+    <label class="lfl">Password</label>
+    <div style="position:relative">
+      <input id="l-pass" class="lfi" type="password" placeholder="Enter password"
+        onkeydown="if(event.key==='Enter'){event.preventDefault();doLogin();}"
+        onkeyup="chkCaps(event,'caps-login')"
+        style="padding-right:46px;margin-bottom:0">
+      <button type="button" onclick="togglePassVis()" id="eye-btn"
+        style="position:absolute;right:0;top:0;bottom:0;width:44px;background:none;border:none;cursor:pointer;color:rgba(255,255,255,.35);font-size:17px;display:flex;align-items:center;justify-content:center;transition:color .2s"
+        title="Show/hide password">
+        <span id="eye-icon">👁</span>
+      </button>
     </div>
-  </div>
 
+    <div id="caps-login" class="caps-warn hidden" style="background:rgba(254,243,199,.08);border-color:rgba(253,230,138,.2);color:#fde68a;margin-top:6px;font-size:11px;padding:7px 12px;border-radius:6px">⚠️ Caps Lock is ON</div>
+
+    <!-- Login button -->
+    <button class="lbtn" onclick="doLogin()">▶ &nbsp; ENTER SYSTEM</button>
+
+    <!-- Error -->
+    <div class="lerr" id="l-err"></div>
+
+    <!-- Security row -->
+    <div style="display:flex;justify-content:center;align-items:center;gap:16px;margin-top:20px;padding-top:18px;border-top:1px solid rgba(255,255,255,.06)">
+      <div style="display:flex;align-items:center;gap:5px;opacity:.45">
+        <span style="font-size:12px">🔒</span>
+        <span style="font-size:10px;color:rgba(255,255,255,.5);font-weight:600;letter-spacing:.5px">ENCRYPTED</span>
+      </div>
+      <div style="width:3px;height:3px;border-radius:50%;background:rgba(201,168,76,.3)"></div>
+      <div style="display:flex;align-items:center;gap:5px;opacity:.45">
+        <span style="font-size:12px">☁️</span>
+        <span style="font-size:10px;color:rgba(255,255,255,.5);font-weight:600;letter-spacing:.5px">CLOUD SYNC</span>
+      </div>
+      <div style="width:3px;height:3px;border-radius:50%;background:rgba(201,168,76,.3)"></div>
+      <div style="display:flex;align-items:center;gap:5px;opacity:.45">
+        <span style="font-size:12px">🛡️</span>
+        <span style="font-size:10px;color:rgba(255,255,255,.5);font-weight:600;letter-spacing:.5px">LICENSED</span>
+      </div>
+    </div>
+
+    <div class="l-copy">© Reda Salah · RS Pearl Management System · All Rights Reserved</div>
+  </div>
 </div>
 
 <!-- APP -->
@@ -2273,6 +2243,7 @@ var _fbDB = null;
       <button class="stab"     id="stab-access"  onclick="switchStab('access')" style="flex:1;padding:16px 10px;font-size:13px">🔒 Tab Access</button>
       <button class="stab"     id="stab-audit"   onclick="switchStab('audit')"  style="flex:1;padding:16px 10px;font-size:13px">📋 Audit Log</button>
       <button class="stab"     id="stab-currency" onclick="switchStab('currency')" style="flex:1;padding:16px 10px;font-size:13px">💱 Currency</button>
+      <button class="stab"     id="stab-licence"  onclick="switchStab('licence')"  style="flex:1;padding:16px 10px;font-size:13px">🔑 Licences</button>
     </div>
 
     <div style="padding:30px 36px 24px;max-height:70vh;overflow-y:auto">
@@ -2508,6 +2479,48 @@ var _fbDB = null;
         </div>
         <div id="currency-msg" style="font-size:12px;font-weight:600;color:#16a34a;margin-bottom:10px"></div>
         <button onclick="applyCurrencySettings()" style="width:100%;padding:14px;background:linear-gradient(135deg,#0d1b2e,#1e3a5f);color:#c9a84c;border:none;border-radius:11px;font-size:14px;font-weight:700;cursor:pointer">💾 Save Currency Settings</button>
+      </div>
+
+      <!-- ── PANEL: Licences ─────────────────────── -->
+      <div id="spanel-licence" style="display:none">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+          <div style="width:40px;height:40px;background:#fef9c3;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px">🔑</div>
+          <div>
+            <div style="font-size:15px;font-weight:800;color:#0d1b2e">Licence Manager</div>
+            <div style="font-size:12px;color:#64748b;margin-top:2px">Generate, view and revoke access keys</div>
+          </div>
+        </div>
+
+        <!-- Generate new key -->
+        <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:12px;padding:18px;margin-bottom:20px">
+          <div style="font-size:12px;font-weight:800;color:#0d1b2e;margin-bottom:12px">➕ Generate New Key</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+            <div>
+              <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">HOLDER NAME</div>
+              <input id="new-lic-holder" placeholder="e.g. Hotel Al Rayyan" style="width:100%;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;color:#0d1b2e;outline:none;box-sizing:border-box">
+            </div>
+            <div>
+              <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">EXPIRY DATE</div>
+              <input id="new-lic-expiry" type="date" style="width:100%;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;color:#0d1b2e;outline:none;box-sizing:border-box">
+            </div>
+          </div>
+          <button onclick="adminGenerateKey()" style="padding:10px 20px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">🔑 Generate Key</button>
+          <div id="new-lic-result" style="display:none;margin-top:12px;padding:14px 16px;background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;font-family:monospace;font-size:18px;font-weight:800;color:#15803d;letter-spacing:3px;text-align:center"></div>
+          <div id="new-lic-copy-hint" style="display:none;text-align:center;font-size:11px;color:#64748b;margin-top:6px">✅ Copied to clipboard automatically</div>
+        </div>
+
+        <!-- Active keys list -->
+        <div style="font-size:12px;font-weight:800;color:#0d1b2e;margin-bottom:10px">🗝️ Active Licences</div>
+        <div id="lic-keys-list">
+          <div style="text-align:center;padding:20px;color:#94a3b8;font-size:13px">Loading keys...</div>
+        </div>
+
+        <!-- Master key info -->
+        <div style="margin-top:16px;background:#fefce8;border:1.5px solid #fde68a;border-radius:10px;padding:14px 16px">
+          <div style="font-size:11px;font-weight:800;color:#92400e;margin-bottom:6px">🛡️ YOUR MASTER KEY — Never expires</div>
+          <div style="font-family:monospace;font-size:16px;font-weight:800;color:#b45309;letter-spacing:2px">RS26-PERL-MSTR-2026</div>
+          <div style="font-size:10px;color:#92400e;margin-top:4px">Keep this private. Works on any approved domain.</div>
+        </div>
       </div>
 
     </div>
@@ -3800,7 +3813,7 @@ function clearAuditLog() {
 }
 
 function switchStab(name) {
-  ['admin','team','access','audit','currency'].forEach(function(t) {
+  ['admin','team','access','audit','currency','licence'].forEach(function(t) {
     var btn = document.getElementById('stab-'+t);
     var pan = document.getElementById('spanel-'+t);
     if (btn) btn.classList.toggle('on', t===name);
@@ -3810,6 +3823,7 @@ function switchStab(name) {
   if (name === 'team') prefillTeam();
   if (name === 'audit') renderAuditLog();
   if (name === 'currency') openCurrencySettings();
+  if (name === 'licence') loadLicencePanel();
 }
 
 function openSettings() {
@@ -10952,6 +10966,52 @@ function revokeLicenceKey(key) {
 }
 
 // ── Admin: Manage licences from settings ──
+function loadLicencePanel() {
+  var listEl = document.getElementById('lic-keys-list');
+  if (!listEl) return;
+  if (!window._fbDB) {
+    listEl.innerHTML = '<div style="color:#dc2626;font-size:12px;padding:12px">Firebase not connected. Please wait and try again.</div>';
+    return;
+  }
+  listEl.innerHTML = '<div style="text-align:center;padding:16px;color:#94a3b8;font-size:12px">Loading...</div>';
+  window._fbDB.ref('pearl/licences').once('value').then(function(snap) {
+    var data = snap.val() || {};
+    var keys = Object.keys(data);
+    if (keys.length === 0) {
+      listEl.innerHTML = '<div style="text-align:center;padding:20px;color:#94a3b8;font-size:13px">No keys generated yet. Create your first key above.</div>';
+      return;
+    }
+    var html = '';
+    keys.forEach(function(k) {
+      var d = data[k];
+      var formattedKey = k.match(/.{1,4}/g)?.join('-') || k;
+      var isActive  = d.active !== false;
+      var isExpired = d.expires && new Date(d.expires) < new Date();
+      var statusCol = isExpired ? '#dc2626' : isActive ? '#16a34a' : '#94a3b8';
+      var statusBg  = isExpired ? '#fee2e2' : isActive ? '#f0fdf4' : '#f8fafc';
+      var statusLbl = isExpired ? '⏰ Expired' : isActive ? '✅ Active' : '❌ Revoked';
+      html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:#fff;border:1.5px solid #e2e8f0;border-radius:10px;margin-bottom:8px;gap:10px;flex-wrap:wrap">' +
+        '<div>' +
+          '<div style="font-family:monospace;font-size:14px;font-weight:800;color:#0d1b2e;letter-spacing:1.5px">' + formattedKey + '</div>' +
+          '<div style="font-size:11px;color:#64748b;margin-top:3px">' +
+            '👤 ' + (d.holder||'Unknown') +
+            (d.expires ? ' · 📅 Expires: ' + d.expires : ' · No expiry') +
+            (d.lastUsed ? ' · Last used: ' + new Date(d.lastUsed).toLocaleDateString() : '') +
+          '</div>' +
+        '</div>' +
+        '<div style="display:flex;align-items:center;gap:8px">' +
+          '<span style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;background:' + statusBg + ';color:' + statusCol + '">' + statusLbl + '</span>' +
+          (isActive && !isExpired ?
+            '<button onclick="adminRevokeKey(\''+k+'\')" style="padding:5px 12px;background:#fee2e2;border:1.5px solid #fca5a5;color:#dc2626;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer">Revoke</button>' : '') +
+        '</div>' +
+      '</div>';
+    });
+    listEl.innerHTML = html;
+  }).catch(function(e) {
+    listEl.innerHTML = '<div style="color:#dc2626;font-size:12px;padding:12px">Error loading keys: ' + e.message + '</div>';
+  });
+}
+
 function openLicenceManager() {
   if (!window._fbDB) { toast('Firebase not connected', 'err'); return; }
   window._fbDB.ref('pearl/licences').once('value').then(function(snap) {
@@ -11019,22 +11079,26 @@ function openLicenceManager() {
 function adminGenerateKey() {
   var holder = document.getElementById('new-lic-holder')?.value?.trim() || 'Unknown';
   var expiry = document.getElementById('new-lic-expiry')?.value || null;
+  if (!holder || holder === 'Unknown') { toast('⚠️ Enter a holder name first', 'err'); return; }
   var key = createLicenceKey(holder, expiry);
   var result = document.getElementById('new-lic-result');
+  var hint   = document.getElementById('new-lic-copy-hint');
   if (result) {
     result.textContent = key;
     result.style.display = 'block';
-    // Copy to clipboard
-    navigator.clipboard?.writeText(key).catch(function(){});
-    toast('🔑 Key generated: ' + key + ' (copied!)', 'ok');
+    if (hint) hint.style.display = 'block';
   }
+  navigator.clipboard?.writeText(key).catch(function(){});
+  toast('🔑 Key generated & copied: ' + key, 'ok');
+  // Refresh the keys list after a moment
+  setTimeout(loadLicencePanel, 1000);
 }
 
 function adminRevokeKey(keyClean) {
   if (!confirm('Revoke this licence key? The holder will lose access.')) return;
   revokeLicenceKey(keyClean);
   toast('❌ Licence revoked', 'ok');
-  setTimeout(openLicenceManager, 500);
+  setTimeout(loadLicencePanel, 600);
 }
 
 function showGuideSection(idx) {
