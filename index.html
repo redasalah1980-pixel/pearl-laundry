@@ -294,36 +294,40 @@ input,select,textarea{font-family:inherit;outline:none;border:none}
 
 /* TOP NAV */
 .topnav{background:var(--navy);border-bottom:1px solid rgba(201,168,76,.12);
-  display:flex;align-items:center;padding:0 20px;height:54px;
-  position:sticky;top:0;z-index:200;box-shadow:0 2px 12px rgba(0,0,0,.25)}
-.tn-brand{display:flex;align-items:center;gap:10px;margin-right:24px;text-decoration:none;border-radius:8px;padding:4px 8px;margin-left:-8px;transition:background .15s}
+  display:flex;align-items:center;padding:0 16px;height:54px;
+  position:sticky;top:0;z-index:200;box-shadow:0 2px 12px rgba(0,0,0,.25);
+  overflow:hidden;min-width:0}
+.tn-brand{display:flex;align-items:center;gap:8px;margin-right:16px;text-decoration:none;border-radius:8px;padding:4px 8px;margin-left:-8px;transition:background .15s;flex-shrink:0}
 .tn-brand:hover{background:rgba(201,168,76,.12)}
-.tn-brand img{width:34px;height:34px;border-radius:50%;border:1.5px solid rgba(201,168,76,.4)}
+.tn-brand img{width:30px;height:30px;border-radius:50%;border:1.5px solid rgba(201,168,76,.4);flex-shrink:0}
 .tn-brand-text{display:flex;flex-direction:column}
-.tn-brand-name{font-family:Georgia,'Times New Roman',serif;font-size:14px;font-weight:700;
-  color:var(--white);letter-spacing:.5px;line-height:1}
-.tn-brand-sub{font-size:9px;color:var(--gold3);letter-spacing:2px;text-transform:uppercase;margin-top:2px}
-.tn-divider{width:1px;height:28px;background:rgba(201,168,76,.15);margin-right:20px}
-.tn-tabs{display:flex;align-items:center;gap:1px;flex:1}
-.tn-tab{display:flex;align-items:center;gap:5px;padding:0 10px;height:54px;
-  font-size:12px;font-weight:500;color:rgba(255,255,255,.45);cursor:pointer;
-  border-bottom:2px solid transparent;transition:.15s;white-space:nowrap}
+.tn-brand-name{font-family:Georgia,'Times New Roman',serif;font-size:13px;font-weight:700;
+  color:var(--white);letter-spacing:.5px;line-height:1;white-space:nowrap}
+.tn-brand-sub{font-size:8px;color:var(--gold3);letter-spacing:1.5px;text-transform:uppercase;margin-top:2px;white-space:nowrap}
+.tn-divider{width:1px;height:28px;background:rgba(201,168,76,.15);margin-right:12px;flex-shrink:0}
+.tn-tabs{display:flex;align-items:center;gap:0;flex:1;overflow-x:auto;overflow-y:hidden;min-width:0;
+  scrollbar-width:none;-ms-overflow-style:none}
+.tn-tabs::-webkit-scrollbar{display:none}
+.tn-tab{display:flex;align-items:center;gap:4px;padding:0 9px;height:54px;
+  font-size:11.5px;font-weight:500;color:rgba(255,255,255,.45);cursor:pointer;
+  border-bottom:2px solid transparent;transition:.15s;white-space:nowrap;flex-shrink:0}
 .tn-tab:hover{color:rgba(255,255,255,.8)}
 .tn-tab.on{color:var(--white);border-bottom-color:var(--gold);font-weight:600}
-.tn-right{display:flex;align-items:center;gap:10px;margin-left:auto}
+.tn-right{display:flex;align-items:center;gap:8px;margin-left:12px;flex-shrink:0}
 .year-sel{padding:5px 10px;border:1.5px solid rgba(201,168,76,.25);border-radius:7px;
   background:rgba(255,255,255,.06);font-size:12px;font-weight:600;color:var(--white);cursor:pointer}
 .year-sel option{background:var(--navy2);color:var(--white)}
 .tn-av{width:30px;height:30px;border-radius:50%;overflow:hidden;border:1.5px solid rgba(201,168,76,.3)}
 .tn-av img{width:100%;height:100%;object-fit:cover}
 .tn-uname{font-size:12px;font-weight:600;color:rgba(255,255,255,.8)}
-.tn-settings{background:rgba(255,255,255,.06);color:rgba(255,255,255,.6);font-size:12px;
-  border:1px solid rgba(255,255,255,.12);border-radius:7px;padding:6px 13px;cursor:pointer;
-  margin-right:6px;transition:all .2s;font-family:inherit;font-weight:500}
+.tn-settings{background:rgba(255,255,255,.06);color:rgba(255,255,255,.7);font-size:12px;
+  border:1px solid rgba(255,255,255,.12);border-radius:7px;padding:6px 12px;cursor:pointer;
+  transition:all .2s;font-family:inherit;font-weight:600;white-space:nowrap;flex-shrink:0}
 .tn-settings:hover{color:var(--white);background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.3)}
-.tn-logout{background:transparent;color:rgba(255,255,255,.55);font-size:12px;font-weight:700;
-  padding:6px 13px;border-radius:6px;border:1px solid rgba(255,255,255,.15);transition:.18s;cursor:pointer;font-family:inherit}
-.tn-logout:hover{color:#fff;background:rgba(220,38,38,.35);border-color:rgba(220,38,38,.6)}
+.tn-logout{background:rgba(220,38,38,.22);color:#fca5a5;font-size:12px;font-weight:700;
+  padding:6px 14px;border-radius:6px;border:1.5px solid rgba(220,38,38,.5);transition:.18s;
+  cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0}
+.tn-logout:hover{color:#fff;background:rgba(220,38,38,.6);border-color:rgba(220,38,38,.9);box-shadow:0 2px 12px rgba(220,38,38,.35)}
 
 /* Password field with eye toggle */
 .pw-wrap{position:relative;display:flex;align-items:center}
@@ -750,6 +754,7 @@ table.price-t tr:hover td{background:var(--grey3)}
   #online-indicator { display: none !important; }
   #fb-status { padding: 3px 7px !important; }
   #fb-label { display: none !important; }
+  #status-bar { display: none !important; }
 
   /* ── BOTTOM NAV ── */
   #mob-nav { display: flex !important; }
@@ -1205,31 +1210,35 @@ var _fbDB = null;
       <div class="tn-tab" onclick="showTab('prices')">⚙️ Prices</div>
       <div class="tn-tab" onclick="showTab('analytics')">📈 Analytics</div>
       <div class="tn-tab" onclick="showTab('forecast')">🔮 Forecast</div>
-      <div class="tn-tab" onclick="showTab('guide')">💡 Help Center</div>
       <div class="tn-tab" onclick="showTab('backup')" style="color:#c9a84c">🛡️ Backup</div>
+      <div class="tn-tab" onclick="showTab('guide')">💡 Help Center</div>
     </div>
     <div class="tn-right">
       <select class="year-sel" id="year-sel" onchange="changeYear(this.value)"></select>
-      <!-- Online Users Indicator (admin only) -->
-      <div id="online-indicator" onclick="toggleOnlinePopup(event)">
-        <div class="online-dot"></div>
-        <span id="online-label">1 online</span>
-        <div id="online-popup">
-          <div class="online-popup-head">👥 Currently Online</div>
-          <div id="online-users-list"></div>
-        </div>
-      </div>
-      <!-- Firebase Live Indicator -->
-      <div id="fb-status" style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:4px 10px 4px 8px">
-        <div id="fb-dot" style="width:8px;height:8px;border-radius:50%;background:#94a3b8;box-shadow:0 0 0 3px rgba(148,163,184,.2);transition:all .4s ease;flex-shrink:0"></div>
-        <span id="fb-label" style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#94a3b8;transition:color .4s ease">...</span>
-      </div>
       <!-- Settings + name combined -->
       <span class="tn-uname" id="tn-name" style="display:none">Reda Salah</span>
       <button class="tn-settings" onclick="openSettings()" id="btn-settings-nav" title="Settings">⚙️ <span id="tn-name-display" style="font-size:11px;font-weight:600;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle">Reda Salah</span></button>
       <button class="tn-logout" onclick="doLogout()" title="Logout">⏏ Logout</button>
     </div>
   </nav>
+
+  <!-- ── Floating status bar (LIVE + ONLINE) ── -->
+  <div id="status-bar" style="position:fixed;bottom:14px;right:16px;z-index:500;display:flex;align-items:center;gap:8px">
+    <!-- Online users -->
+    <div id="online-indicator" onclick="toggleOnlinePopup(event)" style="cursor:pointer">
+      <div class="online-dot"></div>
+      <span id="online-label">1 online</span>
+      <div id="online-popup">
+        <div class="online-popup-head">👥 Currently Online</div>
+        <div id="online-users-list"></div>
+      </div>
+    </div>
+    <!-- Firebase status -->
+    <div id="fb-status" style="display:flex;align-items:center;gap:5px;background:rgba(13,27,46,.85);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:5px 11px;backdrop-filter:blur(8px);box-shadow:0 2px 12px rgba(0,0,0,.2)">
+      <div id="fb-dot" style="width:7px;height:7px;border-radius:50%;background:#94a3b8;box-shadow:0 0 0 2px rgba(148,163,184,.2);transition:all .4s ease;flex-shrink:0"></div>
+      <span id="fb-label" style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#94a3b8;transition:color .4s ease">...</span>
+    </div>
+  </div>
   <!-- ══════════════════════════════════════════════════════════
        MOBILE APP — completely separate layout, phone only
   ══════════════════════════════════════════════════════════ -->
@@ -4369,6 +4378,12 @@ function _bootApp(user) {
   var firstTab = allowed[0] || 'dashboard';
   buildYearSel(); buildSelectors(); showTab(firstTab);
   // Init mobile layout if on phone — wait for Firebase data
+  // Show status bar for desktop
+  if (!isMobile()) {
+    var sb2 = document.getElementById('status-bar');
+    if (sb2) sb2.style.display = 'flex';
+  }
+
   if (isMobile()) {
     // Show loading screen immediately
     var desk3 = document.getElementById('pg-app');
@@ -10874,6 +10889,7 @@ function showLicencePage(errMsg) {
 function proceedToLogin() {
   document.getElementById('pg-licence').style.display = 'none';
   document.getElementById('pg-login').style.display = 'flex';
+  var sb3 = document.getElementById('status-bar'); if (sb3) sb3.style.display = 'none';
 }
 
 function activateLicence() {
