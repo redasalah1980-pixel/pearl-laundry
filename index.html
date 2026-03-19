@@ -334,26 +334,25 @@ input,select,textarea{font-family:inherit;outline:none;border:none}
 .tn-tab::after {
   content: attr(data-tip);
   position: absolute;
-  top: calc(100% + 4px);
+  top: calc(100% + 6px);
   left: 50%;
-  transform: translateX(-50%) scale(.95);
+  transform: translateX(-50%);
   background: #0d1b2e;
   color: #fff;
   font-size: 11px;
   font-weight: 600;
-  padding: 5px 10px;
-  border-radius: 6px;
+  padding: 6px 12px;
+  border-radius: 7px;
   white-space: nowrap;
-  border: 1px solid rgba(201,168,76,.25);
-  box-shadow: 0 4px 14px rgba(0,0,0,.35);
+  border: 1px solid rgba(201,168,76,.3);
+  box-shadow: 0 4px 14px rgba(0,0,0,.4);
   z-index: 9999;
   pointer-events: none;
   opacity: 0;
-  transition: opacity .15s, transform .15s;
+  transition: opacity .2s ease .4s;
 }
 .tn-tab:hover::after {
   opacity: 1;
-  transform: translateX(-50%) scale(1);
 }
 
 /* ── Fix online popup z-index ── */
@@ -2533,13 +2532,21 @@ var _fbDB = null;
         <!-- Admin password verification -->
         <div id="lic-auth-wrap" style="background:#fff8f0;border:1.5px solid #fed7aa;border-radius:12px;padding:16px;margin-bottom:16px">
           <div style="font-size:11px;font-weight:700;color:#92400e;margin-bottom:8px;letter-spacing:.5px">🔐 ADMIN VERIFICATION REQUIRED</div>
-          <div style="display:flex;gap:8px;align-items:center">
+          <div style="position:relative">
             <input type="password" id="lic-admin-pass" placeholder="Enter admin password to unlock"
-              style="flex:1;padding:9px 12px;border:1.5px solid #fed7aa;border-radius:8px;font-size:13px;color:#0d1b2e;outline:none"
-              onkeydown="if(event.key==='Enter') verifyLicenceAdmin()">
-            <button onclick="verifyLicenceAdmin()" style="padding:9px 16px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">Unlock 🔓</button>
+              style="width:100%;padding:9px 44px 9px 12px;border:1.5px solid #fed7aa;border-radius:8px;font-size:13px;color:#0d1b2e;outline:none;box-sizing:border-box"
+              onkeydown="if(event.key==='Enter') verifyLicenceAdmin()"
+              onkeyup="chkCaps(event,'lic-caps-warn')">
+            <button type="button" onclick="toggleLicPassVis()" id="lic-eye-btn"
+              style="position:absolute;right:0;top:0;bottom:0;width:40px;background:none;border:none;cursor:pointer;font-size:16px;color:#92400e;display:flex;align-items:center;justify-content:center">
+              <span id="lic-eye-icon">👁</span>
+            </button>
           </div>
-          <div id="lic-auth-err" style="display:none;font-size:11px;color:#dc2626;font-weight:600;margin-top:6px">❌ Wrong password</div>
+          <div id="lic-caps-warn" class="caps-warn hidden" style="margin-top:4px;font-size:11px">⚠️ Caps Lock is ON</div>
+          <div style="margin-top:8px">
+            <button onclick="verifyLicenceAdmin()" style="padding:9px 20px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">🔓 Unlock</button>
+          </div>
+          <div id="lic-auth-err" style="display:none;font-size:11px;color:#dc2626;font-weight:600;margin-top:6px">❌ Wrong password. Try again.</div>
         </div>
 
         <!-- Locked content (shown after auth) -->
@@ -4582,7 +4589,8 @@ function showTab(name) {
     if (allowed.indexOf(name) === -1) { toast('🔒 You do not have access to this tab.', 'err'); return; }
   }
   curTab = name;
-  const tabs = ['dashboard', 'entry', 'monthly', 'report', 'finance', 'benchmark', 'prices', 'analytics', 'forecast', 'guide', 'backup'];
+  // Match exact order of .tn-tab elements in HTML
+  const tabs = ['dashboard', 'entry', 'monthly', 'report', 'finance', 'benchmark', 'prices', 'analytics', 'forecast', 'backup', 'guide'];
   document.querySelectorAll('.tn-tab').forEach((t, i) => t.classList.toggle('on', tabs[i] === name));
   document.querySelectorAll('.pg').forEach(p => p.classList.remove('on'));
   document.getElementById('tab-' + name)?.classList.add('on');
@@ -4619,7 +4627,6 @@ function refreshTab() {
   else if (curTab === 'analytics') { renderAnalytics(); showAnalyticsTab('charts'); }
   else if (curTab === 'forecast') renderForecast();
   else if (curTab === 'guide') renderGuide();
-  else if (curTab === 'forecast') renderForecast();
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -11070,6 +11077,14 @@ function revokeLicenceKey(key) {
 }
 
 // ── Admin: Manage licences from settings ──
+function toggleLicPassVis() {
+  var inp = document.getElementById('lic-admin-pass');
+  var icon = document.getElementById('lic-eye-icon');
+  if (!inp) return;
+  if (inp.type === 'password') { inp.type = 'text'; if (icon) icon.textContent = '🙈'; }
+  else { inp.type = 'password'; if (icon) icon.textContent = '👁'; }
+}
+
 function verifyLicenceAdmin() {
   var pass = document.getElementById('lic-admin-pass')?.value?.trim();
   var creds = getCredentials();
