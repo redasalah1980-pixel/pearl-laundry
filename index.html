@@ -321,9 +321,9 @@ input,select,textarea{font-family:inherit;outline:none;border:none}
   border:1px solid rgba(255,255,255,.12);border-radius:7px;padding:6px 13px;cursor:pointer;
   margin-right:6px;transition:all .2s;font-family:inherit;font-weight:500}
 .tn-settings:hover{color:var(--white);background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.3)}
-.tn-logout{background:rgba(220,38,38,.15);color:#fca5a5;font-size:12px;font-weight:700;
-  padding:6px 13px;border-radius:6px;border:1px solid rgba(220,38,38,.35);transition:.15s;cursor:pointer;font-family:inherit}
-.tn-logout:hover{color:#fff;background:rgba(220,38,38,.5);border-color:rgba(220,38,38,.7)}
+.tn-logout{background:transparent;color:rgba(255,255,255,.55);font-size:12px;font-weight:700;
+  padding:6px 13px;border-radius:6px;border:1px solid rgba(255,255,255,.15);transition:.18s;cursor:pointer;font-family:inherit}
+.tn-logout:hover{color:#fff;background:rgba(220,38,38,.35);border-color:rgba(220,38,38,.6)}
 
 /* Password field with eye toggle */
 .pw-wrap{position:relative;display:flex;align-items:center}
@@ -8213,24 +8213,49 @@ function renderGuide() {
     ['🚀 Getting Started',
      '<strong>How to open the system:</strong>' +
      ul([
-       '<strong>Best way (recommended):</strong> Open the Netlify URL in any browser on any device — <code>stupendous-truffle-53b8ae.netlify.app</code>. No installation needed.',
-       '<strong>Alternative:</strong> Open the downloaded <code>.html</code> file in Chrome. Internet still required for cloud sync.'
+       'Open your GitHub Pages URL in any browser: <code>https://redasalah1980-pixel.github.io/pearl-laundry/index.html</code>',
+       'Works on any device — laptop, desktop, tablet, phone. No installation needed.',
+       'Bookmark the URL on all your devices for one-click access.'
      ]) +
-     '<strong>Login:</strong>' +
+
+     '<br><strong>🎨 Login Screen — Immersive Dark Design:</strong>' +
+     ul([
+       'Full-screen animated background — deep dark space scene with drifting gold particles, nebula glows and occasional shooting stars.',
+       'A glass card floats in the center — semi-transparent with gold shimmer line at top.',
+       '<strong>RS Pearl monogram</strong> with pulsing gold rings at the top of the card.',
+       '<strong>Pearl Management System</strong> title in elegant serif font.',
+       'Underline-style input fields with gold focus glow.',
+       'Gold gradient <strong>▶ ENTER SYSTEM</strong> button.',
+       'Security badges at the bottom: 🔒 Encrypted · ☁️ Cloud Sync · 🛡️ Licensed.'
+     ]) +
+
+     '<br><strong>🔑 Licence Protection:</strong>' +
+     ul([
+       'The system is domain-locked — only runs on approved URLs.',
+       'On <strong>your approved domain</strong> (github.io) → goes straight to login. No key needed.',
+       'On any <strong>unknown domain</strong> → shows a locked screen. A valid licence key is required.',
+       'To give someone else access → generate a key in ⚙️ Settings → 🔑 Licences.',
+       'You can revoke any key anytime.'
+     ]) +
+
+     '<br><strong>🔐 Login credentials:</strong>' +
      ul([
        'Default Admin → Username: <code>Reda Salah</code> &nbsp; Password: <code>RS@2026</code>',
-       'Press <strong>Enter</strong> or click <strong>Enter System</strong>.',
-       'Team members use their own credentials set in ⚙️ Settings → Team Account.'
+       'Press <strong>Enter</strong> or click <strong>▶ ENTER SYSTEM</strong>.',
+       'Team members use their own credentials set in ⚙️ Settings → Team Account.',
+       'Wrong password → card shakes with red error message.',
+       'Caps Lock on → amber warning appears automatically.'
      ]) +
-     '<strong>Top navigation bar:</strong>' +
+
+     '<br><strong>Top navigation bar after login:</strong>' +
      ul([
        '<strong>Year selector</strong> — switch between 2025–2035. Each year is completely independent.',
-       badge('● 1 ONLINE','#14532d','#86efac','#166534') + ' — admin only. Shows active users. Click to see names.',
-       badge('● LIVE','#14532d','#86efac','#166534') + ' = connected to cloud. &nbsp;' + badge('● OFFLINE','#991b1b','#fca5a5','#991b1b') + ' = no internet — saves locally and auto-syncs when back online.',
-       '<strong>⚙️ Your Name</strong> button — opens Settings (admin only). Your username appears inside the button.',
-       '<strong>⏏ Logout</strong> — red button, always visible on the right. Click to log out.'
+       badge('● 1 ONLINE','#14532d','#86efac','#166534') + ' — admin only. Shows how many users are active. Click to see names.',
+       badge('● LIVE','#14532d','#86efac','#166534') + ' = connected to Firebase cloud. &nbsp;' + badge('● OFFLINE','#991b1b','#fca5a5','#991b1b') + ' = no internet — saves locally, auto-syncs when back online.',
+       '<strong>⚙️ Your Name</strong> — opens Settings (admin only).',
+       '<strong>⏏ Logout</strong> — always visible top right.'
      ]) +
-     tip('Bookmark the Netlify URL on your phone and desktop so you can open it in one tap.')
+     tip('Bookmark the URL on your laptop AND work desktop for instant one-click access. Both go straight to login — no key needed.')
     ],
 
     // ── 2. DAILY ENTRY ──────────────────────────────────────────
@@ -8920,12 +8945,21 @@ function renderGuide() {
 
      '<br><strong>➕ Generating keys for others (e.g. another hotel):</strong>' +
      step([
-       'Open ⚙️ Settings.',
-       'Click <strong>🔑 Licences</strong> tab.',
-       'Enter the holder name (e.g. hotel name) and optional expiry date.',
-       'Click <strong>Generate Key</strong> — key is created and copied to clipboard.',
-       'Share the key with the user — they enter it on their device to activate.',
-       'You can revoke any key anytime — user immediately loses access on next open.'
+       'Open ⚙️ Settings → click <strong>🔑 Licences</strong> tab (last tab).',
+       'Enter the <strong>Holder Name</strong> — e.g. Hotel Al Rayyan.',
+       'Set an <strong>Expiry Date</strong> (optional but recommended — e.g. 1 year from today).',
+       'Click <strong>🔑 Generate Key</strong> — key appears in green, automatically copied to clipboard.',
+       'Share the key with the user — format: <code>XXXX-XXXX-XXXX-XXXX</code>',
+       'They enter it on their device → system activates → they can log in.',
+       'You can revoke any key anytime — user loses access immediately on next open.'
+     ]) +
+     '<br><strong>📋 Licences panel shows:</strong>' +
+     ul([
+       'All generated keys with holder name and expiry date.',
+       'Status badge: ' + badge('✅ Active','#f0fdf4','#15803d','#86efac') + ' · ' + badge('⏰ Expired','#fee2e2','#dc2626','#fca5a5') + ' · ' + badge('❌ Revoked','#f8fafc','#94a3b8','#e2e8f0') + '',
+       'Last used date — shows when the key was last activated.',
+       'Revoke button — one click to cut access.',
+       'Your master key displayed at the bottom for reference.'
      ]) +
 
      '<br><strong>❌ Revoking access:</strong>' +
