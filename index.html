@@ -10791,21 +10791,8 @@ function bootWithLicenceCheck() {
     return;
   }
 
-  // 2. Check stored licence
-  var stored = getLicenceFromStorage();
-  if (stored && stored.valid) {
-    // Verify expiry
-    if (stored.expires && new Date(stored.expires) < new Date()) {
-      showLicencePage('Your licence expired on ' + stored.expires + '. Please contact RS Pearl support.');
-      return;
-    }
-    // Valid — proceed to login
-    proceedToLogin();
-    return;
-  }
-
-  // 3. No licence — show activation page
-  showLicencePage(null);
+  // 2. Approved domain — skip licence screen, go straight to login
+  proceedToLogin();
 }
 
 function showLockedPage(reason) {
