@@ -1106,7 +1106,9 @@ var _fbDB = null;
 </div>
 
 <div id="pg-login">
-  <div class="login-card">
+  <!-- Animated canvas background -->
+  <canvas id="login-canvas" style="position:absolute;inset:0;width:100%;height:100%;z-index:0"></canvas>
+  <div class="login-card" style="position:relative;z-index:2">
 
     <!-- Brand top -->
     <div style="text-align:center;margin-bottom:30px">
@@ -11836,6 +11838,155 @@ function autoCloudBackup() {
 </div>
 
 <script>
+// ── Login page canvas background animation ──
+(function() {
+  function initLoginCanvas() {
+    var canvas = document.getElementById('login-canvas');
+    if (!canvas) return;
+    var ctx = canvas.getContext('2d');
+    var W, H, particles, nebula;
+
+    function resize() {
+      W = canvas.width  = canvas.offsetWidth;
+      H = canvas.height = canvas.offsetHeight;
+    }
+
+    function initParticles() {
+      particles = [];
+      var count = Math.floor((W * H) / 6000);
+      for (var i = 0; i < count; i++) {
+        particles.push({
+          x:    Math.random() * W,
+          y:    Math.random() * H,
+          r:    Math.random() * 1.8 + 0.3,
+          gold: Math.random() > 0.55,
+          alpha: Math.random() * 0.7 + 0.2,
+          speed: Math.random() * 0.15 + 0.03,
+          drift: (Math.random() - 0.5) * 0.08,
+          twinkle: Math.random() * Math.PI * 2,
+          twinkleSpeed: Math.random() * 0.02 + 0.005
+        });
+      }
+      // Nebula blobs
+      nebula = [];
+      for (var j = 0; j < 5; j++) {
+        nebula.push({
+          x: Math.random() * W,
+          y: Math.random() * H,
+          r: Math.random() * 280 + 150,
+          gold: Math.random() > 0.4,
+          alpha: Math.random() * 0.045 + 0.01,
+          vx: (Math.random() - 0.5) * 0.12,
+          vy: (Math.random() - 0.5) * 0.08
+        });
+      }
+    }
+
+    var frame = 0;
+    function draw() {
+      frame++;
+      ctx.clearRect(0, 0, W, H);
+
+      // ── Deep space background ──
+      var bg = ctx.createLinearGradient(0, 0, W, H);
+      bg.addColorStop(0,   '#020810');
+      bg.addColorStop(0.3, '#06101e');
+      bg.addColorStop(0.6, '#0a1828');
+      bg.addColorStop(1,   '#020c18');
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, W, H);
+
+      // ── Nebula glows ──
+      nebula.forEach(function(n) {
+        n.x += n.vx; n.y += n.vy;
+        if (n.x < -n.r) n.x = W + n.r;
+        if (n.x > W + n.r) n.x = -n.r;
+        if (n.y < -n.r) n.y = H + n.r;
+        if (n.y > H + n.r) n.y = -n.r;
+        var grad = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r);
+        if (n.gold) {
+          grad.addColorStop(0, 'rgba(201,168,76,' + (n.alpha * 1.5) + ')');
+          grad.addColorStop(0.4, 'rgba(201,168,76,' + n.alpha + ')');
+          grad.addColorStop(1, 'rgba(201,168,76,0)');
+        } else {
+          grad.addColorStop(0, 'rgba(13,60,110,' + (n.alpha * 2) + ')');
+          grad.addColorStop(0.5, 'rgba(13,40,80,' + n.alpha + ')');
+          grad.addColorStop(1, 'rgba(5,15,35,0)');
+        }
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // ── Shooting star every ~300 frames ──
+      if (frame % 300 < 3) {
+        var sx = Math.random() * W * 0.6;
+        var sy = Math.random() * H * 0.4;
+        var len = Math.random() * 120 + 60;
+        var sgrad = ctx.createLinearGradient(sx, sy, sx + len, sy + len * 0.4);
+        sgrad.addColorStop(0, 'rgba(201,168,76,0)');
+        sgrad.addColorStop(0.5, 'rgba(201,168,76,0.8)');
+        sgrad.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.strokeStyle = sgrad;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(sx, sy);
+        ctx.lineTo(sx + len, sy + len * 0.4);
+        ctx.stroke();
+      }
+
+      // ── Stars / particles ──
+      particles.forEach(function(p) {
+        p.y -= p.speed;
+        p.x += p.drift;
+        p.twinkle += p.twinkleSpeed;
+        if (p.y < -5) { p.y = H + 5; p.x = Math.random() * W; }
+        if (p.x < -5) p.x = W + 5;
+        if (p.x > W + 5) p.x = -5;
+        var twinkleFactor = 0.5 + 0.5 * Math.sin(p.twinkle);
+        var a = p.alpha * twinkleFactor;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = p.gold
+          ? 'rgba(201,168,76,' + a + ')'
+          : 'rgba(255,255,255,' + (a * 0.7) + ')';
+        ctx.fill();
+        // Star cross sparkle on bigger particles
+        if (p.r > 1.3 && twinkleFactor > 0.8) {
+          ctx.strokeStyle = p.gold ? 'rgba(201,168,76,' + (a*0.4) + ')' : 'rgba(255,255,255,' + (a*0.3) + ')';
+          ctx.lineWidth = 0.5;
+          ctx.beginPath();
+          ctx.moveTo(p.x - p.r*2.5, p.y);
+          ctx.lineTo(p.x + p.r*2.5, p.y);
+          ctx.moveTo(p.x, p.y - p.r*2.5);
+          ctx.lineTo(p.x, p.y + p.r*2.5);
+          ctx.stroke();
+        }
+      });
+
+      // ── Subtle horizon glow at bottom ──
+      var hGrad = ctx.createLinearGradient(0, H*0.7, 0, H);
+      hGrad.addColorStop(0, 'rgba(13,27,46,0)');
+      hGrad.addColorStop(1, 'rgba(5,12,24,0.6)');
+      ctx.fillStyle = hGrad;
+      ctx.fillRect(0, H*0.7, W, H*0.3);
+
+      requestAnimationFrame(draw);
+    }
+
+    window.addEventListener('resize', function() { resize(); initParticles(); });
+    resize();
+    initParticles();
+    draw();
+  }
+
+  // Init when login page is visible
+  document.addEventListener('DOMContentLoaded', function() {
+    initLoginCanvas();
+  });
+})();
+
 // ── Service Worker for offline support ──
 if ('serviceWorker' in navigator) {
   var swCode = `
