@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RS Pearl — System Manual | دليل نظام RS Pearl</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;500;600;700;800&family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#0d1b2e;--navy2:#1e3a5f;--gold:#c9a84c;--gold2:#e2b96a;--light:#f5f6f8;--text:#1a2332;--muted:#64748b;--blue:#0284c7;--green:#16a34a;--red:#dc2626;--amber:#d97706;--purple:#7c3aed;--teal:#0891b2}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:var(--light);color:var(--text);line-height:1.6}
+.ar{font-family:'Noto Naskh Arabic',serif;direction:rtl;text-align:right}
+
+/* ── Cover ── */
+.cover{min-height:100vh;background:linear-gradient(145deg,#020810 0%,#06101e 30%,#0d1b2e 60%,#060f1c 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;padding:60px 40px;text-align:center;page-break-after:always}
+.cover::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle 1.5px at 15% 20%,rgba(201,168,76,.6) 0%,transparent 100%),radial-gradient(circle 1px at 85% 15%,rgba(201,168,76,.4) 0%,transparent 100%),radial-gradient(circle 1px at 70% 75%,rgba(201,168,76,.35) 0%,transparent 100%),radial-gradient(circle 1.5px at 30% 85%,rgba(201,168,76,.4) 0%,transparent 100%),radial-gradient(circle 1px at 90% 55%,rgba(201,168,76,.25) 0%,transparent 100%),radial-gradient(circle 1px at 8% 60%,rgba(201,168,76,.35) 0%,transparent 100%),radial-gradient(circle 1px at 55% 10%,rgba(201,168,76,.25) 0%,transparent 100%),radial-gradient(circle 2px at 50% 50%,rgba(201,168,76,.06) 0%,transparent 60%);animation:drift 14s ease-in-out infinite alternate}
+@keyframes drift{from{transform:translate(0,0)}to{transform:translate(-8px,12px)}}
+.cover-logo{width:110px;height:110px;border-radius:50%;background:linear-gradient(145deg,#0d1b2e,#162d4a);border:2px solid rgba(201,168,76,.4);display:flex;align-items:center;justify-content:center;margin:0 auto 28px;position:relative;box-shadow:0 0 60px rgba(201,168,76,.15),0 0 0 1px rgba(201,168,76,.08)}
+.cover-logo::before{content:'';position:absolute;inset:-12px;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,.1) 0%,transparent 70%);animation:logo-glow 4s ease-in-out infinite alternate}
+@keyframes logo-glow{from{opacity:.4}to{opacity:.9}}
+.cover-logo-text{text-align:center}
+.cover-logo-text .rs{font-family:'Playfair Display',serif;font-size:32px;font-weight:900;color:var(--gold);line-height:1;letter-spacing:3px}
+.cover-logo-text .pearl{font-size:9px;color:rgba(201,168,76,.5);letter-spacing:4px;margin-top:2px}
+.cover-line{width:80px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:20px auto}
+.cover-title{font-family:'Playfair Display',serif;font-size:42px;font-weight:900;color:#fff;margin-bottom:8px;letter-spacing:1px}
+.cover-title-ar{font-family:'Noto Naskh Arabic',serif;font-size:34px;font-weight:700;color:rgba(201,168,76,.85);margin-bottom:20px}
+.cover-sub{font-size:13px;color:rgba(255,255,255,.45);letter-spacing:3px;text-transform:uppercase;margin-bottom:6px}
+.cover-sub-ar{font-family:'Noto Naskh Arabic',serif;font-size:14px;color:rgba(255,255,255,.35);margin-bottom:40px}
+.cover-badges{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:40px}
+.cover-badge{background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.25);border-radius:20px;padding:6px 16px;font-size:11px;color:rgba(201,168,76,.8);font-weight:600;letter-spacing:.5px}
+.cover-footer{position:absolute;bottom:28px;left:0;right:0;text-align:center;font-size:10px;color:rgba(255,255,255,.2);letter-spacing:1px}
+
+/* ── Table of Contents ── */
+.toc{background:#fff;padding:60px;page-break-after:always;max-width:900px;margin:0 auto}
+.toc-header{text-align:center;margin-bottom:40px}
+.toc-header h2{font-family:'Playfair Display',serif;font-size:32px;color:var(--navy);margin-bottom:4px}
+.toc-header .ar{font-size:26px;color:var(--gold)}
+.toc-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.toc-item{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:8px;transition:background .15s;border-left:3px solid transparent}
+.toc-item:hover{background:#f8fafc;border-left-color:var(--gold)}
+.toc-icon{font-size:20px;flex-shrink:0}
+.toc-texts{flex:1}
+.toc-en{font-size:13px;font-weight:600;color:var(--navy)}
+.toc-ar{font-family:'Noto Naskh Arabic',serif;font-size:12px;color:var(--muted);direction:rtl}
+.toc-num{font-size:12px;font-weight:700;color:var(--gold);margin-left:auto;flex-shrink:0}
+
+/* ── Section ── */
+.section{background:#fff;margin:0;padding:0;page-break-before:always}
+.section-header{background:linear-gradient(135deg,var(--navy),var(--navy2));padding:36px 48px;display:flex;align-items:center;gap:20px}
+.section-icon{font-size:44px;flex-shrink:0}
+.section-titles{flex:1}
+.section-titles h2{font-family:'Playfair Display',serif;font-size:28px;color:#fff;margin-bottom:4px}
+.section-titles .ar{font-family:'Noto Naskh Arabic',serif;font-size:22px;color:var(--gold);opacity:.9}
+.section-num{font-size:48px;font-weight:900;color:rgba(201,168,76,.12);font-family:'Playfair Display',serif;line-height:1}
+.section-body{padding:0}
+
+/* ── Bilingual Content Row ── */
+.bi-row{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid #f1f5f9}
+.bi-row:last-child{border-bottom:none}
+.bi-col{padding:28px 32px}
+.bi-col.ar-col{background:#fafbfc;direction:rtl;border-left:1px solid #f1f5f9}
+.bi-col h3{font-size:16px;font-weight:800;color:var(--navy);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.bi-col.ar-col h3{font-family:'Noto Naskh Arabic',serif;font-size:17px;flex-direction:row-reverse}
+.bi-col p{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:10px}
+.bi-col.ar-col p{font-family:'Noto Naskh Arabic',serif;font-size:14px}
+.bi-col ul{padding-left:16px;margin-top:8px}
+.bi-col.ar-col ul{padding-left:0;padding-right:16px}
+.bi-col ul li{font-size:13px;color:var(--text);margin-bottom:6px;line-height:1.5}
+.bi-col.ar-col ul li{font-family:'Noto Naskh Arabic',serif;font-size:14px}
+
+/* ── Formula Box ── */
+.formula-box{background:linear-gradient(135deg,#0d1b2e,#1e3a5f);border-radius:10px;padding:16px 20px;margin:14px 0}
+.formula-box .label{font-size:10px;font-weight:700;color:rgba(201,168,76,.7);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px}
+.formula-box .formula{font-family:'Courier New',monospace;font-size:14px;font-weight:700;color:var(--gold);line-height:1.6}
+.formula-box .result{font-size:11px;color:rgba(255,255,255,.5);margin-top:6px}
+.formula-box.ar-formula .label{font-family:'Noto Naskh Arabic',serif;direction:rtl}
+.formula-box.ar-formula .formula{direction:ltr;text-align:left}
+.formula-box.ar-formula .result{font-family:'Noto Naskh Arabic',serif;direction:rtl}
+
+/* ── Step Box ── */
+.steps{margin:14px 0}
+.step{display:flex;gap:12px;margin-bottom:10px;align-items:flex-start}
+.step-num{width:26px;height:26px;border-radius:50%;background:var(--gold);color:var(--navy);font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.step-text{font-size:13px;color:var(--text);line-height:1.5}
+.ar-col .step{flex-direction:row-reverse}
+.ar-col .step-text{font-family:'Noto Naskh Arabic',serif;font-size:14px}
+
+/* ── Info Card ── */
+.info-card{border-radius:10px;padding:14px 16px;margin:12px 0;display:flex;gap:10px;align-items:flex-start}
+.info-card.blue{background:#eff6ff;border-left:3px solid var(--blue)}
+.info-card.green{background:#f0fdf4;border-left:3px solid var(--green)}
+.info-card.amber{background:#fffbeb;border-left:3px solid var(--amber)}
+.info-card.red{background:#fee2e2;border-left:3px solid var(--red)}
+.info-card.gold{background:#fefce8;border-left:3px solid var(--gold)}
+.ar-col .info-card{border-left:none;border-right:3px solid}
+.ar-col .info-card.blue{border-right-color:var(--blue)}
+.ar-col .info-card.green{border-right-color:var(--green)}
+.ar-col .info-card.amber{border-right-color:var(--amber)}
+.ar-col .info-card.red{border-right-color:var(--red)}
+.ar-col .info-card.gold{border-right-color:var(--gold)}
+.info-card-icon{font-size:18px;flex-shrink:0}
+.info-card-text{font-size:12px;color:var(--text);line-height:1.5}
+.ar-col .info-card-text{font-family:'Noto Naskh Arabic',serif;font-size:13px}
+
+/* ── Table ── */
+.manual-table{width:100%;border-collapse:collapse;margin:14px 0;font-size:12px}
+.manual-table th{background:var(--navy);color:var(--gold);padding:8px 12px;text-align:left;font-weight:700;font-size:11px;letter-spacing:.5px}
+.manual-table td{padding:8px 12px;border-bottom:1px solid #f1f5f9;vertical-align:top}
+.manual-table tr:nth-child(even) td{background:#f8fafc}
+.manual-table .ar-td{font-family:'Noto Naskh Arabic',serif;direction:rtl;text-align:right}
+
+/* ── Divider ── */
+.gold-divider{height:3px;background:linear-gradient(90deg,transparent,var(--gold),var(--gold2),var(--gold),transparent);margin:0}
+
+/* ── Visual Block ── */
+.visual-block{background:linear-gradient(135deg,#f8fafc,#fff);border:1.5px solid #e2e8f0;border-radius:12px;padding:20px;margin:14px 0;text-align:center}
+.visual-block .v-title{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px}
+.stat-cards-demo{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.demo-card{border-radius:8px;padding:10px 14px;text-align:left;min-width:120px}
+.demo-card .dc-label{font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;opacity:.75;margin-bottom:4px}
+.demo-card .dc-val{font-size:16px;font-weight:900;color:#fff}
+.demo-card .dc-sub{font-size:9px;opacity:.6;margin-top:2px}
+
+/* ── Badge ── */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.badge.green{background:#f0fdf4;color:var(--green);border:1px solid #86efac}
+.badge.red{background:#fee2e2;color:var(--red);border:1px solid #fca5a5}
+.badge.amber{background:#fffbeb;color:var(--amber);border:1px solid #fde68a}
+.badge.blue{background:#eff6ff;color:var(--blue);border:1px solid #bfdbfe}
+.badge.gold{background:#fefce8;color:#92400e;border:1px solid #fde68a}
+
+/* ── Back Cover ── */
+.back-cover{min-height:60vh;background:linear-gradient(145deg,#020810,#0d1b2e);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:60px;page-break-before:always}
+.back-cover h2{font-family:'Playfair Display',serif;font-size:28px;color:#fff;margin-bottom:8px}
+.back-cover .ar{font-family:'Noto Naskh Arabic',serif;font-size:22px;color:var(--gold);margin-bottom:30px}
+.back-cover p{font-size:13px;color:rgba(255,255,255,.4);margin-bottom:6px}
+
+/* Print */
+@media print{
+  .cover,.section,.toc,.back-cover{page-break-after:always}
+  body{background:#fff}
+  .section-header{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ COVER PAGE ══════════════════════════════════════════════ -->
+<div class="cover">
+  <div class="cover-logo">
+    <div class="cover-logo-text">
+      <div class="rs">RS</div>
+      <div class="pearl">PEARL</div>
+    </div>
+  </div>
+  <div class="cover-line"></div>
+  <div class="cover-title">Pearl Management System</div>
+  <div class="cover-title-ar">نظام Pearl لإدارة الغسيل</div>
+  <div class="cover-sub">Complete User Manual & System Guide</div>
+  <div class="cover-sub-ar">دليل المستخدم الكامل ومرجع النظام</div>
+  <div class="cover-badges">
+    <div class="cover-badge">📊 Dashboard & Analytics</div>
+    <div class="cover-badge">🔮 Forecasting Engine</div>
+    <div class="cover-badge">☁️ Cloud Sync</div>
+    <div class="cover-badge">🔑 Licence Protected</div>
+    <div class="cover-badge">🌐 Bilingual EN | AR</div>
+  </div>
+  <div class="cover-line"></div>
+  <p style="color:rgba(255,255,255,.35);font-size:12px;letter-spacing:1px">Version 21 · 2026 · Reda Salah</p>
+  <div class="cover-footer">© Reda Salah · RS Pearl Laundry Management System · All Rights Reserved · جميع الحقوق محفوظة</div>
+</div>
+
+<!-- ══ TABLE OF CONTENTS ════════════════════════════════════════ -->
+<div class="toc">
+  <div class="toc-header">
+    <h2>Table of Contents</h2>
+    <div class="ar">فهرس المحتويات</div>
+    <div class="gold-divider" style="margin-top:16px"></div>
+  </div>
+  <div class="toc-grid">
+    <div class="toc-item"><span class="toc-icon">🚀</span><div class="toc-texts"><div class="toc-en">Getting Started & Login</div><div class="toc-ar">البداية وتسجيل الدخول</div></div><div class="toc-num">01</div></div>
+    <div class="toc-item"><span class="toc-icon">📊</span><div class="toc-texts"><div class="toc-en">Dashboard Overview</div><div class="toc-ar">لوحة التحكم</div></div><div class="toc-num">02</div></div>
+    <div class="toc-item"><span class="toc-icon">✏️</span><div class="toc-texts"><div class="toc-en">Daily Entry</div><div class="toc-ar">الإدخال اليومي</div></div><div class="toc-num">03</div></div>
+    <div class="toc-item"><span class="toc-icon">📅</span><div class="toc-texts"><div class="toc-en">Monthly Overview & Reports</div><div class="toc-ar">الملخص الشهري والتقارير</div></div><div class="toc-num">04</div></div>
+    <div class="toc-item"><span class="toc-icon">🏦</span><div class="toc-texts"><div class="toc-en">Finance Posting</div><div class="toc-ar">الترحيل المالي</div></div><div class="toc-num">05</div></div>
+    <div class="toc-item"><span class="toc-icon">🎯</span><div class="toc-texts"><div class="toc-en">Benchmark & Occupancy</div><div class="toc-ar">المعايير ونسبة الإشغال</div></div><div class="toc-num">06</div></div>
+    <div class="toc-item"><span class="toc-icon">🔮</span><div class="toc-texts"><div class="toc-en">Forecast Engine</div><div class="toc-ar">محرك التوقعات</div></div><div class="toc-num">07</div></div>
+    <div class="toc-item"><span class="toc-icon">📋</span><div class="toc-texts"><div class="toc-en">Plan Next Year</div><div class="toc-ar">تخطيط السنة القادمة</div></div><div class="toc-num">08</div></div>
+    <div class="toc-item"><span class="toc-icon">📈</span><div class="toc-texts"><div class="toc-en">Analytics & Trends</div><div class="toc-ar">التحليلات والاتجاهات</div></div><div class="toc-num">09</div></div>
+    <div class="toc-item"><span class="toc-icon">⚙️</span><div class="toc-texts"><div class="toc-en">Prices & Schedules</div><div class="toc-ar">الأسعار والجداول</div></div><div class="toc-num">10</div></div>
+    <div class="toc-item"><span class="toc-icon">💱</span><div class="toc-texts"><div class="toc-en">Currency & Number Format</div><div class="toc-ar">العملة وتنسيق الأرقام</div></div><div class="toc-num">11</div></div>
+    <div class="toc-item"><span class="toc-icon">🔑</span><div class="toc-texts"><div class="toc-en">Licence & Security</div><div class="toc-ar">الترخيص والحماية</div></div><div class="toc-num">12</div></div>
+    <div class="toc-item"><span class="toc-icon">🧮</span><div class="toc-texts"><div class="toc-en">Formula Reference</div><div class="toc-ar">مرجع المعادلات</div></div><div class="toc-num">13</div></div>
+    <div class="toc-item"><span class="toc-icon">🛡️</span><div class="toc-texts"><div class="toc-en">Backup & Cloud Sync</div><div class="toc-ar">النسخ الاحتياطي والمزامنة</div></div><div class="toc-num">14</div></div>
+  </div>
+</div>
+
+<!-- ══ SECTION 01: GETTING STARTED ═════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-icon">🚀</div>
+    <div class="section-titles">
+      <h2>Getting Started & Login</h2>
+      <div class="ar">البداية وتسجيل الدخول</div>
+    </div>
+    <div class="section-num">01</div>
+  </div>
+  <div class="gold-divider"></div>
+
+  <div class="bi-row">
+    <div class="bi-col">
+      <h3>🌐 How to Open the System</h3>
+      <p>Open your browser and go to your GitHub Pages URL. No installation needed — works on any device.</p>
+      <div class="info-card blue"><span class="info-card-icon">💻</span><div class="info-card-text"><strong>URL:</strong> https://redasalah1980-pixel.github.io/pearl-laundry/index.html<br>Bookmark this on all your devices for one-click access.</div></div>
+      <div class="info-card green"><span class="info-card-icon">📱</span><div class="info-card-text">Works on laptop, desktop, tablet and phone. Add to home screen for app-like experience.</div></div>
+    </div>
+    <div class="bi-col ar-col">
+      <h3 class="ar">🌐 كيفية فتح النظام</h3>
+      <p class="ar">افتح المتصفح وانتقل إلى رابط GitHub Pages. لا يلزم تثبيت — يعمل على أي جهاز.</p>
+      <div class="info-card blue"><span class="info-card-icon">💻</span><div class="info-card-text ar">احفظ الرابط كإشارة مرجعية على جميع أجهزتك للوصول بنقرة واحدة.</div></div>
+      <div class="info-card green"><span class="info-card-icon">📱</span><div class="info-card-text ar">يعمل على الكمبيوتر المحمول والسطح المكتبي والجهاز اللوحي والهاتف.</div></div>
+    </div>
+  </div>
+
+  <div class="bi-row">
+    <div class="bi-col">
+      <h3>🔐 Login Screen</h3>
+      <p>The login screen features an animated dark background with floating gold particles and a glass card in the center.</p>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div class="step-text">Enter your <strong>Username</strong> (default: Reda Salah)</div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-text">Enter your <strong>Password</strong> (default: RS@2026)</div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-text">Click <strong>▶ ENTER SYSTEM</strong> or press Enter</div></div>
+      </div>
+      <div class="info-card amber"><span class="info-card-icon">⚠️</span><div class="info-card-text">Caps Lock warning appears automatically if Caps Lock is ON. The 👁 button shows/hides your password.</div></div>
+    </div>
+    <div class="bi-col ar-col">
+      <h3 class="ar">🔐 شاشة تسجيل الدخول</h3>
+      <p class="ar">تتميز شاشة تسجيل الدخول بخلفية داكنة متحركة مع جسيمات ذهبية عائمة وبطاقة زجاجية في المنتصف.</p>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div class="step-text ar">أدخل <strong>اسم المستخدم</strong> (الافتراضي: Reda Salah)</div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-text ar">أدخل <strong>كلمة المرور</strong> (الافتراضي: RS@2026)</div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-text ar">اضغط <strong>▶ ENTER SYSTEM</strong> أو Enter</div></div>
+      </div>
+      <div class="info-card amber"><span class="info-card-icon">⚠️</span><div class="info-card-text ar">تظهر تحذيرات Caps Lock تلقائياً. زر 👁 يعرض/يخفي كلمة المرور.</div></div>
+    </div>
+  </div>
+
+  <div class="bi-row">
+    <div class="bi-col">
+      <h3>🧭 Navigation Bar</h3>
+      <p>After login, the top navigation bar gives access to all tabs. Hover over any tab to see its full name.</p>
+      <table class="manual-table">
+        <tr><th>Icon</th><th>Tab</th><th>Purpose</th></tr>
+        <tr><td>📊</td><td>Dash</td><td>Live monthly overview & calendar</td></tr>
+        <tr><td>✏️</td><td>Entry</td><td>Enter daily quantities per department</td></tr>
+        <tr><td>📅</td><td>Monthly</td><td>Full month summary & exports</td></tr>
+        <tr><td>📄</td><td>Report</td><td>Print & export reports</td></tr>
+        <tr><td>🏦</td><td>Finance</td><td>Finance posting view</td></tr>
+        <tr><td>🎯</td><td>Bench</td><td>Occupancy vs revenue benchmark</td></tr>
+        <tr><td>⚙️</td><td>Prices</td><td>Manage item prices & schedules</td></tr>
+        <tr><td>📈</td><td>Analytics</td><td>Charts, trends & YoY comparison</td></tr>
+        <tr><td>🔮</td><td>Forecast</td><td>Revenue forecasting & planning</td></tr>
+        <tr><td>🛡️</td><td>Backup</td><td>Cloud & local data backup</td></tr>
+        <tr><td>💡</td><td>Help</td><td>Full documentation & guides</td></tr>
+      </table>
+    </div>
+    <div class="bi-col ar-col">
+      <h3 class="ar">🧭 شريط التنقل</h3>
+      <p class="ar">بعد تسجيل الدخول، يوفر شريط التنقل العلوي الوصول إلى جميع التبويبات. اضغط فوق أي تبويب لرؤية اسمه الكامل.</p>
+      <table class="manual-table">
+        <tr><th>الرمز</th><th>التبويب</th><th>الغرض</th></tr>
+        <tr><td>📊</td><td class="ar-td">لوحة التحكم</td><td class="ar-td">نظرة عامة شهرية حية</td></tr>
+        <tr><td>✏️</td><td class="ar-td">الإدخال</td><td class="ar-td">إدخال الكميات اليومية</td></tr>
+        <tr><td>📅</td><td class="ar-td">الشهري</td><td class="ar-td">ملخص الشهر الكامل</td></tr>
+        <tr><td>📄</td><td class="ar-td">التقرير</td><td class="ar-td">طباعة وتصدير التقارير</td></tr>
+        <tr><td>🏦</td><td class="ar-td">المالية</td><td class="ar-td">عرض الترحيل المالي</td></tr>
+        <tr><td>🎯</td><td class="ar-td">المعيار</td><td class="ar-td">الإشغال مقابل الإيرادات</td></tr>
+        <tr><td>⚙️</td><td class="ar-td">الأسعار</td><td class="ar-td">إدارة الأسعار والجداول</td></tr>
+        <tr><td>📈</td><td class="ar-td">التحليلات</td><td class="ar-td">الرسوم والمقارنة السنوية</td></tr>
+        <tr><td>🔮</td><td class="ar-td">التوقعات</td><td class="ar-td">توقعات الإيرادات</td></tr>
+        <tr><td>🛡️</td><td class="ar-td">النسخ الاحتياطي</td><td class="ar-td">نسخ البيانات</td></tr>
+        <tr><td>💡</td><td class="ar-td">المساعدة</td><td class="ar-td">الوثائق الكاملة</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SECTION 02: DASHBOARD ════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-icon">📊</div>
+    <div class="section-titles">
+      <h2>Dashboard Overview</h2>
+      <div class="ar">لوحة التحكم</div>
+    </div>
+    <div class="section-num">02</div>
+  </div>
+  <div class="gold-divider"></div>
+
+  <div class="bi-row">
+    <div class="bi-col">
+      <h3>📈 5 Stat Cards Explained</h3>
+      <p>The dashboard shows 5 key performance cards at the top, updating in real-time as you enter data.</p>
+      <div class="visual-block">
+        <div class="v-title">Dashboard Stat Cards</div>
+        <div class="stat-cards-demo">
+          <div class="demo-card" style="background:linear-gradient(135deg,#1d4ed8,#2563eb)"><div class="dc-label">Monthly Revenue</div><div class="dc-val">38,983 QR</div><div class="dc-sub">48.7% of target</div></div>
+          <div class="demo-card" style="background:linear-gradient(135deg,#0e7490,#0891b2)"><div class="dc-label">Finance Posted</div><div class="dc-val">42,032 QR</div><div class="dc-sub">Carry + Days 1-30</div></div>
+          <div class="demo-card" style="background:linear-gradient(135deg,#15803d,#16a34a)"><div class="dc-label">Total KG</div><div class="dc-val">18,880 kg</div><div class="dc-sub">All departments</div></div>
+          <div class="demo-card" style="background:linear-gradient(135deg,#b45309,#d97706)"><div class="dc-label">Avg Daily Rev</div><div class="dc-val">2,165 QR</div><div class="dc-sub">18 active days</div></div>
+          <div class="demo-card" style="background:linear-gradient(135deg,#334155,#475569)"><div class="dc-label">Avg Daily KG</div><div class="dc-val">1,048 kg</div><div class="dc-sub">Per working day</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="bi-col ar-col">
+      <h3 class="ar">📈 شرح بطاقات الإحصائيات الخمس</h3>
+      <p class="ar">تعرض لوحة التحكم 5 بطاقات أداء رئيسية في الأعلى، تتحدث في الوقت الفعلي مع إدخال البيانات.</p>
+      <table class="manual-table" style="margin-top:12px">
+        <tr><th class="ar-td">البطاقة</th><th class="ar-td">ما تعرضه</th></tr>
+        <tr><td class="ar-td">الإيرادات الشهرية</td><td class="ar-td">إجمالي الإيرادات لجميع الأقسام في الشهر المحدد مع نسبة الهدف</td></tr>
+        <tr><td class="ar-td">إجمالي الترحيل المالي</td><td class="ar-td">الترحيل + الأيام 1-30 (باستثناء آخر يوم)</td></tr>
+        <tr><td class="ar-td">إجمالي KG المغسول</td><td class="ar-td">الوزن الإجمالي المغسول لجميع الأقسام</td></tr>
+        <tr><td class="ar-td">متوسط الإيراد اليومي</td><td class="ar-td">الإيراد ÷ عدد الأيام النشطة + توقع نهاية الشهر</td></tr>
+        <tr><td class="ar-td">متوسط KG اليومي</td><td class="ar-td">الوزن ÷ عدد أيام العمل</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="bi-row">
+    <div class="bi-col">
+      <h3>🎯 Monthly Target & Progress Bar</h3>
+      <p>Set a revenue target for each month separately. A color-coded progress bar tracks your achievement.</p>
+      <div class="info-card green"><span class="info-card-icon">🟢</span><div class="info-card-text"><strong>≥75%</strong> of target — On track (amber bar)</div></div>
+      <div class="info-card red"><span class="info-card-icon">🔴</span><div class="info-card-text"><strong>&lt;50%</strong> of target — Below target (red bar)</div></div>
+      <div class="info-card gold"><span class="info-card-icon">🎉</span><div class="info-card-text"><strong>100%+</strong> — Target reached! (green bar)</div></div>
+      <p style="margin-top:12px;font-size:13px">Below the bar: <strong>remaining amount</strong> + <strong>days left</strong> + <strong>daily revenue needed</strong> to hit target.</p>
+      <div class="formula-box">
+        <div class="label">Example</div>
+        <div class="formula">Remaining = 80,000 − 38,983 = 41,017 QR<br>Need = 41,017 ÷ 13 days = 3,155 QR/day</div>
+      </div>
+    </div>
+    <div class="bi-col ar-col">
+      <h3 class="ar">🎯 الهدف الشهري وشريط التقدم</h3>
+      <p class="ar">حدد هدف إيرادات لكل شهر على حدة. يتتبع شريط تقدم ملون مستوى إنجازك.</p>
+      <div class="info-card green"><span class="info-card-icon">🟢</span><div class="info-card-text ar"><strong>≥75%</strong> من الهدف — في المسار الصحيح</div></div>
+      <div class="info-card red"><span class="info-card-icon">🔴</span><div class="info-card-text ar"><strong>&lt;50%</strong> من الهدف — دون الهدف المطلوب</div></div>
+      <div class="info-card gold"><span class="info-card-icon">🎉</span><div class="info-card-text ar"><strong>100%+</strong> — تم تحقيق الهدف!</div></div>
+      <p class="ar" style="margin-top:12px">أسفل الشريط: <strong>المبلغ المتبقي</strong> + <strong>الأيام المتبقية</strong> + <strong>الإيراد اليومي المطلوب</strong> لتحقيق الهدف.</p>
+      <div class="formula-box ar-formula">
+        <div class="label">مثال</div>
+        <div class="formula">المتبقي = 80,000 − 38,983 = 41,017 ريال<br>المطلوب = 41,017 ÷ 13 يوم = 3,155 ريال/يوم</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bi-row">
+    <div class="bi-col">
+      <h3>📅 Live Projection</h3>
+      <p>The Avg Daily Revenue card shows a live projection of where you'll end the month if current pace continues.</p>
+      <div class="formula-box">
+        <div class="label">Projection Formula</div>
+        <div class="formula">Est. Close = Avg Daily Revenue × Total Days<br>% of Target = Est. Close ÷ Target × 100</div>
+        <div class="result">Example: 2,165 × 31 = 67,115 QR → 83.9% of 80,000 target</div>
+      </div>
+      <div class="info-card blue"><span class="info-card-icon">📊</span><div class="info-card-text">This updates automatically every time you save new daily data. The better your daily numbers, the higher the projection.</div></div>
+    </div>
+    <div class="bi-col ar-col">
+      <h3 class="ar">📅 التوقع الحي</h3>
+      <p class="ar">تعرض بطاقة متوسط الإيراد اليومي توقعاً حياً لأين ستنتهي الشهر إذا استمر الأداء الحالي.</p>
+      <div class="formula-box ar-formula">
+        <div class="label">معادلة التوقع</div>
+        <div class="formula">التقدير = متوسط الإيراد اليومي × إجمالي الأيام<br>% الهدف = التقدير ÷ الهدف × 100</div>
+        <div class="result">مثال: 2,165 × 31 = 67,115 ريال → 83.9% من هدف 80,000</div>
+      </div>
+      <div class="info-card blue"><span class="info-card-icon">📊</span><div class="info-card-text ar">يتحدث تلقائياً في كل مرة تحفظ فيها بيانات يومية جديدة.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SECTION 03: DAILY ENTRY ══════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-icon">✏️</div>
+    <div class="section-titles">
+      <h2>Daily Entry</h2>
+      <div class="ar">الإدخال اليومي</div>
+    </div>
+    <div class="section-num">03</div>
+  </div>
+  <div class="gold-divider"></div>
+
+  <div class="bi-row">
+    <div class="bi-col">
+      <h3>📝 How to Enter Daily Data</h3>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div class="step-text">Go to <strong>✏️ Entry</strong> tab</div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-text">Select <strong>Month</strong>, <strong>Day</strong>, and <strong>Department</strong></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-text">Enter quantities for each item in the table</div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-text">Click <strong>💾 Save Day</strong> — data saves to Firebase instantly</div></div>
+      </div>
+      <div class="info-card amber"><span class="info-card-icon">🔒</span><div class="info-card-text"><strong>Locked Prices:</strong> When you save, the current price is locked to that entry. If prices change later, your historical data stays accurate.</div></div>
+    </div>
+    <div class="bi-col ar-col">
+      <h3 class="ar">📝 كيفية إدخال البيانات اليومية</h3>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div class="step-text ar">انتقل إلى تبويب <strong>✏️ الإدخال</strong></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-text ar">حدد <strong>الشهر</strong> و<strong>اليوم</strong> و<strong>القسم</strong></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-text ar">أدخل الكميات لكل عنصر في الجدول</div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-text ar">اضغط <strong>💾 حفظ اليوم</strong> — تُحفظ البيانات فوراً</div></div>
+      </div>
+      <div class="info-card amber"><span class="info-card-icon">🔒</span><div class="info-card-text ar"><strong>قفل الأسعار:</strong> عند الحفظ، يُقفل السعر الحالي لهذا الإدخال للحفاظ على دقة البيانات التاريخية.</div></div>
+    </div>
+  </div>
+
+  <div class="bi-row">
+    <div class="bi-col">
+      <h3>⚡ Quick Tools</h3>
+      <table class="manual-table">
+        <tr><th>Button</th><th>What it does</th></tr>
+        <tr><td>📋 Copy Day</td><td>Copy all quantities for current dept & day to clipboard</td></tr>
+        <tr><td>📌 Paste Day</td><td>Paste copied quantities into current view</td></tr>
+        <tr><td>📅 Import Full Month</td><td>Upload Excel file with all departments for entire month</td></tr>
+        <tr><td>📂 Import Excel</td><td>Import from Excel for single department/day</td></tr>
+        <tr><td>📋 Bulk Paste</td><td>Paste multiple rows from Excel at once</td></tr>
+        <tr><td>📝 Receiving Log</td><td>Log multiple batches received in one day</td></tr>
+        <tr><td>🗑 Clear</td><td>Clear day, date range, or entire month</td></tr>
+      </table>
+    </div>
+    <div class="bi-col ar-col">
+      <h3 class="ar">⚡ الأدوات السريعة</h3>
+      <table class="manual-table">
+        <tr><th class="ar-td">الزر</th><th class="ar-td">الوظيفة</th></tr>
+        <tr><td>📋 نسخ اليوم</td><td class="ar-td">نسخ كميات القسم الحالي</td></tr>
+        <tr><td>📌 لصق اليوم</td><td class="ar-td">لصق الكميات المنسوخة</td></tr>
+        <tr><td>📅 استيراد الشهر الكامل</td><td class="ar-td">رفع ملف Excel لجميع الأقسام</td></tr>
+        <tr><td>📂 استيراد Excel</td><td class="ar-td">استيراد لقسم/يوم واحد</td></tr>
+        <tr><td>📋 اللصق الجماعي</td><td class="ar-td">لصق صفوف متعددة من Excel</td></tr>
+        <tr><td>📝 سجل الاستلام</td><td class="ar-td">تسجيل دفعات متعددة في يوم واحد</td></tr>
+        <tr><td>🗑 مسح</td><td class="ar-td">مسح يوم أو نطاق أو شهر كامل</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SECTION 05: FINANCE POSTING ═════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-icon">🏦</div>
+    <div class="section-titles">
+      <h2>Finance Posting</h2>
+      <div class="ar">الترحيل المالي</div>
+    </div>
+    <div class="section-num">05</div>
+  </div>
+  <div class="gold-divider"></div>
+
+  <div class="bi-row">
+    <div class="bi-col">
+      <h3>💡 How Finance Posting Works</h3>
+      <p>The Finance Posted Total is different from Monthly Revenue. It represents what was <strong>posted to finance</strong> during that month — using a +1 day shift system.</p>
+      <div class="formula-box">
+        <div class="label">Finance Posted Total Formula</div>
+        <div class="formula">Finance Total = Carry (Dec 31 prev month)<br>              + Days 1 to 30 (excluding last day)</div>
+        <div class="result">The last day of the month posts to the NEXT month's finance total</div>
+      </div>
+      <div class="info-card blue"><span class="info-card-icon">📤</span><div class="info-card-text"><strong>Posting Day view</strong> shifts all data by +1 day — Day 1 shows Dec 31 carry-in as an amber badge. This matches the finance department's posting system exactly.</div></div>
+    </div>
+    <div class="bi-col ar-col">
+      <h3 class="ar">💡 كيف يعمل الترحيل المالي</h3>
+      <p class="ar">إجمالي الترحيل المالي يختلف عن الإيرادات الشهرية. يمثل ما تم <strong>ترحيله للمالية</strong> خلال ذلك الشهر.</p>
+      <div class="formula-box ar-formula">
+        <div class="label">معادلة إجمالي الترحيل المالي</div>
+        <div class="formula">الإجمالي = الترحيل (31 ديسمبر الشهر السابق)<br>          + الأيام 1 إلى 30 (باستثناء آخر يوم)</div>
+        <div class="result">آخر يوم من الشهر يُرحَّل لإجمالي المالية للشهر التالي</div>
+      </div>
+      <div class="info-card blue"><span class="info-card-icon">📤</span><div class="info-card-text ar">عرض <strong>يوم الترحيل</strong> يزيح جميع البيانات بمقدار يوم واحد — يوم 1 يعرض شارة العرض الكمي لـ 31 ديسمبر.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SECTION 06: BENCHMARK ════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-icon">🎯</div>
+    <div class="section-titles">
+      <h2>Benchmark & Occupancy Analysis</h2>
+      <div class="ar">المعايير وتحليل نسبة الإشغال</div>
+    </div>
+    <div class="section-num">06</div>
+  </div>
+  <div class="gold-divider"></div>
+
+  <div class="bi-row">
+    <div class="bi-col">
+      <h3>🏨 All Formulas Explained</h3>
+      <p>The benchmark tab compares laundry revenue against hotel occupancy to measure performance per occupied room.</p>
+      <div class="formula-box">
+        <div class="label">Occupied Rooms</div>
+        <div class="formula">Occupied Rooms = Total Rooms × Occ% ÷ 100</div>
+        <div class="result">Example: 200 rooms × 75% = 150 occupied rooms</div>
+      </div>
+      <div class="formula-box">
+        <div class="label">Revenue Per Occupied Room (RevPOR)</div>
+        <div class="formula">RevPOR = Day Revenue ÷ Occupied Rooms</div>
+        <div class="result">Example: 3,000 QR ÷ 150 rooms = 20.00 QR/room</div>
+      </div>
+      <div class="formula-box">
+        <div class="label">KG Per Occupied Room</div>
+        <div class="formula">KG/Room = Day KG ÷ Occupied Rooms</div>
+        <div class="result">Example: 1,800 kg ÷ 150 rooms = 12.00 kg/room</div>
+      </div>
+      <div class="formula-box">
+        <div class="label">Monthly Average RevPOR</div>
+        <div class="formula">Avg RevPOR = Sum of daily RevPOR ÷ Days tracked</div>
+      </div>
+    </div>
+    <div class="bi-col ar-col">
+      <h3 class="ar">🏨 شرح جميع المعادلات</h3>
+      <p class="ar">تقارن تبويبة المعايير إيرادات الغسيل بنسبة إشغال الفندق لقياس الأداء لكل غرفة مشغولة.</p>
+      <div class="formula-box ar-formula">
+        <div class="label">الغرف المشغولة</div>
+        <div class="formula">الغرف المشغولة = إجمالي الغرف × نسبة الإشغال ÷ 100</div>
+        <div class="result">مثال: 200 غرفة × 75% = 150 غرفة مشغولة</div>
+      </div>
+      <div class="formula-box ar-formula">
+        <div class="label">الإيراد لكل غرفة مشغولة (RevPOR)</div>
+        <div class="formula">RevPOR = إيراد اليوم ÷ الغرف المشغولة</div>
+        <div class="result">مثال: 3,000 ÷ 150 غرفة = 20.00 ريال/غرفة</div>
+      </div>
+      <div class="formula-box ar-formula">
+        <div class="label">KG لكل غرفة مشغولة</div>
+        <div class="formula">KG/غرفة = KG اليوم ÷ الغرف المشغولة</div>
+        <div class="result">مثال: 1,800 كغ ÷ 150 غرفة = 12.00 كغ/غرفة</div>
+      </div>
+      <div class="formula-box ar-formula">
+        <div class="label">متوسط RevPOR الشهري</div>
+        <div class="formula">متوسط RevPOR = مجموع RevPOR اليومي ÷ الأيام المتتبعة</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bi-row">
+    <div class="bi-col">
+      <h3>🟢 Occupancy Badges</h3>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
+        <div style="display:flex;align-items:center;gap:12px"><span class="badge green">● ≥70%</span><span style="font-size:13px">High occupancy day — good performance</span></div>
+        <div style="display:flex;align-items:center;gap:12px"><span class="badge amber">● 50-70%</span><span style="font-size:13px">Medium occupancy — acceptable</span></div>
+        <div style="display:flex;align-items:center;gap:12px"><span class="badge red">● &lt;50%</span><span style="font-size:13px">Low occupancy — investigate</span></div>
+      </div>
+      <div class="info-card gold" style="margin-top:14px"><span class="info-card-icon">💡</span><div class="info-card-text">High RevPOR with low occupancy = excellent efficiency. Low RevPOR with high occupancy = guests using less laundry services — investigate.</div></div>
+    </div>
+    <div class="bi-col ar-col">
+      <h3 class="ar">🟢 شارات نسبة الإشغال</h3>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
+        <div style="display:flex;align-items:center;gap:12px;flex-direction:row-reverse"><span class="badge green">● ≥70%</span><span class="ar" style="font-size:13px">إشغال مرتفع — أداء جيد</span></div>
+        <div style="display:flex;align-items:center;gap:12px;flex-direction:row-reverse"><span class="badge amber">● 50-70%</span><span class="ar" style="font-size:13px">إشغال متوسط — مقبول</span></div>
+        <div style="display:flex;align-items:center;gap:12px;flex-direction:row-reverse"><span class="badge red">● &lt;50%</span><span class="ar" style="font-size:13px">إشغال منخفض — يستحق التحقيق</span></div>
+      </div>
+      <div class="info-card gold" style="margin-top:14px"><span class="info-card-icon">💡</span><div class="info-card-text ar">RevPOR مرتفع مع إشغال منخفض = كفاءة ممتازة. RevPOR منخفض مع إشغال مرتفع = النزلاء يستخدمون خدمات غسيل أقل.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SECTION 07: FORECAST ═════════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-icon">🔮</div>
+    <div class="section-titles">
+      <h2>Forecast Engine</h2>
+      <div class="ar">محرك التوقعات</div>
+    </div>
+    <div class="section-num">07</div>
+  </div>
+  <div class="gold-divider"></div>
+
+  <div class="bi-row">
+    <div class="bi-col">
+      <h3>📐 3 Forecast Methods</h3>
+      <p>The system uses 3 scientific methods and blends them based on data availability:</p>
+      <div class="formula-box">
+        <div class="label">Method 1: Current Pace (weight: 70% when &gt;50% days entered)</div>
+        <div class="formula">Pace Forecast = Avg Daily Revenue × Total Days in Month</div>
+      </div>
+      <div class="formula-box">
+        <div class="label">Method 2: Year-over-Year (weight: 30% when &gt;50% days entered)</div>
+        <div class="formula">YoY Forecast = Same Month Last Year × (1 + Growth%)</div>
+      </div>
+      <div class="formula-box">
+        <div class="label">Method 3: Occupancy-Based</div>
+        <div class="formula">Occ Forecast = RevPOR × Avg Occupied Rooms × Days</div>
+      </div>
+      <div class="formula-box">
+        <div class="label">Weighted Final Forecast</div>
+        <div class="formula">Final = Pace × 70% + YoY × 30%<br>(reversed to 30%/70% if &lt;50% data)</div>
+      </div>
+    </div>
+    <div class="bi-col ar-col">
+      <h3 class="ar">📐 طرق التوقع الثلاث</h3>
+      <p class="ar">يستخدم النظام 3 طرق علمية ويمزجها بناءً على توفر البيانات:</p>
+      <div class="formula-box ar-formula">
+        <div class="label">الطريقة 1: الوتيرة الحالية (وزن: 70% عند إدخال &gt;50% من الأيام)</div>
+        <div class="formula">توقع الوتيرة = متوسط الإيراد اليومي × إجمالي أيام الشهر</div>
+      </div>
+      <div class="formula-box ar-formula">
+        <div class="label">الطريقة 2: المقارنة السنوية (وزن: 30%)</div>
+        <div class="formula">توقع YoY = نفس الشهر العام الماضي × (1 + نسبة النمو%)</div>
+      </div>
+      <div class="formula-box ar-formula">
+        <div class="label">الطريقة 3: القائمة على الإشغال</div>
+        <div class="formula">التوقع = RevPOR × متوسط الغرف المشغولة × الأيام</div>
+      </div>
+      <div class="formula-box ar-formula">
+        <div class="label">التوقع النهائي الموزون</div>
+        <div class="formula">النهائي = الوتيرة × 70% + YoY × 30%</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bi-row">
+    <div class="bi-col">
+      <h3>🎯 Confidence Levels</h3>
+      <table class="manual-table">
+        <tr><th>Level</th><th>Conditions</th><th>Meaning</th></tr>
+        <tr><td><span class="badge green">High</span></td><td>≥70% days entered + historical data</td><td>Most accurate — trust this number</td></tr>
+        <tr><td><span class="badge amber">Medium</span></td><td>Partial data or missing one source</td><td>Reasonably reliable estimate</td></tr>
+        <tr><td><span class="badge red">Low</span></td><td>Limited data entered</td><td>Rough estimate only — enter more data</td></tr>
+      </table>
+    </div>
+    <div class="bi-col ar-col">
+      <h3 class="ar">🎯 مستويات الثقة</h3>
+      <table class="manual-table">
+        <tr><th class="ar-td">المستوى</th><th class="ar-td">الشروط</th><th class="ar-td">المعنى</th></tr>
+        <tr><td><span class="badge green">مرتفع</span></td><td class="ar-td">70%+ من الأيام + بيانات تاريخية</td><td class="ar-td">الأدق — ثق بهذا الرقم</td></tr>
+        <tr><td><span class="badge amber">متوسط</span></td><td class="ar-td">بيانات جزئية</td><td class="ar-td">تقدير موثوق نسبياً</td></tr>
+        <tr><td><span class="badge red">منخفض</span></td><td class="ar-td">بيانات محدودة</td><td class="ar-td">تقدير تقريبي فقط</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SECTION 08: PLAN NEXT YEAR ═══════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-icon">📋</div>
+    <div class="section-titles">
+      <h2>Plan Next Year — Annual Budget</h2>
+      <div class="ar">تخطيط السنة القادمة — الميزانية السنوية</div>
+    </div>
+    <div class="section-num">08</div>
+  </div>
+  <div class="gold-divider"></div>
+
+  <div class="bi-row">
+    <div class="bi-col">
+      <h3>📊 Revenue Forecast Formula</h3>
+      <div class="formula-box">
+        <div class="label">Growth-Based Forecast</div>
+        <div class="formula">Growth FC = Base Month Revenue × (1 + Growth%)</div>
+      </div>
+      <div class="formula-box">
+        <div class="label">Occupancy-Based Forecast</div>
+        <div class="formula">Occ FC = Base Revenue × (New Occ% ÷ Base Occ%)</div>
+      </div>
+      <div class="formula-box">
+        <div class="label">Final Blended Forecast</div>
+        <div class="formula">Final = Growth FC × 60% + Occ FC × 40%</div>
+        <div class="result">Same formula applies to KG forecast</div>
+      </div>
+      <div class="info-card green"><span class="info-card-icon">💾</span><div class="info-card-text"><strong>Save as Targets:</strong> One click saves all 12 months as monthly targets. These appear in the Dashboard progress bar immediately.</div></div>
+    </div>
+    <div class="bi-col ar-col">
+      <h3 class="ar">📊 معادلة توقع الإيرادات</h3>
+      <div class="formula-box ar-formula">
+        <div class="label">التوقع القائم على النمو</div>
+        <div class="formula">توقع النمو = إيرادات الشهر الأساسي × (1 + نسبة النمو%)</div>
+      </div>
+      <div class="formula-box ar-formula">
+        <div class="label">التوقع القائم على الإشغال</div>
+        <div class="formula">توقع الإشغال = الإيرادات الأساسية × (نسبة الإشغال الجديدة ÷ الأساسية)</div>
+      </div>
+      <div class="formula-box ar-formula">
+        <div class="label">التوقع النهائي المدمج</div>
+        <div class="formula">النهائي = توقع النمو × 60% + توقع الإشغال × 40%</div>
+        <div class="result">نفس المعادلة تنطبق على توقع KG</div>
+      </div>
+      <div class="info-card green"><span class="info-card-icon">💾</span><div class="info-card-text ar"><strong>حفظ كأهداف:</strong> نقرة واحدة تحفظ جميع الأشهر الـ12 كأهداف شهرية تظهر فوراً في لوحة التحكم.</div></div>
+    </div>
+  </div>
+
+  <div class="bi-row">
+    <div class="bi-col">
+      <h3>🎭 3 Scenarios</h3>
+      <table class="manual-table">
+        <tr><th>Scenario</th><th>Growth %</th><th>Occ Change</th><th>Use When</th></tr>
+        <tr><td>🔵 Conservative</td><td>3%</td><td>+0%</td><td>Pessimistic / uncertain market</td></tr>
+        <tr><td>🟡 Moderate</td><td>7%</td><td>+2%</td><td>Standard planning assumption</td></tr>
+        <tr><td>🟢 Optimistic</td><td>12%</td><td>+5%</td><td>Best case / growth target</td></tr>
+      </table>
+      <div class="info-card blue"><span class="info-card-icon">⬇️</span><div class="info-card-text">Export to Excel creates a finance-ready spreadsheet with all months, actuals, forecasts, KG and YoY comparisons. Add notes before exporting.</div></div>
+    </div>
+    <div class="bi-col ar-col">
+      <h3 class="ar">🎭 السيناريوهات الثلاثة</h3>
+      <table class="manual-table">
+        <tr><th class="ar-td">السيناريو</th><th class="ar-td">نسبة النمو</th><th class="ar-td">الإشغال</th></tr>
+        <tr><td class="ar-td">🔵 متحفظ</td><td>3%</td><td>+0%</td></tr>
+        <tr><td class="ar-td">🟡 معتدل</td><td>7%</td><td>+2%</td></tr>
+        <tr><td class="ar-td">🟢 متفائل</td><td>12%</td><td>+5%</td></tr>
+      </table>
+      <div class="info-card blue"><span class="info-card-icon">⬇️</span><div class="info-card-text ar">التصدير إلى Excel ينشئ جدول بيانات جاهز للمالية مع جميع الأشهر والفعلي والتوقعات وKG والمقارنات السنوية.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SECTION 13: FORMULA REFERENCE ═══════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-icon">🧮</div>
+    <div class="section-titles">
+      <h2>Formula Reference</h2>
+      <div class="ar">مرجع المعادلات</div>
+    </div>
+    <div class="section-num">13</div>
+  </div>
+  <div class="gold-divider"></div>
+
+  <div class="bi-row">
+    <div class="bi-col" style="grid-column:1/-1">
+      <h3>📐 All System Formulas | جميع معادلات النظام</h3>
+      <table class="manual-table">
+        <tr>
+          <th>Formula / المعادلة</th>
+          <th>Calculation / الحساب</th>
+          <th>Example / مثال</th>
+        </tr>
+        <tr>
+          <td><strong>Day Revenue</strong><br><small class="ar">إيراد اليوم</small></td>
+          <td>Σ (Quantity × Price) per item<br><small class="ar">مجموع (الكمية × السعر) لكل عنصر</small></td>
+          <td>22 sheets × 4.5 QR = 99 QR</td>
+        </tr>
+        <tr>
+          <td><strong>Monthly Revenue</strong><br><small class="ar">الإيراد الشهري</small></td>
+          <td>Σ All day revenues in month<br><small class="ar">مجموع إيرادات جميع أيام الشهر</small></td>
+          <td>Σ Days 1–31 = 38,983 QR</td>
+        </tr>
+        <tr>
+          <td><strong>Avg Daily Revenue</strong><br><small class="ar">متوسط الإيراد اليومي</small></td>
+          <td>Monthly Revenue ÷ Active Days<br><small class="ar">الإيراد الشهري ÷ الأيام النشطة</small></td>
+          <td>38,983 ÷ 18 = 2,165 QR/day</td>
+        </tr>
+        <tr>
+          <td><strong>Est. Month Close</strong><br><small class="ar">تقدير نهاية الشهر</small></td>
+          <td>Avg Daily Revenue × Total Days<br><small class="ar">متوسط الإيراد × إجمالي الأيام</small></td>
+          <td>2,165 × 31 = 67,115 QR</td>
+        </tr>
+        <tr>
+          <td><strong>Finance Posted Total</strong><br><small class="ar">إجمالي الترحيل المالي</small></td>
+          <td>Carry (prev month last day) + Days 1 to (N-1)<br><small class="ar">ترحيل آخر يوم الشهر السابق + الأيام 1 إلى (ن-1)</small></td>
+          <td>3,049 + 38,983 = 42,032 QR</td>
+        </tr>
+        <tr>
+          <td><strong>Target Progress %</strong><br><small class="ar">نسبة تقدم الهدف</small></td>
+          <td>Actual Revenue ÷ Target × 100<br><small class="ar">الإيراد الفعلي ÷ الهدف × 100</small></td>
+          <td>38,983 ÷ 80,000 × 100 = 48.7%</td>
+        </tr>
+        <tr>
+          <td><strong>Daily Needed</strong><br><small class="ar">المطلوب يومياً</small></td>
+          <td>(Target − Actual) ÷ Days Remaining<br><small class="ar">(الهدف − الفعلي) ÷ الأيام المتبقية</small></td>
+          <td>(80,000−38,983) ÷ 13 = 3,155 QR/day</td>
+        </tr>
+        <tr>
+          <td><strong>Occupied Rooms</strong><br><small class="ar">الغرف المشغولة</small></td>
+          <td>Total Rooms × Occ% ÷ 100<br><small class="ar">إجمالي الغرف × نسبة الإشغال ÷ 100</small></td>
+          <td>200 × 75% = 150 rooms</td>
+        </tr>
+        <tr>
+          <td><strong>RevPOR</strong><br><small class="ar">الإيراد لكل غرفة</small></td>
+          <td>Day Revenue ÷ Occupied Rooms<br><small class="ar">إيراد اليوم ÷ الغرف المشغولة</small></td>
+          <td>3,000 ÷ 150 = 20.00 QR/room</td>
+        </tr>
+        <tr>
+          <td><strong>KG per Room</strong><br><small class="ar">KG لكل غرفة</small></td>
+          <td>Day KG ÷ Occupied Rooms<br><small class="ar">KG اليوم ÷ الغرف المشغولة</small></td>
+          <td>1,800 ÷ 150 = 12.00 kg/room</td>
+        </tr>
+        <tr>
+          <td><strong>YoY Growth %</strong><br><small class="ar">نمو سنوي</small></td>
+          <td>(This Year − Last Year) ÷ Last Year × 100<br><small class="ar">(هذا العام − العام الماضي) ÷ العام الماضي × 100</small></td>
+          <td>(42,000−38,000) ÷ 38,000 × 100 = 10.5%</td>
+        </tr>
+        <tr>
+          <td><strong>Pace Forecast</strong><br><small class="ar">توقع الوتيرة</small></td>
+          <td>Avg Daily × Total Days in Month<br><small class="ar">المتوسط اليومي × إجمالي أيام الشهر</small></td>
+          <td>2,165 × 31 = 67,115 QR</td>
+        </tr>
+        <tr>
+          <td><strong>Plan Next Year Rev</strong><br><small class="ar">توقع السنة القادمة</small></td>
+          <td>Growth FC × 60% + Occ FC × 40%<br><small class="ar">توقع النمو × 60% + توقع الإشغال × 40%</small></td>
+          <td>Blended from both methods</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SECTION 12: LICENCE & SECURITY ══════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-icon">🔑</div>
+    <div class="section-titles">
+      <h2>Licence & System Security</h2>
+      <div class="ar">الترخيص وحماية النظام</div>
+    </div>
+    <div class="section-num">12</div>
+  </div>
+  <div class="gold-divider"></div>
+
+  <div class="bi-row">
+    <div class="bi-col">
+      <h3>🛡️ 2-Layer Protection System</h3>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div class="step-text"><strong>Domain Lock</strong> — system only runs on approved URLs. Anyone who copies the file to another domain sees a locked screen.</div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-text"><strong>Licence Key</strong> — on unknown domains, a valid key must be entered to activate the system.</div></div>
+      </div>
+      <div class="info-card gold"><span class="info-card-icon">🔐</span><div class="info-card-text"><strong>Your Master Key:</strong> RS26-PERL-MSTR-2026<br>Never expires. Keep this private. Works on all approved domains.</div></div>
+      <div class="info-card green"><span class="info-card-icon">✅</span><div class="info-card-text">Your approved domain (github.io) skips the licence screen completely — goes straight to login.</div></div>
+    </div>
+    <div class="bi-col ar-col">
+      <h3 class="ar">🛡️ نظام الحماية الطبقي</h3>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div class="step-text ar"><strong>قفل النطاق</strong> — يعمل النظام فقط على عناوين URL المعتمدة. أي شخص ينسخ الملف إلى نطاق آخر يرى شاشة مقفلة.</div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-text ar"><strong>مفتاح الترخيص</strong> — في النطاقات غير المعروفة، يجب إدخال مفتاح صالح لتفعيل النظام.</div></div>
+      </div>
+      <div class="info-card gold"><span class="info-card-icon">🔐</span><div class="info-card-text ar"><strong>مفتاح الرئيسي:</strong> RS26-PERL-MSTR-2026<br>لا ينتهي أبداً. احتفظ به خاصاً. يعمل على جميع النطاقات المعتمدة.</div></div>
+      <div class="info-card green"><span class="info-card-icon">✅</span><div class="info-card-text ar">نطاقك المعتمد (github.io) يتجاوز شاشة الترخيص تماماً — ينتقل مباشرة إلى تسجيل الدخول.</div></div>
+    </div>
+  </div>
+
+  <div class="bi-row">
+    <div class="bi-col">
+      <h3>➕ How to Generate a Key for Others</h3>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div class="step-text">Open ⚙️ Settings</div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-text">Click <strong>🔑 Licences</strong> tab</div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-text">Enter admin password to unlock</div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-text">Enter holder name (e.g. Hotel name) and expiry date</div></div>
+        <div class="step"><div class="step-num">5</div><div class="step-text">Click <strong>🔑 Generate Key</strong> — copied to clipboard automatically</div></div>
+        <div class="step"><div class="step-num">6</div><div class="step-text">Share the key with the user</div></div>
+      </div>
+    </div>
+    <div class="bi-col ar-col">
+      <h3 class="ar">➕ كيفية إنشاء مفتاح للآخرين</h3>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div class="step-text ar">افتح ⚙️ الإعدادات</div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-text ar">اضغط على تبويب <strong>🔑 التراخيص</strong></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-text ar">أدخل كلمة مرور المسؤول للفتح</div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-text ar">أدخل اسم الحامل وتاريخ انتهاء الصلاحية</div></div>
+        <div class="step"><div class="step-num">5</div><div class="step-text ar">اضغط <strong>🔑 إنشاء مفتاح</strong> — يُنسخ تلقائياً</div></div>
+        <div class="step"><div class="step-num">6</div><div class="step-text ar">شارك المفتاح مع المستخدم</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ BACK COVER ════════════════════════════════════════════════ -->
+<div class="back-cover">
+  <div style="width:60px;height:60px;border-radius:50%;background:linear-gradient(145deg,#0d1b2e,#162d4a);border:1.5px solid rgba(201,168,76,.4);display:flex;align-items:center;justify-content:center;margin:0 auto 24px">
+    <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--gold)">RS</div>
+  </div>
+  <h2>RS · Pearl Management System</h2>
+  <div class="ar">نظام Pearl لإدارة الغسيل</div>
+  <div style="width:60px;height:1px;background:var(--gold);margin:20px auto;opacity:.4"></div>
+  <p>Version 21 · 2026</p>
+  <p style="margin-top:6px">Developed & Designed by Reda Salah</p>
+  <p class="ar" style="margin-top:4px;font-family:'Noto Naskh Arabic',serif;color:rgba(255,255,255,.3)">تطوير وتصميم: رضا صالح</p>
+  <p style="margin-top:24px;font-size:11px;color:rgba(255,255,255,.2)">© All Rights Reserved · جميع الحقوق محفوظة</p>
+  <p style="font-size:11px;color:rgba(255,255,255,.15);margin-top:4px">Unauthorised reproduction is strictly prohibited · يُحظر النسخ غير المصرح به</p>
+</div>
+
+</body>
+</html>
