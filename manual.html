@@ -228,7 +228,7 @@ body{font-family:'Inter',sans-serif;background:var(--light);color:var(--text);li
       <p>The login screen features an animated dark background with floating gold particles and a glass card in the center.</p>
       <div class="steps">
         <div class="step"><div class="step-num">1</div><div class="step-text">Enter your <strong>Username</strong> (default: Reda Salah)</div></div>
-        <div class="step"><div class="step-num">2</div><div class="step-text">Enter your <strong>Password</strong> (default: RS@2026)</div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-text">Enter your <strong>Password</strong> (contact your system administrator)</div></div>
         <div class="step"><div class="step-num">3</div><div class="step-text">Click <strong>▶ ENTER SYSTEM</strong> or press Enter</div></div>
       </div>
       <div class="info-card amber"><span class="info-card-icon">⚠️</span><div class="info-card-text">Caps Lock warning appears automatically if Caps Lock is ON. The 👁 button shows/hides your password.</div></div>
@@ -238,7 +238,7 @@ body{font-family:'Inter',sans-serif;background:var(--light);color:var(--text);li
       <p class="ar">تتميز شاشة تسجيل الدخول بخلفية داكنة متحركة مع جسيمات ذهبية عائمة وبطاقة زجاجية في المنتصف.</p>
       <div class="steps">
         <div class="step"><div class="step-num">1</div><div class="step-text ar">أدخل <strong>اسم المستخدم</strong> (الافتراضي: Reda Salah)</div></div>
-        <div class="step"><div class="step-num">2</div><div class="step-text ar">أدخل <strong>كلمة المرور</strong> (الافتراضي: RS@2026)</div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-text ar">أدخل <strong>كلمة المرور</strong> (تواصل مع مسؤول النظام)</div></div>
         <div class="step"><div class="step-num">3</div><div class="step-text ar">اضغط <strong>▶ ENTER SYSTEM</strong> أو Enter</div></div>
       </div>
       <div class="info-card amber"><span class="info-card-icon">⚠️</span><div class="info-card-text ar">تظهر تحذيرات Caps Lock تلقائياً. زر 👁 يعرض/يخفي كلمة المرور.</div></div>
@@ -821,7 +821,7 @@ body{font-family:'Inter',sans-serif;background:var(--light);color:var(--text);li
         <div class="step"><div class="step-num">1</div><div class="step-text"><strong>Domain Lock</strong> — system only runs on approved URLs. Anyone who copies the file to another domain sees a locked screen.</div></div>
         <div class="step"><div class="step-num">2</div><div class="step-text"><strong>Licence Key</strong> — on unknown domains, a valid key must be entered to activate the system.</div></div>
       </div>
-      <div class="info-card gold"><span class="info-card-icon">🔐</span><div class="info-card-text"><strong>Your Master Key:</strong> RS26-PERL-MSTR-2026<br>Never expires. Keep this private. Works on all approved domains.</div></div>
+      <div class="info-card gold"><span class="info-card-icon">🔐</span><div class="info-card-text"><strong>Your Master Key:</strong> Contact system administrator for your key.<br>Never share your master key. It never expires and works on all approved domains.</div></div>
       <div class="info-card green"><span class="info-card-icon">✅</span><div class="info-card-text">Your approved domain (github.io) skips the licence screen completely — goes straight to login.</div></div>
     </div>
     <div class="bi-col ar-col">
@@ -830,7 +830,7 @@ body{font-family:'Inter',sans-serif;background:var(--light);color:var(--text);li
         <div class="step"><div class="step-num">1</div><div class="step-text ar"><strong>قفل النطاق</strong> — يعمل النظام فقط على عناوين URL المعتمدة. أي شخص ينسخ الملف إلى نطاق آخر يرى شاشة مقفلة.</div></div>
         <div class="step"><div class="step-num">2</div><div class="step-text ar"><strong>مفتاح الترخيص</strong> — في النطاقات غير المعروفة، يجب إدخال مفتاح صالح لتفعيل النظام.</div></div>
       </div>
-      <div class="info-card gold"><span class="info-card-icon">🔐</span><div class="info-card-text ar"><strong>مفتاح الرئيسي:</strong> RS26-PERL-MSTR-2026<br>لا ينتهي أبداً. احتفظ به خاصاً. يعمل على جميع النطاقات المعتمدة.</div></div>
+      <div class="info-card gold"><span class="info-card-icon">🔐</span><div class="info-card-text ar"><strong>المفتاح الرئيسي:</strong> تواصل مع مسؤول النظام للحصول على مفتاحك.<br>لا تشارك مفتاحك الرئيسي أبداً. لا ينتهي ويعمل على جميع النطاقات المعتمدة.</div></div>
       <div class="info-card green"><span class="info-card-icon">✅</span><div class="info-card-text ar">نطاقك المعتمد (github.io) يتجاوز شاشة الترخيص تماماً — ينتقل مباشرة إلى تسجيل الدخول.</div></div>
     </div>
   </div>
@@ -876,5 +876,27 @@ body{font-family:'Inter',sans-serif;background:var(--light);color:var(--text);li
   <p style="font-size:11px;color:rgba(255,255,255,.15);margin-top:4px">Unauthorised reproduction is strictly prohibited · يُحظر النسخ غير المصرح به</p>
 </div>
 
+
+<!-- Print / Save as PDF button -->
+<div id="print-bar" style="position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+  <div style="background:#0d1b2e;border:1px solid rgba(201,168,76,.3);border-radius:10px;padding:10px 14px;font-size:11px;color:rgba(255,255,255,.5);max-width:220px;text-align:center;line-height:1.5">
+    💡 To save as PDF:<br>Click the button below →<br>then choose <strong style="color:#c9a84c">Save as PDF</strong> as printer
+  </div>
+  <button onclick="window.print()" style="padding:12px 22px;background:linear-gradient(135deg,#c9a84c,#b8942d);color:#0d1b2e;border:none;border-radius:10px;font-size:14px;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(201,168,76,.35);display:flex;align-items:center;gap:8px">
+    🖨️ Save as PDF
+  </button>
+</div>
+
+<style>
+@media print {
+  #print-bar { display: none !important; }
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  body { background: #fff !important; }
+  .cover { min-height: auto !important; padding: 40px !important; }
+  .section { page-break-before: always; }
+  .toc { page-break-after: always; }
+  @page { margin: 15mm; size: A4; }
+}
+</style>
 </body>
 </html>

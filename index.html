@@ -2582,7 +2582,7 @@ var _fbDB = null;
         <!-- Master key info — always visible -->
         <div style="margin-top:16px;background:#fefce8;border:1.5px solid #fde68a;border-radius:10px;padding:14px 16px">
           <div style="font-size:11px;font-weight:800;color:#92400e;margin-bottom:6px">🛡️ YOUR MASTER KEY — Never expires</div>
-          <div style="font-family:monospace;font-size:16px;font-weight:800;color:#b45309;letter-spacing:2px">RS26-PERL-MSTR-2026</div>
+          <div style="font-size:13px;color:#b45309;font-weight:600">Your master key is stored privately. Keep it safe and never share it.</div>
           <div style="font-size:10px;color:#92400e;margin-top:4px">Keep this private. Works on any approved domain.</div>
         </div>
       </div>
@@ -8316,7 +8316,7 @@ function renderGuide() {
 
      '<br><strong>🔐 Login credentials:</strong>' +
      ul([
-       'Default Admin → Username: <code>Reda Salah</code> &nbsp; Password: <code>RS@2026</code>',
+       'Default Admin credentials are set during system setup. Contact your system administrator if you need login details.',
        'Press <strong>Enter</strong> or click <strong>▶ ENTER SYSTEM</strong>.',
        'Team members use their own credentials set in ⚙️ Settings → Team Account.',
        'Wrong password → card shakes with red error message.',
@@ -9016,7 +9016,7 @@ function renderGuide() {
      ]) +
 
      '<br><strong>🔑 Your master key (always works):</strong>' +
-     '<div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:14px 16px;margin:10px 0;font-family:monospace;font-size:18px;font-weight:800;color:#15803d;text-align:center;letter-spacing:3px">RS26-PERL-MSTR-2026</div>' +
+     '<div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:14px 16px;margin:10px 0;font-size:13px;color:#15803d;text-align:center">Your master key was provided during system setup. It is stored privately — do not share it.</div>' +
      '<div style="font-size:11px;color:#64748b;margin-bottom:12px">This key never expires and always works. Keep it private — only share keys you generate for others.</div>' +
 
      '<br><strong>➕ Generating keys for others (e.g. another hotel):</strong>' +
@@ -9046,7 +9046,7 @@ function renderGuide() {
        'Their local data (if any) is unaffected — only access is blocked.'
      ]) +
 
-     warn('Never share your master key (RS26-PERL-MSTR-2026) with anyone. Always generate separate keys for each user so you can revoke individually.') +
+     warn('Never share your master key with anyone. Always generate separate keys for each user so you can revoke individually.') +
      tip('Set an expiry date when generating keys for clients — e.g. 1 year from today. When it expires they need to renew, giving you control over annual licensing.')
     ],
 
