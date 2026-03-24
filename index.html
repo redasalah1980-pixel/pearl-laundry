@@ -3730,6 +3730,65 @@ window.addEventListener('fb-ready', function() {
 // ══════════════════════════════════════════════════════════════
 //  QUICK CALCULATOR
 // ══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════
+//  MORE MENU — dropdown for Forecast, Backup, Help
+// ══════════════════════════════════════════════════════════════
+var _moreMenuOpen = false;
+var _moreTabIds   = ['forecast', 'backup', 'guide'];
+
+function toggleMoreMenu() {
+  _moreMenuOpen ? closeMoreMenu() : openMoreMenu();
+}
+
+function openMoreMenu() {
+  var menu = document.getElementById('nav-more-menu');
+  var btn  = document.getElementById('nav-more-btn');
+  if (!menu || !btn) return;
+  _moreMenuOpen = true;
+  menu.style.display = 'block';
+  btn.style.color = '#c9a84c';
+  // Position under button
+  var rect = btn.getBoundingClientRect();
+  menu.style.left = Math.max(0, rect.left) + 'px';
+  menu.style.top  = '54px';
+}
+
+function closeMoreMenu() {
+  var menu = document.getElementById('nav-more-menu');
+  var btn  = document.getElementById('nav-more-btn');
+  if (!menu || !btn) return;
+  _moreMenuOpen = false;
+  menu.style.display = 'none';
+  // Keep gold if a More-tab is currently active
+  var moreActive = _moreTabIds.indexOf(curTab) !== -1;
+  btn.style.color     = moreActive ? '#c9a84c' : 'rgba(255,255,255,.55)';
+  btn.style.borderBottom = moreActive ? '2px solid #c9a84c' : '2px solid transparent';
+}
+
+function updateMoreBtnState(name) {
+  var btn = document.getElementById('nav-more-btn');
+  if (!btn) return;
+  var isMoreTab = _moreTabIds.indexOf(name) !== -1;
+  btn.style.color = isMoreTab ? '#c9a84c' : 'rgba(255,255,255,.55)';
+  btn.style.borderBottom = isMoreTab ? '2px solid #c9a84c' : '2px solid transparent';
+  // Highlight active item inside the dropdown
+  _moreTabIds.forEach(function(t) {
+    var item = document.getElementById('nav-' + t);
+    if (!item) return;
+    var isActive = t === name;
+    item.style.color = isActive ? '#c9a84c' : (t === 'backup' ? '#c9a84c' : 'rgba(255,255,255,.7)');
+    item.style.fontWeight = isActive ? '800' : '600';
+    item.style.background = isActive ? 'rgba(201,168,76,.08)' : '';
+  });
+}
+
+// Close More menu when clicking outside
+document.addEventListener('click', function(e) {
+  if (!_moreMenuOpen) return;
+  var wrap = document.getElementById('nav-more-wrap');
+  if (wrap && !wrap.contains(e.target)) closeMoreMenu();
+}, true);
+
 function openCalc() {
   var m = document.getElementById('calc-modal');
   if (m) { m.style.display = m.style.display === 'flex' ? 'none' : 'flex'; }
@@ -5184,8 +5243,11 @@ function showTab(name) {
   }
   curTab = name;
   // Match exact order of .tn-tab elements in HTML
-  const tabs = ['dashboard', 'entry', 'monthly', 'report', 'finance', 'benchmark', 'prices', 'analytics', 'forecast', 'backup', 'guide'];
+  // Update main nav tabs (8 tabs) — More dropdown items handled separately
+  const tabs = ['dashboard', 'entry', 'monthly', 'report', 'finance', 'benchmark', 'prices', 'analytics'];
   document.querySelectorAll('.tn-tab').forEach((t, i) => t.classList.toggle('on', tabs[i] === name));
+  // Update More button state
+  updateMoreBtnState(name);
   document.querySelectorAll('.pg').forEach(p => p.classList.remove('on'));
   document.getElementById('tab-' + name)?.classList.add('on');
   window.scrollTo(0, 0);
@@ -11029,6 +11091,65 @@ function isMobile() { return window.innerWidth <= 768; }
   // ══════════════════════════════════════════════════════════════
 //  QUICK CALCULATOR
 // ══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════
+//  MORE MENU — dropdown for Forecast, Backup, Help
+// ══════════════════════════════════════════════════════════════
+var _moreMenuOpen = false;
+var _moreTabIds   = ['forecast', 'backup', 'guide'];
+
+function toggleMoreMenu() {
+  _moreMenuOpen ? closeMoreMenu() : openMoreMenu();
+}
+
+function openMoreMenu() {
+  var menu = document.getElementById('nav-more-menu');
+  var btn  = document.getElementById('nav-more-btn');
+  if (!menu || !btn) return;
+  _moreMenuOpen = true;
+  menu.style.display = 'block';
+  btn.style.color = '#c9a84c';
+  // Position under button
+  var rect = btn.getBoundingClientRect();
+  menu.style.left = Math.max(0, rect.left) + 'px';
+  menu.style.top  = '54px';
+}
+
+function closeMoreMenu() {
+  var menu = document.getElementById('nav-more-menu');
+  var btn  = document.getElementById('nav-more-btn');
+  if (!menu || !btn) return;
+  _moreMenuOpen = false;
+  menu.style.display = 'none';
+  // Keep gold if a More-tab is currently active
+  var moreActive = _moreTabIds.indexOf(curTab) !== -1;
+  btn.style.color     = moreActive ? '#c9a84c' : 'rgba(255,255,255,.55)';
+  btn.style.borderBottom = moreActive ? '2px solid #c9a84c' : '2px solid transparent';
+}
+
+function updateMoreBtnState(name) {
+  var btn = document.getElementById('nav-more-btn');
+  if (!btn) return;
+  var isMoreTab = _moreTabIds.indexOf(name) !== -1;
+  btn.style.color = isMoreTab ? '#c9a84c' : 'rgba(255,255,255,.55)';
+  btn.style.borderBottom = isMoreTab ? '2px solid #c9a84c' : '2px solid transparent';
+  // Highlight active item inside the dropdown
+  _moreTabIds.forEach(function(t) {
+    var item = document.getElementById('nav-' + t);
+    if (!item) return;
+    var isActive = t === name;
+    item.style.color = isActive ? '#c9a84c' : (t === 'backup' ? '#c9a84c' : 'rgba(255,255,255,.7)');
+    item.style.fontWeight = isActive ? '800' : '600';
+    item.style.background = isActive ? 'rgba(201,168,76,.08)' : '';
+  });
+}
+
+// Close More menu when clicking outside
+document.addEventListener('click', function(e) {
+  if (!_moreMenuOpen) return;
+  var wrap = document.getElementById('nav-more-wrap');
+  if (wrap && !wrap.contains(e.target)) closeMoreMenu();
+}, true);
+
 function openCalc() {
   var m = document.getElementById('calc-modal');
   if (m) { m.style.display = m.style.display === 'flex' ? 'none' : 'flex'; }
@@ -14160,23 +14281,172 @@ function importBackupJSON(input) {
 }
 
 // ── Option 4: Save Cloud Backup ───────────────────────────────
+// ══════════════════════════════════════════════════════════════
+//  BACKUP HISTORY SYSTEM — versioned cloud backups
+// ══════════════════════════════════════════════════════════════
+var _MAX_BACKUP_VERSIONS = 10;
+
 function saveCloudBackup() {
   if (!window._fbSaveKey) {
-    showBackupMsg('backup-cloud-msg', '❌ Firebase not connected. Check your internet connection.', 'err'); return;
+    showBackupMsg('backup-cloud-msg', '❌ Firebase not connected.', 'err'); return;
   }
   var backup = getFullBackupObject();
   showBackupMsg('backup-cloud-msg', '⏳ Saving to cloud...', 'info');
-  window._fbSaveKey('pearl/backup/latest', backup).then(function(ok) {
-    if (ok) {
-      var ts = new Date().toLocaleString();
-      _STORE.setItem('pearl_last_cloud_backup', ts);
-      showBackupMsg('backup-cloud-msg', '✅ Cloud backup saved at ' + ts, 'ok');
-      toast('☁️ Cloud backup saved!', 'ok');
-      renderBackupTab();
-    } else {
-      showBackupMsg('backup-cloud-msg', '❌ Cloud save failed. Try again.', 'err');
+  // Save latest + create versioned snapshot
+  window._fbSaveKey('pearl/backup/latest', backup);
+
+  var ts      = new Date().toISOString();
+  var verId   = ts.replace(/[:.]/g, '-');
+  var user    = (_SESSION ? _SESSION.getItem('ph_user') : null) || 'Admin';
+  var years   = backup.data ? Object.keys(backup.data).length : 0;
+  var size    = JSON.stringify(backup).length;
+  var verMeta = { id: verId, savedAt: ts, savedBy: user, years: years, size: size };
+
+  // Load index → add new → trim to 10 → save
+  (window._fbLoadKey ? window._fbLoadKey('pearl/backup/index') : Promise.resolve(null))
+  .then(function(idx) {
+    var index = Array.isArray(idx) ? idx : [];
+    index.unshift(verMeta);
+    if (index.length > _MAX_BACKUP_VERSIONS) {
+      var removed = index.splice(_MAX_BACKUP_VERSIONS);
+      removed.forEach(function(old) {
+        if (window._fbDB) window._fbDB.ref('pearl/backup/versions/' + old.id).remove();
+      });
     }
+    return Promise.all([
+      window._fbSaveKey('pearl/backup/versions/' + verId, backup),
+      window._fbSaveKey('pearl/backup/index', index)
+    ]).then(function() {
+      try { _STORE.setItem('pearl_backup_index', JSON.stringify(index)); } catch(e) {}
+      var ts2 = new Date().toLocaleString();
+      _STORE.setItem('pearl_last_cloud_backup', ts2);
+      showBackupMsg('backup-cloud-msg', '✅ Cloud backup saved at ' + ts2 + ' — version ' + index.length + ' of ' + _MAX_BACKUP_VERSIONS + ' kept', 'ok');
+      toast('☁️ Backup saved — version ' + index.length + ' stored', 'ok');
+      renderBackupTab();
+      renderBackupHistory();
+    });
+  }).catch(function(err) {
+    showBackupMsg('backup-cloud-msg', '❌ Cloud save failed: ' + (err.message || err), 'err');
   });
+}
+
+function restoreFromVersion(verId) {
+  if (!confirm('Restore from this backup version?\n\nData will be MERGED — your current data is safe.\nContinue?')) return;
+  if (!window._fbLoadKey) { toast('❌ Firebase not connected', 'err'); return; }
+  toast('⏳ Loading backup...', 'info');
+  window._fbLoadKey('pearl/backup/versions/' + verId).then(function(backup) {
+    if (!backup || !backup.data) { toast('❌ Backup version not found', 'err'); return; }
+    var restoredYears = 0;
+    Object.keys(backup.data).forEach(function(y) {
+      var merged = Object.assign({}, backup.data[y], JSON.parse(_STORE.getItem('pearl_laundry_' + y) || '{}'));
+      _STORE.setItem('pearl_laundry_' + y, JSON.stringify(merged));
+      _DB[y] = merged;
+      if (window._fbSaveKey) window._fbSaveKey('pearl/data/' + y, merged);
+      restoredYears++;
+    });
+    toast('✅ Restored ' + restoredYears + ' year(s) — data merged safely', 'ok');
+    setTimeout(function() { PRICES = loadPR(CY); renderDash(); renderEntry(); renderBackupTab(); }, 800);
+  }).catch(function(err) { toast('❌ Restore failed: ' + (err.message || err), 'err'); });
+}
+
+function deleteBackupVersion(verId) {
+  if (!confirm('Delete this backup version? This cannot be undone.')) return;
+  var stored = [];
+  try { stored = JSON.parse(_STORE.getItem('pearl_backup_index') || '[]'); } catch(e) {}
+  var newIndex = stored.filter(function(v) { return v.id !== verId; });
+  if (window._fbDB) window._fbDB.ref('pearl/backup/versions/' + verId).remove();
+  if (window._fbSaveKey) window._fbSaveKey('pearl/backup/index', newIndex);
+  try { _STORE.setItem('pearl_backup_index', JSON.stringify(newIndex)); } catch(e) {}
+  toast('🗑 Backup version deleted', 'ok');
+  renderBackupHistory();
+}
+
+function renderBackupHistory() {
+  var wrap = document.getElementById('backup-history-wrap');
+  if (!wrap) return;
+  wrap.innerHTML = '<div style="text-align:center;padding:16px;color:#94a3b8;font-size:12px">⏳ Loading...</div>';
+
+  // Try local cache first
+  var cached = null;
+  try { cached = JSON.parse(_STORE.getItem('pearl_backup_index') || 'null'); } catch(e) {}
+
+  function renderIndex(index) {
+    if (!index || index.length === 0) {
+      wrap.innerHTML = '<div style="text-align:center;padding:20px;color:#94a3b8;font-size:13px">' +
+        'No backup versions yet.<br>Click <strong>☁️ Save Cloud Backup Now</strong> to create your first version.' +
+        '</div>';
+      return;
+    }
+
+    var html = '<div style="display:flex;flex-direction:column;gap:8px">';
+    index.forEach(function(v, idx) {
+      var date    = new Date(v.savedAt);
+      var dateStr = date.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+      var timeStr = date.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' });
+      var sizeKB  = v.size ? (v.size / 1024).toFixed(0) + ' KB' : '—';
+      var isLatest = idx === 0;
+
+      html += '<div style="display:flex;align-items:center;gap:10px;padding:12px 14px;' +
+        'background:' + (isLatest ? '#f0fdf4' : '#fff') + ';' +
+        'border:1.5px solid ' + (isLatest ? '#86efac' : '#e2e8f0') + ';' +
+        'border-radius:12px;flex-wrap:wrap">' +
+
+        // Version number badge
+        '<div style="width:34px;height:34px;border-radius:50%;background:' + (isLatest ? '#16a34a' : '#64748b') + ';' +
+          'display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:800;flex-shrink:0">' +
+          (index.length - idx) +
+        '</div>' +
+
+        // Details
+        '<div style="flex:1;min-width:0">' +
+          '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">' +
+            '<div style="font-size:13px;font-weight:800;color:#0d1b2e">' + dateStr + ' · ' + timeStr + '</div>' +
+            (isLatest ? '<span style="background:#f0fdf4;color:#16a34a;border:1px solid #86efac;' +
+              'border-radius:10px;padding:2px 8px;font-size:10px;font-weight:700">● LATEST</span>' : '') +
+          '</div>' +
+          '<div style="font-size:11px;color:#64748b;margin-top:2px">' +
+            '👤 ' + (v.savedBy || 'Admin') + ' · 📅 ' + (v.years || '?') + ' year(s) · 💾 ' + sizeKB +
+          '</div>' +
+        '</div>' +
+
+        // Action buttons
+        '<div style="display:flex;gap:6px;flex-shrink:0">' +
+          '<button onclick="restoreFromVersion(\"' + v.id + '\")" ' +
+            'style="padding:6px 12px;background:#eff6ff;border:1.5px solid #bfdbfe;color:#1d4ed8;' +
+            'border-radius:7px;font-size:11px;font-weight:700;cursor:pointer">🔄 Restore</button>' +
+          (!isLatest ? '<button onclick="deleteBackupVersion(\"' + v.id + '\")" ' +
+            'style="padding:6px 8px;background:#fff;border:1.5px solid #e2e8f0;color:#94a3b8;' +
+            'border-radius:7px;font-size:11px;cursor:pointer" title="Delete">🗑</button>' : '') +
+        '</div>' +
+      '</div>';
+    });
+
+    html += '</div><div style="text-align:center;margin-top:8px;font-size:10px;color:#94a3b8">' +
+      'Last ' + _MAX_BACKUP_VERSIONS + ' versions kept · Oldest auto-deleted when limit reached</div>';
+    wrap.innerHTML = html;
+  }
+
+  // Show cached immediately, then refresh from Firebase
+  if (cached && cached.length > 0) {
+    renderIndex(cached);
+  }
+
+  // Always try to get fresh from Firebase
+  if (window._fbLoadKey) {
+    window._fbLoadKey('pearl/backup/index').then(function(idx) {
+      var result = Array.isArray(idx) ? idx : [];
+      if (result.length > 0) {
+        try { _STORE.setItem('pearl_backup_index', JSON.stringify(result)); } catch(e) {}
+        renderIndex(result);
+      } else if (!cached || cached.length === 0) {
+        renderIndex([]);
+      }
+    }).catch(function() {
+      if (!cached) renderIndex([]);
+    });
+  } else if (!cached) {
+    renderIndex([]);
+  }
 }
 
 // ── Option 4: Restore from Cloud Backup ──────────────────────
