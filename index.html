@@ -9696,144 +9696,175 @@ function renderDashOccQuick(m) {
   var el = document.getElementById('dash-occ-quick');
   if (!el) return;
 
-  var today   = new Date();
-  var todayD  = today.getDate();
-  var todayM  = today.getMonth() + 1;
-  var todayY  = today.getFullYear();
+  var today         = new Date();
+  var todayD        = today.getDate();
+  var todayM        = today.getMonth() + 1;
+  var todayY        = today.getFullYear();
   var totalRoomsNow = _TOTAL_ROOMS || 161;
-  var nd = dim(CY, m);
+  var nd            = dim(CY, m);
 
-  // Use today\'s day if same month/year, else last day of month
-  var targetDay = (CY === todayY && m === todayM) ? todayD : nd;
-  var dayName   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][
-    new Date(CY, m-1, targetDay).getDay()
-  ];
+  // Default selected day
+  if (!window._dqSelectedDay || window._dqSelectedMonth !== m) {
+    window._dqSelectedDay   = (CY === todayY && m === todayM) ? todayD : nd;
+    window._dqSelectedMonth = m;
+  }
+  var selDay = window._dqSelectedDay;
 
-  // Load existing occupancy for target day
-  var occ       = loadBenchOcc(CY, m);
-  var savedPct  = occ[targetDay] !== undefined ? occ[targetDay] : '';
+  var occ      = loadBenchOcc(CY, m);
+  var savedPct = occ[selDay] !== undefined ? occ[selDay] : '';
   var savedRooms = savedPct !== '' ? Math.round(totalRoomsNow * parseFloat(savedPct) / 100) : '';
 
-  // Load yesterday
-  var yDay = targetDay - 1;
-  var yPct = (yDay >= 1 && occ[yDay] !== undefined) ? parseFloat(occ[yDay]) : null;
+  // Previous day
+  var prevDay = selDay - 1;
+  var prevPct = (prevDay >= 1 && occ[prevDay] !== undefined) ? parseFloat(occ[prevDay]) : null;
 
-  // Load month average
-  var occDays = [], occSum = 0, occCount = 0;
+  // Month average
+  var occSum = 0, occCount = 0;
   for (var d = 1; d <= nd; d++) {
     if (occ[d] !== undefined && occ[d] !== '') {
       var p = parseFloat(occ[d]);
       if (p > 0) { occSum += p; occCount++; }
     }
   }
-  var monthAvg = occCount > 0 ? (occSum / occCount) : 0;
+  var monthAvg = occCount > 0 ? occSum / occCount : 0;
 
-  // Colour helper
-  function occCol(pct) {
-    return pct >= 80 ? '#16a34a' : pct >= 60 ? '#d97706' : '#dc2626';
-  }
-  function occBg(pct) {
-    return pct >= 80 ? '#f0fdf4' : pct >= 60 ? '#fffbeb' : '#fee2e2';
+  function occCol(pct) { return pct>=80?'#16a34a':pct>=60?'#d97706':'#dc2626'; }
+  function occBg(pct)  { return pct>=80?'#f0fdf4':pct>=60?'#fffbeb':'#fee2e2'; }
+
+  var curPct   = savedPct !== '' ? parseFloat(savedPct) : 0;
+  var DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+  // Build day dropdown options
+  var dayOpts = '';
+  var isToday = (CY === todayY && m === todayM);
+  for (var dd = 1; dd <= nd; dd++) {
+    var dt    = new Date(CY, m-1, dd);
+    var dow   = DAY_NAMES[dt.getDay()];
+    var hasDat = occ[dd] !== undefined && occ[dd] !== '';
+    var label = dow + ' ' + dd + (hasDat ? ' ✓' : '') +
+                (isToday && dd === todayD ? ' (Today)' : '') +
+                (isToday && dd === todayD-1 ? ' (Yesterday)' : '');
+    dayOpts += '<option value="' + dd + '"' + (dd === selDay ? ' selected' : '') + '>' + label + '</option>';
   }
 
-  var curPct = savedPct !== '' ? parseFloat(savedPct) : 0;
+  var selDt  = new Date(CY, m-1, selDay);
+  var selDow = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][selDt.getDay()];
+  var isSelToday = isToday && selDay === todayD;
+  var isSelYest  = isToday && selDay === todayD - 1;
+  var dayLabel   = selDow + ' ' + selDay + ' ' + MONTH_NAMES[m-1] + ' ' + CY +
+    (isSelToday ? ' — Today' : isSelYest ? ' — Yesterday' : '');
 
   el.innerHTML =
     '<div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;padding:14px 18px">' +
-      '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">' +
 
-        // Left: title + date
+      // ── Header row ──
+      '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px">' +
         '<div style="display:flex;align-items:center;gap:10px">' +
           '<div style="width:40px;height:40px;background:linear-gradient(135deg,#0d1b2e,#1e3a5f);border-radius:10px;' +
             'display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🏨</div>' +
           '<div>' +
-            '<div style="font-size:13px;font-weight:800;color:#0d1b2e">Quick Occupancy Entry</div>' +
-            '<div style="font-size:11px;color:#64748b;margin-top:1px">' +
-              dayName + ' ' + targetDay + ' ' + MONTH_NAMES[m-1] + ' ' + CY +
-              ' · ' + totalRoomsNow + ' total rooms' +
-            '</div>' +
+            '<div style="font-size:13px;font-weight:800;color:#0d1b2e">Occupancy Entry</div>' +
+            '<div style="font-size:11px;color:#64748b;margin-top:1px">' + totalRoomsNow + ' total rooms · ' + MONTH_NAMES[m-1] + ' ' + CY + '</div>' +
           '</div>' +
         '</div>' +
 
-        // Right: inputs + save
-        '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">' +
-
-          // Rooms input
-          '<div style="display:flex;flex-direction:column;align-items:center;gap:2px">' +
-            '<div style="font-size:9px;font-weight:700;color:#94a3b8;letter-spacing:.8px">ROOMS</div>' +
-            '<input id="dq-rooms" type="number" min="0" max="' + totalRoomsNow + '" ' +
-              'value="' + savedRooms + '" placeholder="e.g. 120" ' +
-              'oninput="dqRoomsChanged()" ' +
-              'style="width:70px;padding:7px 8px;border:1.5px solid #3b82f6;border-radius:8px;' +
-              'font-size:15px;font-weight:800;color:#0d1b2e;text-align:center;outline:none;background:#eff6ff">' +
-          '</div>' +
-
-          '<div style="font-size:16px;color:#94a3b8;font-weight:300;margin-top:12px">→</div>' +
-
-          // Pct display + input
-          '<div style="display:flex;flex-direction:column;align-items:center;gap:2px">' +
-            '<div style="font-size:9px;font-weight:700;color:#94a3b8;letter-spacing:.8px">OCC %</div>' +
-            '<input id="dq-pct" type="number" min="0" max="100" step="0.1" ' +
-              'value="' + savedPct + '" placeholder="e.g. 74.5" ' +
-              'oninput="dqPctChanged()" ' +
-              'style="width:70px;padding:7px 8px;border:1.5px solid #16a34a;border-radius:8px;' +
-              'font-size:15px;font-weight:800;color:#0d1b2e;text-align:center;outline:none;background:#f0fdf4">' +
-          '</div>' +
-
-          // Live indicator
-          '<div id="dq-indicator" style="display:flex;flex-direction:column;align-items:center;gap:2px;margin-top:12px">' +
-            '<div id="dq-dot" style="width:12px;height:12px;border-radius:50%;background:' + (curPct>0?occCol(curPct):'#e2e8f0') + '"></div>' +
-            '<div id="dq-pct-label" style="font-size:9px;font-weight:700;color:' + (curPct>0?occCol(curPct):'#94a3b8') + '">' +
-              (curPct > 0 ? curPct.toFixed(1) + '%' : '—') +
-            '</div>' +
-          '</div>' +
-
-          // Save button
-          '<button onclick="dqSave(' + targetDay + ',' + m + ')" ' +
-            'style="padding:8px 16px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:8px;' +
-            'font-size:12px;font-weight:800;cursor:pointer;margin-top:12px">💾 Save</button>' +
+        // Day selector
+        '<div style="display:flex;flex-direction:column;gap:2px">' +
+          '<div style="font-size:9px;font-weight:700;color:#94a3b8;letter-spacing:.8px">SELECT DAY</div>' +
+          '<select id="dq-day-sel" onchange="dqDayChanged(this.value,' + m + ')" ' +
+            'style="padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:12px;' +
+            'font-weight:700;color:#0d1b2e;background:#f8fafc;cursor:pointer;outline:none">' +
+            dayOpts +
+          '</select>' +
         '</div>' +
       '</div>' +
 
-      // Stats row: yesterday + month avg
-      '<div style="display:flex;gap:12px;margin-top:12px;padding-top:10px;border-top:1px solid #f1f5f9;flex-wrap:wrap">' +
+      // ── Selected day label ──
+      '<div style="font-size:12px;font-weight:700;color:' + (isSelToday?'#16a34a':isSelYest?'#d97706':'#0d1b2e') + ';' +
+        'margin-bottom:10px;padding:6px 12px;background:' + (isSelToday?'#f0fdf4':isSelYest?'#fffbeb':'#f8fafc') + ';' +
+        'border-radius:8px;display:inline-block">' +
+        (isSelToday?'📅 ':'📆 ') + dayLabel +
+      '</div>' +
 
-        // Today status
+      // ── Input row ──
+      '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">' +
+
+        // Rooms
+        '<div style="display:flex;flex-direction:column;align-items:center;gap:2px">' +
+          '<div style="font-size:9px;font-weight:700;color:#94a3b8;letter-spacing:.8px">OCCUPIED ROOMS</div>' +
+          '<input id="dq-rooms" type="number" min="0" max="' + totalRoomsNow + '" ' +
+            'value="' + savedRooms + '" placeholder="e.g. 120" oninput="dqRoomsChanged()" ' +
+            'style="width:80px;padding:8px;border:2px solid #3b82f6;border-radius:8px;' +
+            'font-size:16px;font-weight:800;color:#0d1b2e;text-align:center;outline:none;background:#eff6ff">' +
+        '</div>' +
+
+        '<div style="font-size:18px;color:#94a3b8;margin-top:14px">⇄</div>' +
+
+        // Pct
+        '<div style="display:flex;flex-direction:column;align-items:center;gap:2px">' +
+          '<div style="font-size:9px;font-weight:700;color:#94a3b8;letter-spacing:.8px">OCCUPANCY %</div>' +
+          '<input id="dq-pct" type="number" min="0" max="100" step="0.1" ' +
+            'value="' + savedPct + '" placeholder="e.g. 74.5" oninput="dqPctChanged()" ' +
+            'style="width:80px;padding:8px;border:2px solid #16a34a;border-radius:8px;' +
+            'font-size:16px;font-weight:800;color:#0d1b2e;text-align:center;outline:none;background:#f0fdf4">' +
+        '</div>' +
+
+        // Live dot
+        '<div style="display:flex;flex-direction:column;align-items:center;gap:3px;margin-top:14px">' +
+          '<div id="dq-dot" style="width:14px;height:14px;border-radius:50%;background:' + (curPct>0?occCol(curPct):'#e2e8f0') + '"></div>' +
+          '<div id="dq-pct-label" style="font-size:9px;font-weight:700;color:' + (curPct>0?occCol(curPct):'#94a3b8') + '">' +
+            (curPct > 0 ? curPct.toFixed(1)+'%' : '—') +
+          '</div>' +
+        '</div>' +
+
+        // Save + Clear
+        '<div style="display:flex;gap:6px;margin-top:14px">' +
+          '<button onclick="dqSave(' + selDay + ',' + m + ')" ' +
+            'style="padding:9px 18px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:8px;' +
+            'font-size:12px;font-weight:800;cursor:pointer">💾 Save</button>' +
+          '<button onclick="dqClear(' + selDay + ',' + m + ')" ' +
+            'style="padding:9px 12px;background:#fff5f5;border:1.5px solid #fca5a5;color:#dc2626;' +
+            'border-radius:8px;font-size:12px;cursor:pointer" title="Clear this day">🗑</button>' +
+        '</div>' +
+      '</div>' +
+
+      // ── Stats row ──
+      '<div style="display:flex;gap:8px;margin-top:12px;padding-top:10px;border-top:1px solid #f1f5f9;flex-wrap:wrap;align-items:center">' +
         (curPct > 0 ?
-          '<div style="display:flex;align-items:center;gap:6px;padding:5px 12px;background:' + occBg(curPct) + ';border-radius:8px">' +
-            '<div style="width:8px;height:8px;border-radius:50%;background:' + occCol(curPct) + '"></div>' +
-            '<span style="font-size:11px;font-weight:700;color:' + occCol(curPct) + '">' +
-              'Today: ' + curPct.toFixed(1) + '% · ' + Math.round(totalRoomsNow * curPct / 100) + ' rooms' +
-            '</span>' +
+          '<div style="padding:5px 12px;background:' + occBg(curPct) + ';border-radius:8px;' +
+            'font-size:11px;font-weight:700;color:' + occCol(curPct) + '">' +
+            'Day ' + selDay + ': ' + curPct.toFixed(1) + '% · ' + Math.round(totalRoomsNow*curPct/100) + ' rooms' +
           '</div>'
-        : '<div style="font-size:11px;color:#94a3b8;padding:5px 0">No data for today yet</div>') +
+        : '<div style="font-size:11px;color:#94a3b8">No data for day ' + selDay + '</div>') +
 
-        // Yesterday
-        (yPct !== null ?
-          '<div style="display:flex;align-items:center;gap:6px;padding:5px 12px;background:#f8fafc;border-radius:8px">' +
-            '<span style="font-size:11px;color:#64748b">Yesterday: <strong style="color:#0d1b2e">' + yPct.toFixed(1) + '%</strong></span>' +
-            (curPct > 0 ?
-              '<span style="font-size:10px;color:' + (curPct>=yPct?'#16a34a':'#dc2626') + ';font-weight:700">' +
-                (curPct>=yPct?'▲':'▼') + ' ' + Math.abs(curPct-yPct).toFixed(1) + 'pp' +
-              '</span>' : '') +
+        (prevPct !== null ?
+          '<div style="padding:5px 12px;background:#f8fafc;border-radius:8px;font-size:11px;color:#64748b">' +
+            'Day ' + prevDay + ': <strong style="color:#0d1b2e">' + prevPct.toFixed(1) + '%</strong>' +
+            (curPct > 0 ? ' <span style="color:' + (curPct>=prevPct?'#16a34a':'#dc2626') + ';font-weight:700">' +
+              (curPct>=prevPct?'▲':'▼') + Math.abs(curPct-prevPct).toFixed(1) + 'pp</span>' : '') +
           '</div>' : '') +
 
-        // Month avg
         (monthAvg > 0 ?
-          '<div style="display:flex;align-items:center;gap:6px;padding:5px 12px;background:#f8fafc;border-radius:8px">' +
-            '<span style="font-size:11px;color:#64748b">Month avg: <strong style="color:#0d1b2e">' + monthAvg.toFixed(1) + '%</strong></span>' +
+          '<div style="padding:5px 12px;background:#f8fafc;border-radius:8px;font-size:11px;color:#64748b">' +
+            'Month avg: <strong style="color:#0d1b2e">' + monthAvg.toFixed(1) + '%</strong>' +
           '</div>' : '') +
 
-        // Saved indicator
-        '<div id="dq-saved-msg" style="display:none;font-size:11px;color:#16a34a;font-weight:700;' +
-          'padding:5px 12px;background:#f0fdf4;border-radius:8px">✅ Saved!</div>' +
+        '<div id="dq-saved-msg" style="display:none;padding:5px 12px;background:#f0fdf4;' +
+          'border-radius:8px;font-size:11px;color:#16a34a;font-weight:700">✅ Saved!</div>' +
       '</div>' +
     '</div>';
 
-  // Store target day globally for save function
-  window._dqTargetDay = targetDay;
+  window._dqTargetDay = selDay;
   window._dqMonth     = m;
 }
+
+// ── Day selector changed ──
+function dqDayChanged(day, m) {
+  window._dqSelectedDay   = parseInt(day);
+  window._dqSelectedMonth = m;
+  renderDashOccQuick(m);
+}
+
 
 function dqRoomsChanged() {
   var totalRoomsNow = _TOTAL_ROOMS || 161;
@@ -9880,33 +9911,41 @@ function dqSave(day, m) {
   var pct   = parseFloat(pInp.value);
   var rooms = parseFloat(rInp?.value);
   if (isNaN(pct) || pct < 0 || pct > 100) {
-    toast('⚠️ Enter a valid occupancy %', 'err'); return;
+    toast('⚠️ Enter a valid occupancy % (0-100)', 'err'); return;
   }
 
-  // Save to benchmark occupancy store
+  // Save to benchmark store
   var occ = loadBenchOcc(CY, m);
   occ[day] = pct;
   saveBenchOccData(CY, m, occ);
 
-  // Also update the benchmark grid if it's rendered
-  var bInp = document.getElementById('bocc_' + day);
-  if (bInp) bInp.value = pct;
+  // Sync benchmark grid if visible
+  var bInp   = document.getElementById('bocc_' + day);
   var bRooms = document.getElementById('bocc_rooms_' + day);
+  if (bInp) bInp.value = pct;
   if (bRooms && !isNaN(rooms)) bRooms.value = rooms;
 
   // Show saved message
   var msg = document.getElementById('dq-saved-msg');
-  if (msg) {
-    msg.style.display = 'block';
-    setTimeout(function() { msg.style.display = 'none'; }, 2000);
-  }
+  if (msg) { msg.style.display = 'block'; setTimeout(function(){ msg.style.display='none'; }, 2500); }
 
-  toast('🏨 Occupancy saved: ' + pct.toFixed(1) + '% for day ' + day, 'ok');
-
-  // Refresh strip
+  toast('🏨 Day ' + day + ' saved: ' + pct.toFixed(1) + '% · ' + (isNaN(rooms)?'':rooms+' rooms'), 'ok');
   renderOccStrip(m);
-  // Re-render quick widget to update stats
-  setTimeout(function() { renderDashOccQuick(m); }, 300);
+  setTimeout(function(){ renderDashOccQuick(m); }, 300);
+}
+
+function dqClear(day, m) {
+  if (!confirm('Clear occupancy data for day ' + day + '?')) return;
+  var occ = loadBenchOcc(CY, m);
+  delete occ[day];
+  saveBenchOccData(CY, m, occ);
+  var bInp   = document.getElementById('bocc_' + day);
+  var bRooms = document.getElementById('bocc_rooms_' + day);
+  if (bInp)   bInp.value   = '';
+  if (bRooms) bRooms.value = '';
+  toast('🗑 Day ' + day + ' occupancy cleared', 'ok');
+  renderOccStrip(m);
+  setTimeout(function(){ renderDashOccQuick(m); }, 300);
 }
 
 function renderOccStrip(m) {
@@ -11367,34 +11406,29 @@ function renderGuide() {
      '<strong>Where to find:</strong> 📊 Dashboard tab → above the occupancy strip' +
      '<br><br><strong>What it does:</strong>' +
      ul([
-       'Enter today\'s occupancy directly from the dashboard — no need to go to Benchmark tab.',
-       'Saves instantly to Benchmark and Firebase — data syncs everywhere.',
-       'Shows today\'s date automatically.',
-       'Real-time colour indicator updates as you type.'
+       'Enter occupancy for ANY day of the month — not just today.',
+       'Day selector dropdown shows all days with ✓ on days already saved.',
+       'Saves instantly to Benchmark and Firebase — syncs everywhere.',
+       'Real-time colour indicator: 🟢 ≥80% · 🟡 60-79% · 🔴 <60%'
      ]) +
      '<br><strong>How to use:</strong>' +
      step([
-       'Open the Dashboard tab',
-       'Find the <strong>🏨 Quick Occupancy Entry</strong> widget above the occupancy strip',
-       'Enter <strong>Occupied Rooms</strong> (blue field) → Occ% calculates automatically',
-       'Or enter <strong>Occ%</strong> (green field) → Rooms calculates automatically',
-       'Watch the <strong>🟢🟡🔴 dot</strong> update live as you type',
-       'Click <strong>💾 Save</strong> — data saves instantly'
+       'Open the <strong>📊 Dashboard</strong> tab',
+       'Find the <strong>🏨 Occupancy Entry</strong> widget above the strip',
+       'Use <strong>SELECT DAY</strong> dropdown — defaults to today, pick any day',
+       'Days with <strong>✓</strong> already have data — selecting them loads saved values',
+       'Enter <strong>Occupied Rooms</strong> (blue) → Occ% calculates automatically',
+       'Or enter <strong>Occ%</strong> (green) → Rooms calculates automatically',
+       'Click <strong>💾 Save</strong> — saves for that specific day instantly',
+       'Click <strong>🗑</strong> to clear a day entered by mistake'
      ]) +
-     '<br><strong>Stats shown below the inputs:</strong>' +
+     '<br><strong>Stats shown below:</strong>' +
      ul([
-       '<strong>Today</strong> — current occupancy % and rooms occupied',
-       '<strong>Yesterday</strong> — previous day % with ▲▼ difference in percentage points',
-       '<strong>Month avg</strong> — average occupancy % for all entered days this month'
+       'Selected day — occupancy % and rooms occupied',
+       'Previous day — % with ▲▼ difference in percentage points',
+       'Month average — across all days with data'
      ]) +
-     '<br><strong>After saving:</strong>' +
-     ul([
-       'The occupancy strip below updates immediately',
-       'Benchmark tab reflects the new data — no manual sync needed',
-       'Firebase syncs to all devices automatically'
-     ]) +
-     warn('The widget always shows TODAY date. To edit past days, go to the Benchmark tab where you can edit any day.') +
-     tip('Enter occupancy every morning as part of your daily routine — takes 5 seconds and keeps all your forecasts and benchmarks accurate.')
+     tip('Enter occupancy every morning — select today, enter rooms, hit Save. Takes 5 seconds and keeps all forecasts and benchmarks accurate.')
     ],
 
     // ── 29. CALCULATOR ──────────────────────────────────────────

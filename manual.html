@@ -1093,23 +1093,32 @@ body{font-family:'Inter',sans-serif;background:var(--light);color:var(--text);li
   <div class="bi-row">
     <div class="bi-col">
       <h3>🏨 Quick Occupancy — Dashboard Widget</h3>
-      <p>Enter today's occupancy directly from the Dashboard — no tab switching needed.</p>
+      <p>Enter occupancy for <strong>any day of the month</strong> directly from the Dashboard — no tab switching needed.</p>
       <div class="steps">
         <div class="step"><div class="step-num">1</div><div class="step-text">Open <strong>📊 Dashboard</strong> tab</div></div>
-        <div class="step"><div class="step-num">2</div><div class="step-text">Find <strong>🏨 Quick Occupancy Entry</strong> widget above the strip</div></div>
-        <div class="step"><div class="step-num">3</div><div class="step-text">Enter <strong>Rooms</strong> → % calculates automatically</div></div>
-        <div class="step"><div class="step-num">4</div><div class="step-text">Or enter <strong>%</strong> → Rooms calculates automatically</div></div>
-        <div class="step"><div class="step-num">5</div><div class="step-text">Click <strong>💾 Save</strong> — syncs everywhere instantly</div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-text">Find <strong>🏨 Occupancy Entry</strong> widget above the strip</div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-text">Use <strong>SELECT DAY</strong> dropdown — pick any day (defaults to today)</div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-text">Enter <strong>Rooms</strong> → % calculates, or enter <strong>%</strong> → Rooms calculates</div></div>
+        <div class="step"><div class="step-num">5</div><div class="step-text">Click <strong>💾 Save</strong> — saves that specific day instantly</div></div>
+        <div class="step"><div class="step-num">6</div><div class="step-text">Click <strong>🗑</strong> to clear a day entered by mistake</div></div>
       </div>
       <div class="visual-block" style="margin-top:12px">
-        <div class="v-title">Stats shown after saving</div>
+        <div class="v-title">Day selector features</div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <div style="font-size:11px;color:#0d1b2e">✓ mark — day already has data saved</div>
+          <div style="font-size:11px;color:#0d1b2e">(Today) / (Yesterday) — quick identification</div>
+          <div style="font-size:11px;color:#0d1b2e">Selecting a day loads its saved values automatically</div>
+        </div>
+      </div>
+      <div class="visual-block" style="margin-top:8px">
+        <div class="v-title">Stats shown below inputs</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <div style="padding:6px 12px;background:#f0fdf4;border-radius:8px;font-size:11px;color:#16a34a;font-weight:700">Today: 74.5% · 120 rooms</div>
-          <div style="padding:6px 12px;background:#f8fafc;border-radius:8px;font-size:11px;color:#64748b">Yesterday: 72.1% ▲2.4pp</div>
+          <div style="padding:6px 12px;background:#f0fdf4;border-radius:8px;font-size:11px;color:#16a34a;font-weight:700">Day 24: 74.5% · 120 rooms</div>
+          <div style="padding:6px 12px;background:#f8fafc;border-radius:8px;font-size:11px;color:#64748b">Day 23: 72.1% ▲2.4pp</div>
           <div style="padding:6px 12px;background:#f8fafc;border-radius:8px;font-size:11px;color:#64748b">Month avg: 68.3%</div>
         </div>
       </div>
-      <div class="info-card amber" style="margin-top:12px"><span class="info-card-icon">⚠️</span><div class="info-card-text">Widget shows TODAY only. To edit past days → go to Benchmark tab.</div></div>
+      <div class="info-card green" style="margin-top:12px"><span class="info-card-icon">✅</span><div class="info-card-text">Works for ALL days — today, yesterday, or any past day. No need to go to Benchmark tab.</div></div>
 
       <h3 style="margin-top:16px">🧮 Quick Calculator</h3>
       <p>Click <strong>🧮 Calc</strong> in the nav bar — available from any tab.</p>
@@ -1124,15 +1133,16 @@ body{font-family:'Inter',sans-serif;background:var(--light);color:var(--text);li
     </div>
     <div class="bi-col ar-col">
       <h3 class="ar">🏨 إدخال الإشغال السريع — واجهة لوحة التحكم</h3>
-      <p class="ar">أدخل إشغال اليوم مباشرة من لوحة التحكم — دون الحاجة للانتقال إلى تبويب آخر.</p>
+      <p class="ar">أدخل الإشغال لأي يوم في الشهر مباشرة من لوحة التحكم — دون الحاجة للانتقال.</p>
       <div class="steps">
         <div class="step"><div class="step-num">1</div><div class="step-text ar">افتح تبويب <strong>📊 لوحة التحكم</strong></div></div>
-        <div class="step"><div class="step-num">2</div><div class="step-text ar">ابحث عن أداة <strong>🏨 إدخال الإشغال السريع</strong></div></div>
-        <div class="step"><div class="step-num">3</div><div class="step-text ar">أدخل <strong>الغرف</strong> → تُحسب النسبة تلقائياً</div></div>
-        <div class="step"><div class="step-num">4</div><div class="step-text ar">أو أدخل <strong>%</strong> → تُحسب الغرف تلقائياً</div></div>
-        <div class="step"><div class="step-num">5</div><div class="step-text ar">اضغط <strong>💾 حفظ</strong> — يُزامن في كل مكان فوراً</div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-text ar">ابحث عن أداة <strong>🏨 إدخال الإشغال</strong></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-text ar">استخدم قائمة <strong>اختر اليوم</strong> — أي يوم في الشهر</div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-text ar">أدخل <strong>الغرف</strong> → تُحسب النسبة، أو أدخل <strong>%</strong> → تُحسب الغرف</div></div>
+        <div class="step"><div class="step-num">5</div><div class="step-text ar">اضغط <strong>💾 حفظ</strong> — يحفظ لذلك اليوم تحديداً</div></div>
+        <div class="step"><div class="step-num">6</div><div class="step-text ar">اضغط <strong>🗑</strong> لمسح يوم أُدخل بالخطأ</div></div>
       </div>
-      <div class="info-card amber" style="margin-top:12px"><span class="info-card-icon">⚠️</span><div class="info-card-text ar">الأداة تعرض اليوم الحالي فقط. لتعديل أيام سابقة → انتقل لتبويب المعيار.</div></div>
+      <div class="info-card green" style="margin-top:12px"><span class="info-card-icon">✅</span><div class="info-card-text ar">يعمل لجميع الأيام — اليوم، الأمس، أو أي يوم سابق. لا حاجة للذهاب لتبويب المعيار.</div></div>
 
       <h3 class="ar" style="margin-top:16px">🧮 الآلة الحاسبة السريعة</h3>
       <p class="ar">اضغط <strong>🧮 Calc</strong> في شريط التنقل — متاحة من أي تبويب.</p>
