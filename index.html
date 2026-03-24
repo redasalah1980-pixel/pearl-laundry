@@ -12493,19 +12493,28 @@ var _APPROVED_DOMAINS = [
   'redasalah1980-pixel.github.io',
   'localhost',
   '127.0.0.1',
-  'pearl-laundry'  // partial match for github pages variations
+  'pearl-laundry',
+  'github.io'
 ];
+
+// ── Also allow local file access ──
+function checkDomainAllowed() {
+  var host     = window.location.hostname.toLowerCase();
+  var protocol = window.location.protocol;
+  // Allow local file:// access
+  if (protocol === 'file:') return true;
+  // Allow empty hostname (some local setups)
+  if (!host || host === '') return true;
+  return _APPROVED_DOMAINS.some(function(d) {
+    return host === d || host.indexOf(d) !== -1;
+  });
+}
 
 // ── Valid licence keys stored in Firebase path: pearl/licences/{key} ──
 // Each key object: { active: true, holder: 'Name', expires: '2027-12-31', domain: 'optional' }
 var _LIC_STORE_KEY = 'pearl_licence_v1';
 
-function checkDomainAllowed() {
-  var host = window.location.hostname.toLowerCase();
-  return _APPROVED_DOMAINS.some(function(d) {
-    return host === d || host.indexOf(d) !== -1;
-  });
-}
+// checkDomainAllowed defined above with _APPROVED_DOMAINS
 
 function getLicenceFromStorage() {
   try { return JSON.parse(localStorage.getItem(_LIC_STORE_KEY) || 'null'); } catch(e) { return null; }
