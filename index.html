@@ -3731,63 +3731,101 @@ window.addEventListener('fb-ready', function() {
 //  QUICK CALCULATOR
 // ══════════════════════════════════════════════════════════════
 // ══════════════════════════════════════════════════════════════
-//  MORE MENU — dropdown for Forecast, Backup, Help
+//  NAV DROPDOWNS — Reports ▾ and More ▾
 // ══════════════════════════════════════════════════════════════
-var _moreMenuOpen = false;
-var _moreTabIds   = ['forecast', 'backup', 'guide'];
+var _reportsMenuOpen = false;
+var _moreMenuOpen    = false;
+var _reportsActive   = false;
+var _moreActive      = false;
+var _reportsTabs     = ['monthly','report','finance'];
+var _moreTabIds      = ['backup','guide'];
 
-function toggleMoreMenu() {
-  _moreMenuOpen ? closeMoreMenu() : openMoreMenu();
+function toggleReportsMenu() { _reportsMenuOpen ? closeReportsMenu() : openReportsMenu(); }
+function openReportsMenu() {
+  closeMoreMenu();
+  var menu = document.getElementById('nav-reports-menu');
+  var btn  = document.getElementById('nav-reports-btn');
+  if (!menu || !btn) return;
+  _reportsMenuOpen = true;
+  menu.style.display = 'block';
+  btn.style.color = '#c9a84c';
+  var rect = btn.getBoundingClientRect();
+  menu.style.left = Math.max(0, rect.left) + 'px';
+}
+function closeReportsMenu() {
+  var menu = document.getElementById('nav-reports-menu');
+  var btn  = document.getElementById('nav-reports-btn');
+  if (!menu || !btn) return;
+  _reportsMenuOpen = false;
+  menu.style.display = 'none';
+  btn.style.color = _reportsActive ? '#c9a84c' : 'rgba(255,255,255,.6)';
+  btn.style.borderBottom = _reportsActive ? '2px solid #c9a84c' : '2px solid transparent';
 }
 
+function toggleMoreMenu() { _moreMenuOpen ? closeMoreMenu() : openMoreMenu(); }
 function openMoreMenu() {
+  closeReportsMenu();
   var menu = document.getElementById('nav-more-menu');
   var btn  = document.getElementById('nav-more-btn');
   if (!menu || !btn) return;
   _moreMenuOpen = true;
   menu.style.display = 'block';
   btn.style.color = '#c9a84c';
-  // Position under button
   var rect = btn.getBoundingClientRect();
   menu.style.left = Math.max(0, rect.left) + 'px';
-  menu.style.top  = '54px';
 }
-
 function closeMoreMenu() {
   var menu = document.getElementById('nav-more-menu');
   var btn  = document.getElementById('nav-more-btn');
   if (!menu || !btn) return;
   _moreMenuOpen = false;
   menu.style.display = 'none';
-  // Keep gold if a More-tab is currently active
-  var moreActive = _moreTabIds.indexOf(curTab) !== -1;
-  btn.style.color     = moreActive ? '#c9a84c' : 'rgba(255,255,255,.55)';
-  btn.style.borderBottom = moreActive ? '2px solid #c9a84c' : '2px solid transparent';
+  btn.style.color = _moreActive ? '#c9a84c' : 'rgba(255,255,255,.6)';
+  btn.style.borderBottom = _moreActive ? '2px solid #c9a84c' : '2px solid transparent';
 }
+
+document.addEventListener('click', function(e) {
+  if (_reportsMenuOpen) {
+    var w = document.getElementById('nav-reports-wrap');
+    if (w && !w.contains(e.target)) closeReportsMenu();
+  }
+  if (_moreMenuOpen) {
+    var w2 = document.getElementById('nav-more-wrap');
+    if (w2 && !w2.contains(e.target)) closeMoreMenu();
+  }
+}, true);
 
 function updateMoreBtnState(name) {
-  var btn = document.getElementById('nav-more-btn');
-  if (!btn) return;
-  var isMoreTab = _moreTabIds.indexOf(name) !== -1;
-  btn.style.color = isMoreTab ? '#c9a84c' : 'rgba(255,255,255,.55)';
-  btn.style.borderBottom = isMoreTab ? '2px solid #c9a84c' : '2px solid transparent';
-  // Highlight active item inside the dropdown
+  _reportsActive = _reportsTabs.indexOf(name) !== -1;
+  var rBtn = document.getElementById('nav-reports-btn');
+  if (rBtn) {
+    rBtn.style.color = _reportsActive ? '#c9a84c' : 'rgba(255,255,255,.6)';
+    rBtn.style.borderBottom = _reportsActive ? '2px solid #c9a84c' : '2px solid transparent';
+  }
+  _reportsTabs.forEach(function(t) {
+    var item = document.getElementById('nav-' + t);
+    if (item) {
+      item.style.background = (t === name) ? 'rgba(201,168,76,.12)' : '';
+      item.style.color = (t === name) ? '#c9a84c' : 'rgba(255,255,255,.8)';
+      item.style.fontWeight = (t === name) ? '800' : '600';
+    }
+  });
+
+  _moreActive = _moreTabIds.indexOf(name) !== -1;
+  var mBtn = document.getElementById('nav-more-btn');
+  if (mBtn) {
+    mBtn.style.color = _moreActive ? '#c9a84c' : 'rgba(255,255,255,.6)';
+    mBtn.style.borderBottom = _moreActive ? '2px solid #c9a84c' : '2px solid transparent';
+  }
   _moreTabIds.forEach(function(t) {
     var item = document.getElementById('nav-' + t);
-    if (!item) return;
-    var isActive = t === name;
-    item.style.color = isActive ? '#c9a84c' : (t === 'backup' ? '#c9a84c' : 'rgba(255,255,255,.7)');
-    item.style.fontWeight = isActive ? '800' : '600';
-    item.style.background = isActive ? 'rgba(201,168,76,.08)' : '';
+    if (item) {
+      item.style.background = (t === name) ? 'rgba(201,168,76,.12)' : '';
+      item.style.color = (t === name) ? '#c9a84c' : (t === 'backup' ? '#c9a84c' : 'rgba(255,255,255,.8)');
+      item.style.fontWeight = (t === name) ? '800' : '600';
+    }
   });
 }
-
-// Close More menu when clicking outside
-document.addEventListener('click', function(e) {
-  if (!_moreMenuOpen) return;
-  var wrap = document.getElementById('nav-more-wrap');
-  if (wrap && !wrap.contains(e.target)) closeMoreMenu();
-}, true);
 
 function openCalc() {
   var m = document.getElementById('calc-modal');
@@ -5244,9 +5282,10 @@ function showTab(name) {
   curTab = name;
   // Match exact order of .tn-tab elements in HTML
   // Update main nav tabs (8 tabs) — More dropdown items handled separately
-  const tabs = ['dashboard', 'entry', 'monthly', 'report', 'finance', 'benchmark', 'prices', 'analytics'];
-  document.querySelectorAll('.tn-tab').forEach((t, i) => t.classList.toggle('on', tabs[i] === name));
-  // Update More button state
+  const mainTabs = ['dashboard','entry','benchmark','prices','analytics','forecast'];
+  document.querySelectorAll('.tn-tab').forEach(function(t, i) {
+    t.classList.toggle('on', mainTabs[i] === name);
+  });
   updateMoreBtnState(name);
   document.querySelectorAll('.pg').forEach(p => p.classList.remove('on'));
   document.getElementById('tab-' + name)?.classList.add('on');
@@ -11092,63 +11131,101 @@ function isMobile() { return window.innerWidth <= 768; }
 //  QUICK CALCULATOR
 // ══════════════════════════════════════════════════════════════
 // ══════════════════════════════════════════════════════════════
-//  MORE MENU — dropdown for Forecast, Backup, Help
+//  NAV DROPDOWNS — Reports ▾ and More ▾
 // ══════════════════════════════════════════════════════════════
-var _moreMenuOpen = false;
-var _moreTabIds   = ['forecast', 'backup', 'guide'];
+var _reportsMenuOpen = false;
+var _moreMenuOpen    = false;
+var _reportsActive   = false;
+var _moreActive      = false;
+var _reportsTabs     = ['monthly','report','finance'];
+var _moreTabIds      = ['backup','guide'];
 
-function toggleMoreMenu() {
-  _moreMenuOpen ? closeMoreMenu() : openMoreMenu();
+function toggleReportsMenu() { _reportsMenuOpen ? closeReportsMenu() : openReportsMenu(); }
+function openReportsMenu() {
+  closeMoreMenu();
+  var menu = document.getElementById('nav-reports-menu');
+  var btn  = document.getElementById('nav-reports-btn');
+  if (!menu || !btn) return;
+  _reportsMenuOpen = true;
+  menu.style.display = 'block';
+  btn.style.color = '#c9a84c';
+  var rect = btn.getBoundingClientRect();
+  menu.style.left = Math.max(0, rect.left) + 'px';
+}
+function closeReportsMenu() {
+  var menu = document.getElementById('nav-reports-menu');
+  var btn  = document.getElementById('nav-reports-btn');
+  if (!menu || !btn) return;
+  _reportsMenuOpen = false;
+  menu.style.display = 'none';
+  btn.style.color = _reportsActive ? '#c9a84c' : 'rgba(255,255,255,.6)';
+  btn.style.borderBottom = _reportsActive ? '2px solid #c9a84c' : '2px solid transparent';
 }
 
+function toggleMoreMenu() { _moreMenuOpen ? closeMoreMenu() : openMoreMenu(); }
 function openMoreMenu() {
+  closeReportsMenu();
   var menu = document.getElementById('nav-more-menu');
   var btn  = document.getElementById('nav-more-btn');
   if (!menu || !btn) return;
   _moreMenuOpen = true;
   menu.style.display = 'block';
   btn.style.color = '#c9a84c';
-  // Position under button
   var rect = btn.getBoundingClientRect();
   menu.style.left = Math.max(0, rect.left) + 'px';
-  menu.style.top  = '54px';
 }
-
 function closeMoreMenu() {
   var menu = document.getElementById('nav-more-menu');
   var btn  = document.getElementById('nav-more-btn');
   if (!menu || !btn) return;
   _moreMenuOpen = false;
   menu.style.display = 'none';
-  // Keep gold if a More-tab is currently active
-  var moreActive = _moreTabIds.indexOf(curTab) !== -1;
-  btn.style.color     = moreActive ? '#c9a84c' : 'rgba(255,255,255,.55)';
-  btn.style.borderBottom = moreActive ? '2px solid #c9a84c' : '2px solid transparent';
+  btn.style.color = _moreActive ? '#c9a84c' : 'rgba(255,255,255,.6)';
+  btn.style.borderBottom = _moreActive ? '2px solid #c9a84c' : '2px solid transparent';
 }
+
+document.addEventListener('click', function(e) {
+  if (_reportsMenuOpen) {
+    var w = document.getElementById('nav-reports-wrap');
+    if (w && !w.contains(e.target)) closeReportsMenu();
+  }
+  if (_moreMenuOpen) {
+    var w2 = document.getElementById('nav-more-wrap');
+    if (w2 && !w2.contains(e.target)) closeMoreMenu();
+  }
+}, true);
 
 function updateMoreBtnState(name) {
-  var btn = document.getElementById('nav-more-btn');
-  if (!btn) return;
-  var isMoreTab = _moreTabIds.indexOf(name) !== -1;
-  btn.style.color = isMoreTab ? '#c9a84c' : 'rgba(255,255,255,.55)';
-  btn.style.borderBottom = isMoreTab ? '2px solid #c9a84c' : '2px solid transparent';
-  // Highlight active item inside the dropdown
+  _reportsActive = _reportsTabs.indexOf(name) !== -1;
+  var rBtn = document.getElementById('nav-reports-btn');
+  if (rBtn) {
+    rBtn.style.color = _reportsActive ? '#c9a84c' : 'rgba(255,255,255,.6)';
+    rBtn.style.borderBottom = _reportsActive ? '2px solid #c9a84c' : '2px solid transparent';
+  }
+  _reportsTabs.forEach(function(t) {
+    var item = document.getElementById('nav-' + t);
+    if (item) {
+      item.style.background = (t === name) ? 'rgba(201,168,76,.12)' : '';
+      item.style.color = (t === name) ? '#c9a84c' : 'rgba(255,255,255,.8)';
+      item.style.fontWeight = (t === name) ? '800' : '600';
+    }
+  });
+
+  _moreActive = _moreTabIds.indexOf(name) !== -1;
+  var mBtn = document.getElementById('nav-more-btn');
+  if (mBtn) {
+    mBtn.style.color = _moreActive ? '#c9a84c' : 'rgba(255,255,255,.6)';
+    mBtn.style.borderBottom = _moreActive ? '2px solid #c9a84c' : '2px solid transparent';
+  }
   _moreTabIds.forEach(function(t) {
     var item = document.getElementById('nav-' + t);
-    if (!item) return;
-    var isActive = t === name;
-    item.style.color = isActive ? '#c9a84c' : (t === 'backup' ? '#c9a84c' : 'rgba(255,255,255,.7)');
-    item.style.fontWeight = isActive ? '800' : '600';
-    item.style.background = isActive ? 'rgba(201,168,76,.08)' : '';
+    if (item) {
+      item.style.background = (t === name) ? 'rgba(201,168,76,.12)' : '';
+      item.style.color = (t === name) ? '#c9a84c' : (t === 'backup' ? '#c9a84c' : 'rgba(255,255,255,.8)');
+      item.style.fontWeight = (t === name) ? '800' : '600';
+    }
   });
 }
-
-// Close More menu when clicking outside
-document.addEventListener('click', function(e) {
-  if (!_moreMenuOpen) return;
-  var wrap = document.getElementById('nav-more-wrap');
-  if (wrap && !wrap.contains(e.target)) closeMoreMenu();
-}, true);
 
 function openCalc() {
   var m = document.getElementById('calc-modal');
