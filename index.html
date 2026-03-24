@@ -1261,6 +1261,7 @@ var _fbDB = null;
       <span class="tn-uname" id="tn-name" style="display:none">Reda Salah</span>
       <button class="tn-settings" onclick="openSettings()" id="btn-settings-nav" title="Settings">⚙️ <span id="tn-name-display" style="font-size:11px;font-weight:600;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle">Reda Salah</span></button>
       <a href="manual.html" target="_blank" title="Open User Manual" style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.25);border-radius:6px;color:#c9a84c;font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap;transition:all .2s" onmouseover="this.style.background='rgba(201,168,76,.22)'" onmouseout="this.style.background='rgba(201,168,76,.12)'">📖 Manual</a>
+      <button onclick="openCalc()" title="Quick Calculator" style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:6px;color:rgba(255,255,255,.7);font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all .2s" onmouseover="this.style.background='rgba(255,255,255,.12)'" onmouseout="this.style.background='rgba(255,255,255,.06)'">🧮 Calc</button>
       <button class="tn-logout" onclick="doLogout()" title="Logout">⏏ Logout</button>
     </div>
   </nav>
@@ -1873,9 +1874,20 @@ var _fbDB = null;
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
               <div>
                 <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px">COPY PRICES FROM</div>
-                <select id="nv-source" style="width:100%;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-weight:600;color:#0d1b2e">
-                  <option value="current">Current Active Prices</option>
+                <select id="nv-source" onchange="updateNvSourceHint()" style="width:100%;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-weight:600;color:#0d1b2e">
+                  <option value="current">Current Active Prices (2026)</option>
+                  <option value="reverse_5">Derive 2025 base ÷ 1.05 (recommended)</option>
+                  <option value="reverse_custom">Derive base with custom reverse %</option>
                 </select>
+                <div id="nv-source-hint" style="font-size:10px;color:#64748b;margin-top:4px">Uses current 2026 prices as base</div>
+                <div id="nv-reverse-wrap" style="display:none;margin-top:6px">
+                  <div style="font-size:10px;font-weight:700;color:#94a3b8;margin-bottom:3px">REVERSE % (previous increase was)</div>
+                  <div style="display:flex;align-items:center;gap:6px">
+                    <input id="nv-reverse-pct" type="number" step="0.1" value="5" placeholder="5"
+                      style="width:80px;padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:700;color:#0d1b2e;outline:none">
+                    <span style="font-size:12px;color:#64748b">% (was the previous increase)</span>
+                  </div>
+                </div>
               </div>
               <div>
                 <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px">% ADJUSTMENT</div>
@@ -1904,6 +1916,7 @@ var _fbDB = null;
             </div>
             <div id="nv-preview" style="display:none;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:14px;margin-bottom:14px;max-height:200px;overflow-y:auto"></div>
             <div style="display:flex;gap:10px">
+              <button onclick="document.getElementById('rh-new-modal').style.display='none'" style="padding:11px 18px;background:#f1f5f9;border:1.5px solid #e2e8f0;color:#64748b;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">✕ Cancel</button>
               <button onclick="previewNewVersion()" style="flex:1;padding:11px;background:#f8fafc;border:1.5px solid #e2e8f0;color:#0d1b2e;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">👁 Preview</button>
               <button onclick="saveNewVersion()" style="flex:1;padding:11px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:8px;font-size:13px;font-weight:800;cursor:pointer">✅ Save Version</button>
             </div>
@@ -2401,6 +2414,144 @@ var _fbDB = null;
 
     </div>
   </div>
+  </div>
+</div>
+
+<!-- CALCULATOR MODAL -->
+<div id="calc-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9998;align-items:flex-start;justify-content:flex-end;backdrop-filter:blur(3px);padding:70px 16px 0 0">
+  <div style="background:#fff;border-radius:20px;width:360px;max-width:96vw;box-shadow:0 32px 80px rgba(0,0,0,.3);overflow:hidden">
+
+    <!-- Header -->
+    <div style="background:linear-gradient(135deg,#0d1b2e,#1e3a5f);padding:16px 20px;display:flex;align-items:center;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:18px">🧮</span>
+        <div style="font-size:14px;font-weight:800;color:#c9a84c">Quick Calculator</div>
+      </div>
+      <button onclick="closeCalc()" style="background:rgba(255,255,255,.1);border:none;color:#fff;border-radius:8px;padding:5px 10px;cursor:pointer;font-size:12px">✕ Close</button>
+    </div>
+
+    <!-- Tab buttons -->
+    <div style="display:flex;border-bottom:2px solid #f1f5f9;background:#f8fafc">
+      <button id="ctab-pct" onclick="switchCalcTab('pct')" style="flex:1;padding:10px 6px;font-size:11px;font-weight:700;border:none;border-bottom:2px solid #0d1b2e;background:none;color:#0d1b2e;cursor:pointer">% Change</button>
+      <button id="ctab-rev" onclick="switchCalcTab('rev')" style="flex:1;padding:10px 6px;font-size:11px;font-weight:600;border:none;border-bottom:2px solid transparent;background:none;color:#64748b;cursor:pointer">% of Target</button>
+      <button id="ctab-rev2" onclick="switchCalcTab('rev2')" style="flex:1;padding:10px 6px;font-size:11px;font-weight:600;border:none;border-bottom:2px solid transparent;background:none;color:#64748b;cursor:pointer">Price Check</button>
+      <button id="ctab-gen" onclick="switchCalcTab('gen')" style="flex:1;padding:10px 6px;font-size:11px;font-weight:600;border:none;border-bottom:2px solid transparent;background:none;color:#64748b;cursor:pointer">General</button>
+    </div>
+
+    <div style="padding:18px 20px">
+
+      <!-- Tab: % Change -->
+      <div id="ctab-pct-panel">
+        <div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:14px">Calculate price after % increase or decrease</div>
+        <div style="margin-bottom:10px">
+          <div style="font-size:10px;font-weight:700;color:#94a3b8;margin-bottom:4px">BASE PRICE (QR)</div>
+          <input id="c-base" type="number" step="0.001" placeholder="e.g. 15.00"
+            oninput="calcPct()"
+            style="width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:15px;font-weight:700;color:#0d1b2e;outline:none;box-sizing:border-box">
+        </div>
+        <div style="margin-bottom:14px">
+          <div style="font-size:10px;font-weight:700;color:#94a3b8;margin-bottom:4px">% CHANGE</div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <input id="c-pct" type="number" step="0.1" placeholder="e.g. 3.5"
+              oninput="calcPct()"
+              style="flex:1;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:15px;font-weight:700;color:#0d1b2e;outline:none">
+            <span style="font-size:14px;font-weight:700;color:#64748b">%</span>
+          </div>
+          <!-- Quick % buttons -->
+          <div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap">
+            <button onclick="setCalcPct(3.5)" style="padding:4px 10px;background:#f0fdf4;border:1px solid #86efac;color:#16a34a;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">+3.5%</button>
+            <button onclick="setCalcPct(5)" style="padding:4px 10px;background:#f0fdf4;border:1px solid #86efac;color:#16a34a;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">+5%</button>
+            <button onclick="setCalcPct(10)" style="padding:4px 10px;background:#f0fdf4;border:1px solid #86efac;color:#16a34a;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">+10%</button>
+            <button onclick="setCalcPct(-3.5)" style="padding:4px 10px;background:#fee2e2;border:1px solid #fca5a5;color:#dc2626;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">-3.5%</button>
+            <button onclick="setCalcPct(-5)" style="padding:4px 10px;background:#fee2e2;border:1px solid #fca5a5;color:#dc2626;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">-5%</button>
+          </div>
+        </div>
+        <div id="c-pct-result" style="display:none;background:linear-gradient(135deg,#0d1b2e,#1e3a5f);border-radius:12px;padding:16px;text-align:center">
+          <div style="font-size:11px;color:rgba(255,255,255,.5);margin-bottom:4px">NEW PRICE</div>
+          <div id="c-pct-new" style="font-size:28px;font-weight:900;color:#c9a84c"></div>
+          <div id="c-pct-diff" style="font-size:12px;color:rgba(255,255,255,.5);margin-top:4px"></div>
+          <div id="c-pct-check" style="font-size:11px;margin-top:8px;padding:6px 10px;background:rgba(255,255,255,.08);border-radius:6px;color:rgba(255,255,255,.6)"></div>
+        </div>
+      </div>
+
+      <!-- Tab: % of Target -->
+      <div id="ctab-rev-panel" style="display:none">
+        <div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:14px">What % of target have you achieved?</div>
+        <div style="margin-bottom:10px">
+          <div style="font-size:10px;font-weight:700;color:#94a3b8;margin-bottom:4px">ACTUAL</div>
+          <input id="c-actual" type="number" step="0.01" placeholder="e.g. 46,000"
+            oninput="calcTarget()"
+            style="width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:15px;font-weight:700;color:#0d1b2e;outline:none;box-sizing:border-box">
+        </div>
+        <div style="margin-bottom:14px">
+          <div style="font-size:10px;font-weight:700;color:#94a3b8;margin-bottom:4px">TARGET</div>
+          <input id="c-target" type="number" step="0.01" placeholder="e.g. 80,000"
+            oninput="calcTarget()"
+            style="width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:15px;font-weight:700;color:#0d1b2e;outline:none;box-sizing:border-box">
+        </div>
+        <div id="c-target-result" style="display:none;background:linear-gradient(135deg,#0d1b2e,#1e3a5f);border-radius:12px;padding:16px;text-align:center">
+          <div style="font-size:11px;color:rgba(255,255,255,.5);margin-bottom:4px">ACHIEVEMENT</div>
+          <div id="c-target-pct" style="font-size:32px;font-weight:900;color:#c9a84c"></div>
+          <div id="c-target-gap" style="font-size:12px;color:rgba(255,255,255,.5);margin-top:4px"></div>
+          <div id="c-target-needed" style="font-size:11px;margin-top:6px;color:rgba(255,255,255,.5)"></div>
+        </div>
+      </div>
+
+      <!-- Tab: Price Check -->
+      <div id="ctab-rev2-panel" style="display:none">
+        <div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:14px">Find what % increase was applied between two prices</div>
+        <div style="margin-bottom:10px">
+          <div style="font-size:10px;font-weight:700;color:#94a3b8;margin-bottom:4px">OLD PRICE</div>
+          <input id="c-old" type="number" step="0.001" placeholder="e.g. 15.00"
+            oninput="calcReverse()"
+            style="width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:15px;font-weight:700;color:#0d1b2e;outline:none;box-sizing:border-box">
+        </div>
+        <div style="margin-bottom:14px">
+          <div style="font-size:10px;font-weight:700;color:#94a3b8;margin-bottom:4px">NEW PRICE</div>
+          <input id="c-new" type="number" step="0.001" placeholder="e.g. 15.525"
+            oninput="calcReverse()"
+            style="width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:15px;font-weight:700;color:#0d1b2e;outline:none;box-sizing:border-box">
+        </div>
+        <div id="c-rev-result" style="display:none;background:linear-gradient(135deg,#0d1b2e,#1e3a5f);border-radius:12px;padding:16px;text-align:center">
+          <div style="font-size:11px;color:rgba(255,255,255,.5);margin-bottom:4px">% CHANGE APPLIED</div>
+          <div id="c-rev-pct" style="font-size:32px;font-weight:900;color:#c9a84c"></div>
+          <div id="c-rev-diff" style="font-size:12px;color:rgba(255,255,255,.5);margin-top:4px"></div>
+        </div>
+      </div>
+
+      <!-- Tab: General -->
+      <div id="ctab-gen-panel" style="display:none">
+        <div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:14px">General percentage calculations</div>
+        <div style="margin-bottom:10px">
+          <div style="font-size:10px;font-weight:700;color:#94a3b8;margin-bottom:4px">VALUE A</div>
+          <input id="c-ga" type="number" step="any" placeholder="First number"
+            oninput="calcGeneral()"
+            style="width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:15px;font-weight:700;color:#0d1b2e;outline:none;box-sizing:border-box">
+        </div>
+        <div style="margin-bottom:10px">
+          <div style="font-size:10px;font-weight:700;color:#94a3b8;margin-bottom:4px">OPERATION</div>
+          <select id="c-op" onchange="calcGeneral()" style="width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-weight:600;color:#0d1b2e">
+            <option value="pct_of">A is what % of B?</option>
+            <option value="pct_val">What is X% of A?</option>
+            <option value="add_pct">A + X% = ?</option>
+            <option value="sub_pct">A − X% = ?</option>
+            <option value="diff">% difference A vs B</option>
+          </select>
+        </div>
+        <div style="margin-bottom:14px">
+          <div style="font-size:10px;font-weight:700;color:#94a3b8;margin-bottom:4px" id="c-gb-label">VALUE B</div>
+          <input id="c-gb" type="number" step="any" placeholder="Second number"
+            oninput="calcGeneral()"
+            style="width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:15px;font-weight:700;color:#0d1b2e;outline:none;box-sizing:border-box">
+        </div>
+        <div id="c-gen-result" style="display:none;background:linear-gradient(135deg,#0d1b2e,#1e3a5f);border-radius:12px;padding:16px;text-align:center">
+          <div style="font-size:11px;color:rgba(255,255,255,.5);margin-bottom:4px">RESULT</div>
+          <div id="c-gen-val" style="font-size:28px;font-weight:900;color:#c9a84c"></div>
+          <div id="c-gen-desc" style="font-size:11px;color:rgba(255,255,255,.5);margin-top:4px"></div>
+        </div>
+      </div>
+
+    </div>
   </div>
 </div>
 
@@ -3576,6 +3727,142 @@ window.addEventListener('fb-ready', function() {
 });
 
 // ── Licence check on page load ──
+// ══════════════════════════════════════════════════════════════
+//  QUICK CALCULATOR
+// ══════════════════════════════════════════════════════════════
+function openCalc() {
+  var m = document.getElementById('calc-modal');
+  if (m) { m.style.display = m.style.display === 'flex' ? 'none' : 'flex'; }
+}
+function closeCalc() {
+  var m = document.getElementById('calc-modal');
+  if (m) m.style.display = 'none';
+}
+
+function switchCalcTab(name) {
+  ['pct','rev','rev2','gen'].forEach(function(t) {
+    var panel = document.getElementById('ctab-' + t + '-panel');
+    var btn   = document.getElementById('ctab-' + t);
+    if (panel) panel.style.display = t === name ? 'block' : 'none';
+    if (btn) {
+      btn.style.borderBottomColor = t === name ? '#0d1b2e' : 'transparent';
+      btn.style.color  = t === name ? '#0d1b2e' : '#64748b';
+      btn.style.fontWeight = t === name ? '700' : '600';
+    }
+  });
+}
+
+function setCalcPct(val) {
+  var inp = document.getElementById('c-pct');
+  if (inp) { inp.value = val; calcPct(); }
+}
+
+function calcPct() {
+  var base = parseFloat(document.getElementById('c-base')?.value);
+  var pct  = parseFloat(document.getElementById('c-pct')?.value);
+  var res  = document.getElementById('c-pct-result');
+  var newEl = document.getElementById('c-pct-new');
+  var diffEl = document.getElementById('c-pct-diff');
+  var checkEl = document.getElementById('c-pct-check');
+  if (isNaN(base) || isNaN(pct) || !res) return;
+
+  var newPrice = base * (1 + pct/100);
+  var diff = newPrice - base;
+  var isUp = pct >= 0;
+
+  res.style.display = 'block';
+  newEl.textContent = newPrice.toFixed(4) + ' QR';
+  newEl.style.color = isUp ? '#c9a84c' : '#fca5a5';
+  diffEl.textContent = (isUp ? '▲ +' : '▼ ') + diff.toFixed(4) + ' QR (' + (isUp?'+':'') + pct + '%)';
+
+  // Show revenue impact per 100 items
+  var impact100 = diff * 100;
+  checkEl.textContent = 'Impact per 100 items: ' + (isUp?'+':'') + impact100.toFixed(2) + ' QR/day';
+
+  // Verification line
+  var verifyPct = base > 0 ? ((newPrice - base)/base*100) : 0;
+  checkEl.textContent += ' · Verify: ' + verifyPct.toFixed(4) + '% change applied';
+}
+
+function calcTarget() {
+  var actual = parseFloat(document.getElementById('c-actual')?.value);
+  var target = parseFloat(document.getElementById('c-target')?.value);
+  var res    = document.getElementById('c-target-result');
+  if (isNaN(actual) || isNaN(target) || target === 0 || !res) return;
+
+  var pct = actual/target*100;
+  var gap = target - actual;
+  res.style.display = 'block';
+
+  var pctEl = document.getElementById('c-target-pct');
+  var gapEl = document.getElementById('c-target-gap');
+  var needEl = document.getElementById('c-target-needed');
+
+  pctEl.textContent = pct.toFixed(1) + '%';
+  pctEl.style.color = pct >= 100 ? '#86efac' : pct >= 75 ? '#c9a84c' : '#fca5a5';
+
+  if (gap > 0) {
+    gapEl.textContent = 'Gap: ' + gap.toFixed(2) + ' QR remaining';
+    needEl.textContent = 'Need ' + (gap/10).toFixed(2) + ' QR/day for 10 days to close gap';
+  } else {
+    gapEl.textContent = '✅ Target exceeded by ' + Math.abs(gap).toFixed(2) + ' QR';
+    needEl.textContent = '';
+  }
+}
+
+function calcReverse() {
+  var oldP = parseFloat(document.getElementById('c-old')?.value);
+  var newP = parseFloat(document.getElementById('c-new')?.value);
+  var res  = document.getElementById('c-rev-result');
+  if (isNaN(oldP) || isNaN(newP) || oldP === 0 || !res) return;
+
+  var pct = (newP - oldP)/oldP*100;
+  var diff = newP - oldP;
+  res.style.display = 'block';
+
+  var pctEl = document.getElementById('c-rev-pct');
+  var diffEl = document.getElementById('c-rev-diff');
+
+  pctEl.textContent = (pct >= 0 ? '+' : '') + pct.toFixed(4) + '%';
+  pctEl.style.color = pct >= 0 ? '#c9a84c' : '#fca5a5';
+  diffEl.textContent = 'Difference: ' + (diff>=0?'+':'') + diff.toFixed(4) + ' QR';
+}
+
+function calcGeneral() {
+  var a  = parseFloat(document.getElementById('c-ga')?.value);
+  var b  = parseFloat(document.getElementById('c-gb')?.value);
+  var op = document.getElementById('c-op')?.value;
+  var res = document.getElementById('c-gen-result');
+  var lblB = document.getElementById('c-gb-label');
+  if (!res) return;
+
+  // Update label B based on operation
+  var labels = { pct_of:'VALUE B', pct_val:'% (X)', add_pct:'% (X)', sub_pct:'% (X)', diff:'VALUE B' };
+  if (lblB) lblB.textContent = labels[op] || 'VALUE B';
+
+  if (isNaN(a) || isNaN(b)) return;
+
+  var result, desc;
+  if (op === 'pct_of')  { result = (a/b*100).toFixed(4) + '%';   desc = a + ' is ' + (a/b*100).toFixed(2) + '% of ' + b; }
+  if (op === 'pct_val') { result = (a*b/100).toFixed(4);          desc = b + '% of ' + a + ' = ' + (a*b/100).toFixed(4); }
+  if (op === 'add_pct') { result = (a*(1+b/100)).toFixed(4);      desc = a + ' + ' + b + '% = ' + (a*(1+b/100)).toFixed(4); }
+  if (op === 'sub_pct') { result = (a*(1-b/100)).toFixed(4);      desc = a + ' − ' + b + '% = ' + (a*(1-b/100)).toFixed(4); }
+  if (op === 'diff')    { result = ((b-a)/a*100).toFixed(4) + '%'; desc = 'Change from ' + a + ' to ' + b + ' = ' + ((b-a)/a*100).toFixed(2) + '%'; }
+
+  if (!result) return;
+  res.style.display = 'block';
+  document.getElementById('c-gen-val').textContent = result;
+  document.getElementById('c-gen-desc').textContent = desc;
+}
+
+// Close calc when clicking outside
+document.addEventListener('click', function(e) {
+  var modal = document.getElementById('calc-modal');
+  var btn   = e.target.closest('[onclick="openCalc()"]');
+  if (!modal || btn) return;
+  if (!modal.contains(e.target) && modal.style.display === 'flex') closeCalc();
+});
+
 window.addEventListener('DOMContentLoaded', function() {
   document.getElementById('pg-login').style.display = 'none';
   setTimeout(bootWithLicenceCheck, 800);
@@ -7304,6 +7591,25 @@ function renderRateHistory() {
 }
 
 // ── Open new version modal ──
+function updateNvSourceHint() {
+  var src  = document.getElementById('nv-source')?.value;
+  var hint = document.getElementById('nv-source-hint');
+  var wrap = document.getElementById('nv-reverse-wrap');
+  if (!hint || !wrap) return;
+  if (src === 'current') {
+    hint.textContent = 'Uses current 2026 prices as base';
+    wrap.style.display = 'none';
+  } else if (src === 'reverse_5') {
+    hint.textContent = '✅ Derives 2025 base by dividing current prices ÷ 1.05 (reverses the +5% increase)';
+    hint.style.color = '#16a34a';
+    wrap.style.display = 'none';
+  } else if (src === 'reverse_custom') {
+    hint.textContent = 'Derives original base by reversing your specified previous increase';
+    hint.style.color = '#d97706';
+    wrap.style.display = 'block';
+  }
+}
+
 function openNewVersionModal(presetYear) {
   var modal = document.getElementById('rh-new-modal');
   if (!modal) return;
@@ -7369,7 +7675,22 @@ function previewNewVersion() {
   var applyW = document.getElementById('nv-apply-weight')?.checked;
 
   // Load source prices
-  var srcPrices = src === 'current' ? PRICES : loadPR(parseInt(src));
+  var reversePct = parseFloat(document.getElementById('nv-reverse-pct')?.value) || 5;
+  var srcPrices;
+  if (src === 'current') {
+    srcPrices = PRICES;
+  } else if (src === 'reverse_5' || src === 'reverse_custom') {
+    // Derive 2025 base by reversing previous % increase
+    var rev = src === 'reverse_5' ? 5 : reversePct;
+    var cur = JSON.parse(JSON.stringify(PRICES));
+    DEPT_KEYS.forEach(function(d) {
+      if (!cur[d]) return;
+      cur[d].forEach(function(item) { item[1] = parseFloat((item[1] / (1 + rev/100)).toFixed(4)); });
+    });
+    srcPrices = cur;
+  } else {
+    srcPrices = loadPR(parseInt(src));
+  }
   if (!srcPrices) srcPrices = buildMasterCopy();
 
   var depts = dept === 'ALL' ? DEPT_KEYS : [dept];
@@ -7419,7 +7740,21 @@ function saveNewVersion() {
   }
 
   // Load source
-  var srcPrices = src === 'current' ? PRICES : loadPR(parseInt(src));
+  var reversePct2 = parseFloat(document.getElementById('nv-reverse-pct')?.value) || 5;
+  var srcPrices;
+  if (src === 'current') {
+    srcPrices = PRICES;
+  } else if (src === 'reverse_5' || src === 'reverse_custom') {
+    var rev2 = src === 'reverse_5' ? 5 : reversePct2;
+    var cur2 = JSON.parse(JSON.stringify(PRICES));
+    DEPT_KEYS.forEach(function(d) {
+      if (!cur2[d]) return;
+      cur2[d].forEach(function(item) { item[1] = parseFloat((item[1] / (1 + rev2/100)).toFixed(4)); });
+    });
+    srcPrices = cur2;
+  } else {
+    srcPrices = loadPR(parseInt(src));
+  }
   if (!srcPrices) srcPrices = buildMasterCopy();
 
   // Apply % adjustment
@@ -10595,7 +10930,143 @@ function isMobile() { return window.innerWidth <= 768; }
 
 // Store mobile app HTML on first load so we can restore after loading screen
 (function() {
-  window.addEventListener('DOMContentLoaded', function() {
+  // ══════════════════════════════════════════════════════════════
+//  QUICK CALCULATOR
+// ══════════════════════════════════════════════════════════════
+function openCalc() {
+  var m = document.getElementById('calc-modal');
+  if (m) { m.style.display = m.style.display === 'flex' ? 'none' : 'flex'; }
+}
+function closeCalc() {
+  var m = document.getElementById('calc-modal');
+  if (m) m.style.display = 'none';
+}
+
+function switchCalcTab(name) {
+  ['pct','rev','rev2','gen'].forEach(function(t) {
+    var panel = document.getElementById('ctab-' + t + '-panel');
+    var btn   = document.getElementById('ctab-' + t);
+    if (panel) panel.style.display = t === name ? 'block' : 'none';
+    if (btn) {
+      btn.style.borderBottomColor = t === name ? '#0d1b2e' : 'transparent';
+      btn.style.color  = t === name ? '#0d1b2e' : '#64748b';
+      btn.style.fontWeight = t === name ? '700' : '600';
+    }
+  });
+}
+
+function setCalcPct(val) {
+  var inp = document.getElementById('c-pct');
+  if (inp) { inp.value = val; calcPct(); }
+}
+
+function calcPct() {
+  var base = parseFloat(document.getElementById('c-base')?.value);
+  var pct  = parseFloat(document.getElementById('c-pct')?.value);
+  var res  = document.getElementById('c-pct-result');
+  var newEl = document.getElementById('c-pct-new');
+  var diffEl = document.getElementById('c-pct-diff');
+  var checkEl = document.getElementById('c-pct-check');
+  if (isNaN(base) || isNaN(pct) || !res) return;
+
+  var newPrice = base * (1 + pct/100);
+  var diff = newPrice - base;
+  var isUp = pct >= 0;
+
+  res.style.display = 'block';
+  newEl.textContent = newPrice.toFixed(4) + ' QR';
+  newEl.style.color = isUp ? '#c9a84c' : '#fca5a5';
+  diffEl.textContent = (isUp ? '▲ +' : '▼ ') + diff.toFixed(4) + ' QR (' + (isUp?'+':'') + pct + '%)';
+
+  // Show revenue impact per 100 items
+  var impact100 = diff * 100;
+  checkEl.textContent = 'Impact per 100 items: ' + (isUp?'+':'') + impact100.toFixed(2) + ' QR/day';
+
+  // Verification line
+  var verifyPct = base > 0 ? ((newPrice - base)/base*100) : 0;
+  checkEl.textContent += ' · Verify: ' + verifyPct.toFixed(4) + '% change applied';
+}
+
+function calcTarget() {
+  var actual = parseFloat(document.getElementById('c-actual')?.value);
+  var target = parseFloat(document.getElementById('c-target')?.value);
+  var res    = document.getElementById('c-target-result');
+  if (isNaN(actual) || isNaN(target) || target === 0 || !res) return;
+
+  var pct = actual/target*100;
+  var gap = target - actual;
+  res.style.display = 'block';
+
+  var pctEl = document.getElementById('c-target-pct');
+  var gapEl = document.getElementById('c-target-gap');
+  var needEl = document.getElementById('c-target-needed');
+
+  pctEl.textContent = pct.toFixed(1) + '%';
+  pctEl.style.color = pct >= 100 ? '#86efac' : pct >= 75 ? '#c9a84c' : '#fca5a5';
+
+  if (gap > 0) {
+    gapEl.textContent = 'Gap: ' + gap.toFixed(2) + ' QR remaining';
+    needEl.textContent = 'Need ' + (gap/10).toFixed(2) + ' QR/day for 10 days to close gap';
+  } else {
+    gapEl.textContent = '✅ Target exceeded by ' + Math.abs(gap).toFixed(2) + ' QR';
+    needEl.textContent = '';
+  }
+}
+
+function calcReverse() {
+  var oldP = parseFloat(document.getElementById('c-old')?.value);
+  var newP = parseFloat(document.getElementById('c-new')?.value);
+  var res  = document.getElementById('c-rev-result');
+  if (isNaN(oldP) || isNaN(newP) || oldP === 0 || !res) return;
+
+  var pct = (newP - oldP)/oldP*100;
+  var diff = newP - oldP;
+  res.style.display = 'block';
+
+  var pctEl = document.getElementById('c-rev-pct');
+  var diffEl = document.getElementById('c-rev-diff');
+
+  pctEl.textContent = (pct >= 0 ? '+' : '') + pct.toFixed(4) + '%';
+  pctEl.style.color = pct >= 0 ? '#c9a84c' : '#fca5a5';
+  diffEl.textContent = 'Difference: ' + (diff>=0?'+':'') + diff.toFixed(4) + ' QR';
+}
+
+function calcGeneral() {
+  var a  = parseFloat(document.getElementById('c-ga')?.value);
+  var b  = parseFloat(document.getElementById('c-gb')?.value);
+  var op = document.getElementById('c-op')?.value;
+  var res = document.getElementById('c-gen-result');
+  var lblB = document.getElementById('c-gb-label');
+  if (!res) return;
+
+  // Update label B based on operation
+  var labels = { pct_of:'VALUE B', pct_val:'% (X)', add_pct:'% (X)', sub_pct:'% (X)', diff:'VALUE B' };
+  if (lblB) lblB.textContent = labels[op] || 'VALUE B';
+
+  if (isNaN(a) || isNaN(b)) return;
+
+  var result, desc;
+  if (op === 'pct_of')  { result = (a/b*100).toFixed(4) + '%';   desc = a + ' is ' + (a/b*100).toFixed(2) + '% of ' + b; }
+  if (op === 'pct_val') { result = (a*b/100).toFixed(4);          desc = b + '% of ' + a + ' = ' + (a*b/100).toFixed(4); }
+  if (op === 'add_pct') { result = (a*(1+b/100)).toFixed(4);      desc = a + ' + ' + b + '% = ' + (a*(1+b/100)).toFixed(4); }
+  if (op === 'sub_pct') { result = (a*(1-b/100)).toFixed(4);      desc = a + ' − ' + b + '% = ' + (a*(1-b/100)).toFixed(4); }
+  if (op === 'diff')    { result = ((b-a)/a*100).toFixed(4) + '%'; desc = 'Change from ' + a + ' to ' + b + ' = ' + ((b-a)/a*100).toFixed(2) + '%'; }
+
+  if (!result) return;
+  res.style.display = 'block';
+  document.getElementById('c-gen-val').textContent = result;
+  document.getElementById('c-gen-desc').textContent = desc;
+}
+
+// Close calc when clicking outside
+document.addEventListener('click', function(e) {
+  var modal = document.getElementById('calc-modal');
+  var btn   = e.target.closest('[onclick="openCalc()"]');
+  if (!modal || btn) return;
+  if (!modal.contains(e.target) && modal.style.display === 'flex') closeCalc();
+});
+
+window.addEventListener('DOMContentLoaded', function() {
     var mob = document.getElementById('mob-app');
     if (mob) _MOB_APP_HTML = mob.innerHTML;
   });
