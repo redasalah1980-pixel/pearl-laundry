@@ -861,6 +861,161 @@ body{font-family:'Inter',sans-serif;background:var(--light);color:var(--text);li
   </div>
 </div>
 
+<!-- ══ SECTION: HOTEL SETTINGS ════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-icon">🏨</div>
+    <div class="section-titles">
+      <h2>Hotel Settings — Rooms & Property</h2>
+      <div class="ar">إعدادات الفندق — الغرف والاسم</div>
+    </div>
+    <div class="section-num">15</div>
+  </div>
+  <div class="gold-divider"></div>
+  <div class="bi-row">
+    <div class="bi-col">
+      <h3>🏠 Total Rooms & Property Name</h3>
+      <p>Go to ⚙️ Settings → 🏨 Hotel tab to configure your property.</p>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div class="step-text">Enter your <strong>Property Name</strong> (e.g. Pearl Hotel)</div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-text">Enter <strong>Total Rooms</strong> — default is 161</div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-text">Click <strong>💾 Save</strong> — syncs to all devices via Firebase</div></div>
+      </div>
+      <div class="info-card gold"><span class="info-card-icon">💡</span><div class="info-card-text">Total rooms is used for ALL occupancy % calculations. Set this first before entering any occupancy data.</div></div>
+      <div class="formula-box">
+        <div class="label">Occupancy % Formula</div>
+        <div class="formula">Occ% = Occupied Rooms ÷ Total Rooms × 100<br>Example: 120 ÷ 161 × 100 = 74.5%</div>
+      </div>
+    </div>
+    <div class="bi-col ar-col">
+      <h3 class="ar">🏠 إجمالي الغرف واسم العقار</h3>
+      <p class="ar">انتقل إلى ⚙️ الإعدادات → تبويب 🏨 الفندق لتكوين عقارك.</p>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div class="step-text ar">أدخل <strong>اسم العقار</strong> (مثل فندق بيرل)</div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-text ar">أدخل <strong>إجمالي الغرف</strong> — الافتراضي 161</div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-text ar">اضغط <strong>💾 حفظ</strong> — يُزامن على جميع الأجهزة</div></div>
+      </div>
+      <div class="info-card gold"><span class="info-card-icon">💡</span><div class="info-card-text ar">إجمالي الغرف يُستخدم في جميع حسابات نسبة الإشغال. اضبطه أولاً قبل إدخال أي بيانات إشغال.</div></div>
+      <div class="formula-box ar-formula">
+        <div class="label">معادلة نسبة الإشغال</div>
+        <div class="formula">نسبة الإشغال = الغرف المشغولة ÷ إجمالي الغرف × 100<br>مثال: 120 ÷ 161 × 100 = 74.5%</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SECTION: RATES MANAGER ══════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-icon">💰</div>
+    <div class="section-titles">
+      <h2>Rates Manager — Versioned Prices & Weights</h2>
+      <div class="ar">مدير الأسعار — الأسعار والأوزان الموثقة</div>
+    </div>
+    <div class="section-num">16</div>
+  </div>
+  <div class="gold-divider"></div>
+  <div class="bi-row">
+    <div class="bi-col">
+      <h3>🔒 Data Protection Guarantee</h3>
+      <p>The system uses a <strong>"Values are never updated — they are versioned over time"</strong> approach. Historical data is always protected.</p>
+      <div class="info-card green"><span class="info-card-icon">✅</span><div class="info-card-text">Changing prices or weights NEVER affects past entries. Each entry stores the price/weight that was active at the time it was saved.</div></div>
+      <div class="formula-box">
+        <div class="label">Version Structure</div>
+        <div class="formula">2025: Price 4.00 QR → LOCKED forever<br>2026: Price 4.20 QR (+5%) → Active<br>2027: Price TBD → Future</div>
+      </div>
+      <h3 style="margin-top:14px">➕ Adding a New Rate Version</h3>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div class="step-text">Click <strong>➕ New Version</strong> in Rate History tab</div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-text">Select year + optional month override</div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-text">Choose source and enter % adjustment</div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-text">Click <strong>👁 Preview</strong> to see before/after</div></div>
+        <div class="step"><div class="step-num">5</div><div class="step-text">Click <strong>✅ Save Version</strong></div></div>
+      </div>
+    </div>
+    <div class="bi-col ar-col">
+      <h3 class="ar">🔒 ضمان حماية البيانات</h3>
+      <p class="ar">النظام يستخدم مبدأ <strong>"القيم لا تُحدَّث — بل توثَّق عبر الزمن"</strong>. البيانات التاريخية محمية دائماً.</p>
+      <div class="info-card green"><span class="info-card-icon">✅</span><div class="info-card-text ar">تغيير الأسعار أو الأوزان لا يؤثر أبداً على الإدخالات السابقة. كل إدخال يحفظ السعر/الوزن الذي كان نشطاً وقت حفظه.</div></div>
+      <div class="formula-box ar-formula">
+        <div class="label">هيكل الإصدارات</div>
+        <div class="formula">2025: السعر 4.00 ريال → مقفل للأبد<br>2026: السعر 4.20 ريال (+5%) → نشط<br>2027: السعر TBD → مستقبلي</div>
+      </div>
+      <h3 class="ar" style="margin-top:14px">➕ إضافة إصدار جديد</h3>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div class="step-text ar">اضغط <strong>➕ إصدار جديد</strong> في تبويب سجل الأسعار</div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-text ar">اختر السنة وشهر التجاوز الاختياري</div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-text ar">اختر المصدر وأدخل نسبة التعديل</div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-text ar">اضغط <strong>👁 معاينة</strong> لرؤية ما قبل/بعد</div></div>
+        <div class="step"><div class="step-num">5</div><div class="step-text ar">اضغط <strong>✅ حفظ الإصدار</strong></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SECTION: WHAT-IF + RISK ══════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-icon">🎮</div>
+    <div class="section-titles">
+      <h2>What-If Simulation & Risk Indicators</h2>
+      <div class="ar">محاكاة السيناريوهات ومؤشرات المخاطر</div>
+    </div>
+    <div class="section-num">17</div>
+  </div>
+  <div class="gold-divider"></div>
+  <div class="bi-row">
+    <div class="bi-col">
+      <h3>🎮 What-If Simulation</h3>
+      <p>Found in: 🔮 Forecast → View: 🎮 What-If Simulation</p>
+      <ul>
+        <li>Adjust <strong>Occupancy %</strong>, <strong>Growth %</strong>, <strong>RevPOR</strong> with sliders</li>
+        <li>All results recalculate <strong>instantly</strong></li>
+        <li>Shows: Occ-based forecast, Growth-based forecast, blended result</li>
+        <li>Compares vs last year actual and vs target</li>
+        <li>Recommendations panel appears automatically</li>
+      </ul>
+      <div class="formula-box">
+        <div class="label">Blended Forecast Formula</div>
+        <div class="formula">Occ-Based = RevPOR × Occ Rooms × Days<br>Growth-Based = Base Rev × (1 + Growth%)<br>Blended = (Occ × 50%) + (Growth × 50%)</div>
+      </div>
+      <h3 style="margin-top:14px">🔴 Risk Indicators</h3>
+      <p>Found in: 📈 Analytics tab — Risk Indicators section</p>
+      <table class="manual-table">
+        <tr><th>Level</th><th>Meaning</th><th>Triggers</th></tr>
+        <tr><td><span class="badge green">🟢 Low</span></td><td>Stable</td><td>No risk factors</td></tr>
+        <tr><td><span class="badge amber">🟡 Medium</span></td><td>Monitor</td><td>1-2 risk factors</td></tr>
+        <tr><td><span class="badge red">🔴 High</span></td><td>Investigate</td><td>3-4 risk factors</td></tr>
+        <tr><td><span class="badge" style="background:#f5f3ff;color:#7c3aed;border-color:#c4b5fd">🚨 Critical</span></td><td>Urgent</td><td>Score ≥5</td></tr>
+      </table>
+    </div>
+    <div class="bi-col ar-col">
+      <h3 class="ar">🎮 محاكاة السيناريوهات</h3>
+      <p class="ar">الموقع: 🔮 التوقعات → عرض: 🎮 محاكاة السيناريوهات</p>
+      <ul>
+        <li class="ar">اضبط <strong>نسبة الإشغال</strong>، <strong>نسبة النمو</strong>، <strong>RevPOR</strong> بالشرائح</li>
+        <li class="ar">جميع النتائج تُحدَّث <strong>فوراً</strong></li>
+        <li class="ar">يعرض: التوقع القائم على الإشغال، والنمو، والمدمج</li>
+        <li class="ar">يقارن بالعام الماضي والهدف</li>
+        <li class="ar">لوحة التوصيات تظهر تلقائياً</li>
+      </ul>
+      <div class="formula-box ar-formula">
+        <div class="label">معادلة التوقع المدمج</div>
+        <div class="formula">قائم على الإشغال = RevPOR × الغرف المشغولة × الأيام<br>قائم على النمو = الإيرادات الأساسية × (1 + نسبة النمو%)<br>المدمج = (إشغال × 50%) + (نمو × 50%)</div>
+      </div>
+      <h3 class="ar" style="margin-top:14px">🔴 مؤشرات المخاطر</h3>
+      <p class="ar">الموقع: 📈 التحليلات → قسم مؤشرات المخاطر</p>
+      <table class="manual-table">
+        <tr><th class="ar-td">المستوى</th><th class="ar-td">المعنى</th><th class="ar-td">المحفزات</th></tr>
+        <tr><td><span class="badge green">🟢 منخفض</span></td><td class="ar-td">مستقر</td><td class="ar-td">لا مخاطر</td></tr>
+        <tr><td><span class="badge amber">🟡 متوسط</span></td><td class="ar-td">مراقبة</td><td class="ar-td">1-2 عوامل</td></tr>
+        <tr><td><span class="badge red">🔴 مرتفع</span></td><td class="ar-td">تحقيق</td><td class="ar-td">3-4 عوامل</td></tr>
+        <tr><td><span class="badge" style="background:#f5f3ff;color:#7c3aed;border-color:#c4b5fd">🚨 حرج</span></td><td class="ar-td">عاجل</td><td class="ar-td">نقاط ≥5</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
 <!-- ══ BACK COVER ════════════════════════════════════════════════ -->
 <div class="back-cover">
   <div style="width:60px;height:60px;border-radius:50%;background:linear-gradient(145deg,#0d1b2e,#162d4a);border:1.5px solid rgba(201,168,76,.4);display:flex;align-items:center;justify-content:center;margin:0 auto 24px">

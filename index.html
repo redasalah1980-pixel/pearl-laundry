@@ -296,7 +296,7 @@ input,select,textarea{font-family:inherit;outline:none;border:none}
 .topnav{background:var(--navy);border-bottom:1px solid rgba(201,168,76,.12);
   display:flex;align-items:center;padding:0 16px;height:54px;
   position:sticky;top:0;z-index:200;box-shadow:0 2px 12px rgba(0,0,0,.25);
-  overflow:hidden;min-width:0}
+  min-width:0}
 .tn-brand{display:flex;align-items:center;gap:8px;margin-right:16px;text-decoration:none;border-radius:8px;padding:4px 8px;margin-left:-8px;transition:background .15s;flex-shrink:0}
 .tn-brand:hover{background:rgba(201,168,76,.12)}
 .tn-brand img{width:30px;height:30px;border-radius:50%;border:1.5px solid rgba(201,168,76,.4);flex-shrink:0}
@@ -380,9 +380,9 @@ input,select,textarea{font-family:inherit;outline:none;border:none}
 @keyframes online-pulse{0%{box-shadow:0 0 0 0 rgba(34,197,94,.5)}70%{box-shadow:0 0 0 5px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
 #online-label{font-size:10px;font-weight:700;letter-spacing:.8px;color:#86efac;text-transform:uppercase}
 /* Online users popup */
-#online-popup{display:none;position:absolute;top:calc(100% + 10px);right:0;
+#online-popup{display:none;position:fixed;top:60px;right:16px;
   background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;
-  box-shadow:0 8px 32px rgba(0,0,0,.3);z-index:9999;min-width:220px;overflow:hidden}
+  box-shadow:0 8px 32px rgba(0,0,0,.3);z-index:99999;min-width:240px;overflow:hidden}
 #online-popup.show{display:block}
 .online-popup-head{background:var(--navy);padding:10px 14px;font-size:11px;font-weight:700;
   color:var(--gold);letter-spacing:1px;text-transform:uppercase}
@@ -1233,7 +1233,7 @@ var _fbDB = null;
       <div class="tn-tab" onclick="showTab('report')" title="Report & PDF — Print and export reports" data-tip="Report & PDF — Print and export reports">📄 Report</div>
       <div class="tn-tab" onclick="showTab('finance')" title="Finance Posting — Revenue posting view" data-tip="Finance Posting — Revenue posting view">🏦 Finance</div>
       <div class="tn-tab" onclick="showTab('benchmark')" title="Benchmark — Occupancy vs revenue analysis" data-tip="Benchmark — Occupancy vs revenue analysis">🎯 Bench</div>
-      <div class="tn-tab" onclick="showTab('prices')" title="Prices & Weights — Manage item prices" data-tip="Prices & Weights — Manage item prices">⚙️ Prices</div>
+      <div class="tn-tab" onclick="showTab('prices')" title="Rate Manager — Versioned prices & weights" data-tip="Rate Manager — Versioned prices & weights">💰 Rates Mgr</div>
       <div class="tn-tab" onclick="showTab('analytics')" title="Analytics — Charts, trends & year-over-year" data-tip="Analytics — Charts, trends & year-over-year">📈 Analytics</div>
       <div class="tn-tab" onclick="showTab('forecast')" title="Forecast — Revenue forecasting & annual planning" data-tip="Forecast — Revenue forecasting & annual planning">🔮 Forecast</div>
       <div class="tn-tab" onclick="showTab('backup')" title="Backup — Cloud & local data backup" data-tip="Backup — Cloud & local data backup" style="color:#c9a84c">🛡️ Backup</div>
@@ -1505,10 +1505,14 @@ var _fbDB = null;
         </div>
         <button onclick="saveDashTarget()" style="padding:7px 14px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer">Set Target</button>
       </div>
-      <div id="dash-notif" style="margin-left:auto"></div>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+        <div id="dash-insight-badge"></div>
+        <div id="dash-notif"></div>
+      </div>
     </div>
     <div class="stats" id="dash-stats"></div>
     <div id="dash-target-bar" style="margin-bottom:14px"></div>
+    <div id="dash-occ-strip" style="margin-bottom:14px"></div>
     <div class="two-col">
       <div class="cal-wrap">
         <div class="cal-head"><div class="cal-title">📅 Monthly Calendar
@@ -1773,13 +1777,139 @@ var _fbDB = null;
 
   <!-- PRICES -->
   <div class="pg" id="tab-prices">
-    <div class="ph"><h1>⚙️ Prices &amp; Weights</h1><p>Manage unit prices (QR) and weights (KG) per department</p></div>
+    <div class="ph"><h1>💰 Rate Manager</h1><p>Versioned prices &amp; weights — historical data always protected</p></div>
 
     <!-- ── SUB-TAB NAV ── -->
     <div style="display:flex;gap:0;border-bottom:2px solid #e2e8f0;margin-bottom:20px">
-      <button id="ptab-btn-list" onclick="showPriceSubTab('list')" style="padding:10px 22px;font-size:13px;font-weight:700;border:none;border-bottom:3px solid #0d1b2e;background:none;color:#0d1b2e;cursor:pointer;margin-bottom:-2px">📋 Price List</button>
+      <button id="ptab-btn-history" onclick="showPriceSubTab('history')" style="padding:10px 22px;font-size:13px;font-weight:700;border:none;border-bottom:3px solid #0d1b2e;background:none;color:#0d1b2e;cursor:pointer;margin-bottom:-2px">📅 Rate History</button>
+      <button id="ptab-btn-list" onclick="showPriceSubTab('list')" style="padding:10px 22px;font-size:13px;font-weight:600;border:none;border-bottom:3px solid transparent;background:none;color:#64748b;cursor:pointer;margin-bottom:-2px">📋 Price List</button>
       <button id="ptab-btn-tools" onclick="showPriceSubTab('tools')" style="padding:10px 22px;font-size:13px;font-weight:600;border:none;border-bottom:3px solid transparent;background:none;color:#64748b;cursor:pointer;margin-bottom:-2px">🔧 Tools</button>
-      <button id="ptab-btn-schedules" onclick="showPriceSubTab('schedules')" style="padding:10px 22px;font-size:13px;font-weight:600;border:none;border-bottom:3px solid transparent;background:none;color:#64748b;cursor:pointer;margin-bottom:-2px">📅 Price Schedules</button>
+      <button id="ptab-btn-schedules" onclick="showPriceSubTab('schedules')" style="padding:10px 22px;font-size:13px;font-weight:600;border:none;border-bottom:3px solid transparent;background:none;color:#64748b;cursor:pointer;margin-bottom:-2px">📅 Schedules</button>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- SUB-TAB 0: RATE HISTORY                                    -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div id="ptab-history">
+      <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:24px;margin-bottom:16px">
+
+        <!-- Header -->
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+          <div style="width:44px;height:44px;background:linear-gradient(135deg,#0d1b2e,#1e3a5f);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px">📅</div>
+          <div>
+            <div style="font-size:16px;font-weight:800;color:#0d1b2e">Rate History — Versioned Prices & Weights</div>
+            <div style="font-size:12px;color:#64748b;margin-top:2px">Historical data is always protected. Each version is permanently locked once its period has passed.</div>
+          </div>
+        </div>
+
+        <!-- Protection notice -->
+        <div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:12px 16px;margin-bottom:20px;display:flex;gap:10px;align-items:flex-start">
+          <span style="font-size:18px">🔒</span>
+          <div>
+            <div style="font-size:12px;font-weight:800;color:#15803d">DATA PROTECTION GUARANTEE</div>
+            <div style="font-size:11px;color:#166534;margin-top:3px">All saved entries use the price/weight that was active when they were entered. Changing prices or weights here will NEVER affect past data. Each version is locked to its time period.</div>
+          </div>
+        </div>
+
+        <!-- Controls -->
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+          <div>
+            <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">VIEW YEAR</div>
+            <select id="rh-year" onchange="renderRateHistory()" style="padding:8px 14px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-weight:700;color:#0d1b2e;background:#fff"></select>
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">DEPARTMENT</div>
+            <select id="rh-dept" onchange="renderRateHistory()" style="padding:8px 14px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-weight:600;color:#0d1b2e;background:#fff">
+              <option value="ALL">All Departments</option>
+            </select>
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">TYPE</div>
+            <select id="rh-type" onchange="renderRateHistory()" style="padding:8px 14px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-weight:600;color:#0d1b2e;background:#fff">
+              <option value="both">Price & Weight</option>
+              <option value="price">Price Only</option>
+              <option value="weight">Weight Only</option>
+            </select>
+          </div>
+          <div style="margin-left:auto;display:flex;gap:8px">
+            <button onclick="openNewVersionModal()" style="padding:9px 18px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">➕ New Version</button>
+            <button onclick="openBulkPctModal()" style="padding:9px 18px;background:#eff6ff;border:1.5px solid #bfdbfe;color:#1d4ed8;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">📊 Apply % Change</button>
+          </div>
+        </div>
+
+        <!-- Rate history table -->
+        <div id="rh-wrap"></div>
+      </div>
+
+      <!-- New Version Modal -->
+      <div id="rh-new-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(4px)">
+        <div style="background:#fff;border-radius:20px;width:560px;max-width:96vw;max-height:90vh;overflow-y:auto">
+          <div style="background:#0d1b2e;padding:20px 24px;border-radius:20px 20px 0 0;display:flex;align-items:center;justify-content:space-between">
+            <div style="font-size:15px;font-weight:800;color:#c9a84c">📅 Add New Rate Version</div>
+            <button onclick="document.getElementById(\'rh-new-modal\').style.display=\'none\'" style="background:rgba(255,255,255,.1);border:none;color:#fff;border-radius:8px;padding:6px 12px;cursor:pointer">✕</button>
+          </div>
+          <div style="padding:24px">
+            <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#92400e">
+              ⚠️ This creates a new price/weight version. All entries from the effective date onwards will use these new values. Past entries are never affected.
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+              <div>
+                <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px">YEAR</div>
+                <select id="nv-year" style="width:100%;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-weight:600;color:#0d1b2e"></select>
+              </div>
+              <div>
+                <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px">MONTH (leave blank = full year)</div>
+                <select id="nv-month" style="width:100%;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-weight:600;color:#0d1b2e">
+                  <option value="">Full Year (Jan-Dec)</option>
+                </select>
+              </div>
+            </div>
+            <div style="margin-bottom:14px">
+              <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px">DEPARTMENT</div>
+              <select id="nv-dept" style="width:100%;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-weight:600;color:#0d1b2e">
+                <option value="ALL">All Departments</option>
+              </select>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+              <div>
+                <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px">COPY PRICES FROM</div>
+                <select id="nv-source" style="width:100%;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-weight:600;color:#0d1b2e">
+                  <option value="current">Current Active Prices</option>
+                </select>
+              </div>
+              <div>
+                <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px">% ADJUSTMENT</div>
+                <div style="display:flex;align-items:center;gap:6px">
+                  <input id="nv-pct" type="number" step="0.1" placeholder="0" value="0"
+                    style="flex:1;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-weight:700;color:#0d1b2e;outline:none">
+                  <span style="font-size:13px;color:#64748b;font-weight:700">%</span>
+                </div>
+              </div>
+            </div>
+            <div style="margin-bottom:14px">
+              <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px">APPLY TO</div>
+              <div style="display:flex;gap:10px">
+                <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
+                  <input type="checkbox" id="nv-apply-price" checked style="width:15px;height:15px"> Prices (QR)
+                </label>
+                <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
+                  <input type="checkbox" id="nv-apply-weight" style="width:15px;height:15px"> Weights (KG)
+                </label>
+              </div>
+            </div>
+            <div style="margin-bottom:16px">
+              <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px">NOTE (optional)</div>
+              <input id="nv-note" type="text" placeholder="e.g. +5% annual increase from Jan 2026"
+                style="width:100%;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;color:#0d1b2e;outline:none;box-sizing:border-box">
+            </div>
+            <div id="nv-preview" style="display:none;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:14px;margin-bottom:14px;max-height:200px;overflow-y:auto"></div>
+            <div style="display:flex;gap:10px">
+              <button onclick="previewNewVersion()" style="flex:1;padding:11px;background:#f8fafc;border:1.5px solid #e2e8f0;color:#0d1b2e;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">👁 Preview</button>
+              <button onclick="saveNewVersion()" style="flex:1;padding:11px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:8px;font-size:13px;font-weight:800;cursor:pointer">✅ Save Version</button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- ══════════════════════════════════════════════════════════ -->
@@ -2100,7 +2230,8 @@ var _fbDB = null;
 
   <!-- ANALYTICS -->
   <div class="pg" id="tab-analytics">
-    <div class="ph"><h1>📈 Analytics</h1><p>Visual breakdown — revenue, KG, trends by department</p></div>
+    <div class="ph"><h1>📈 Analytics</h1><p>KPIs, charts and trend analysis</p></div>
+    <div id="ana-kpi-wrap" style="margin-bottom:20px"></div>
 
     <!-- Analytics sub-tabs -->
     <div style="display:flex;gap:0;border-bottom:2px solid #e2e8f0;margin-bottom:20px">
@@ -2282,6 +2413,7 @@ var _fbDB = null;
       <button class="stab"     id="stab-access"  onclick="switchStab('access')" style="flex:1;padding:16px 10px;font-size:13px">🔒 Tab Access</button>
       <button class="stab"     id="stab-audit"   onclick="switchStab('audit')"  style="flex:1;padding:16px 10px;font-size:13px">📋 Audit Log</button>
       <button class="stab"     id="stab-currency" onclick="switchStab('currency')" style="flex:1;padding:16px 10px;font-size:13px">💱 Currency</button>
+      <button class="stab"     id="stab-hotel"    onclick="switchStab('hotel')"    style="flex:1;padding:16px 10px;font-size:13px">🏨 Hotel</button>
       <button class="stab"     id="stab-licence"  onclick="switchStab('licence')"  style="flex:1;padding:16px 10px;font-size:13px">🔑 Licences</button>
     </div>
 
@@ -2518,6 +2650,51 @@ var _fbDB = null;
         </div>
         <div id="currency-msg" style="font-size:12px;font-weight:600;color:#16a34a;margin-bottom:10px"></div>
         <button onclick="applyCurrencySettings()" style="width:100%;padding:14px;background:linear-gradient(135deg,#0d1b2e,#1e3a5f);color:#c9a84c;border:none;border-radius:11px;font-size:14px;font-weight:700;cursor:pointer">💾 Save Currency Settings</button>
+      </div>
+
+      <!-- ── PANEL: Hotel ───────────────────────── -->
+      <div id="spanel-hotel" style="display:none">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+          <div style="width:40px;height:40px;background:#dbeafe;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px">🏨</div>
+          <div>
+            <div style="font-size:15px;font-weight:800;color:#0d1b2e">Hotel Configuration</div>
+            <div style="font-size:12px;color:#64748b;margin-top:2px">Set your hotel details and room count</div>
+          </div>
+        </div>
+
+        <!-- Property Name -->
+        <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:12px;padding:18px;margin-bottom:16px">
+          <div style="font-size:12px;font-weight:800;color:#0d1b2e;margin-bottom:12px">🏷️ Property Name</div>
+          <div style="font-size:11px;color:#64748b;margin-bottom:8px">This name appears throughout the system instead of the default name.</div>
+          <input id="hotel-name-inp" type="text" placeholder="e.g. Pearl Hotel, Sheraton Doha..."
+            style="width:100%;padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;font-weight:600;color:#0d1b2e;outline:none;box-sizing:border-box;margin-bottom:10px">
+          <button onclick="saveHotelSettings()" style="padding:9px 20px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">💾 Save Name</button>
+        </div>
+
+        <!-- Total Rooms -->
+        <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:12px;padding:18px;margin-bottom:16px">
+          <div style="font-size:12px;font-weight:800;color:#0d1b2e;margin-bottom:12px">🏠 Total Rooms</div>
+          <div style="font-size:11px;color:#64748b;margin-bottom:8px">Total number of rooms in the hotel. Used for occupancy % calculations.</div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <input id="total-rooms-inp" type="number" min="1" max="9999" placeholder="161"
+              style="width:120px;padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:18px;font-weight:800;color:#0d1b2e;outline:none;text-align:center">
+            <div style="font-size:13px;color:#64748b">rooms total</div>
+          </div>
+          <div style="margin-top:10px;display:flex;gap:8px">
+            <button onclick="saveTotalRooms()" style="padding:9px 20px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">💾 Save Rooms</button>
+            <button onclick="document.getElementById('total-rooms-inp').value=161" style="padding:9px 14px;background:#f1f5f9;color:#64748b;border:1px solid #e2e8f0;border-radius:8px;font-size:12px;cursor:pointer">Reset to 161</button>
+          </div>
+          <div id="rooms-saved-msg" style="display:none;margin-top:8px;font-size:11px;color:#16a34a;font-weight:600">✅ Saved successfully</div>
+        </div>
+
+        <!-- Current values display -->
+        <div style="background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:10px;padding:14px 16px">
+          <div style="font-size:11px;font-weight:700;color:#1d4ed8;margin-bottom:8px">📊 CURRENT SETTINGS</div>
+          <div style="display:flex;gap:20px;flex-wrap:wrap">
+            <div><div style="font-size:10px;color:#64748b">Property Name</div><div id="hotel-name-display" style="font-size:14px;font-weight:800;color:#0d1b2e">—</div></div>
+            <div><div style="font-size:10px;color:#64748b">Total Rooms</div><div id="rooms-display" style="font-size:14px;font-weight:800;color:#0d1b2e">161</div></div>
+          </div>
+        </div>
       </div>
 
       <!-- ── PANEL: Licences ─────────────────────── -->
@@ -3374,6 +3551,7 @@ window.addEventListener('fb-ready', function() {
   loadPriceSchedule();
   loadAuditLog();
   loadCurrency();
+  loadHotelSettings();
   syncAllTargetsFromFB();
   // Auto-push any existing local data up to Firebase
   setTimeout(pushLocalDataToFirebase, 2000);
@@ -3614,6 +3792,109 @@ function dim(y, m) { return new Date(y, m, 0).getDate(); }
 function fmtDate(d) { return d.toLocaleDateString('en-GB', {day: '2-digit', month: 'short', year: 'numeric'}); }
 // ── Currency Settings ─────────────────────────────────────────
 var _CURRENCY = { symbol: 'QR', position: 'after', decimals: 2 };
+
+// ══════════════════════════════════════════════════════════
+//  HOTEL SETTINGS
+// ══════════════════════════════════════════════════════════
+var _TOTAL_ROOMS = 161; // default
+var _HOTEL_NAME  = '';
+
+function loadHotelSettings() {
+  try {
+    var stored = JSON.parse(localStorage.getItem('pearl_hotel_settings') || '{}');
+    _TOTAL_ROOMS = stored.rooms || 161;
+    _HOTEL_NAME  = stored.name  || '';
+  } catch(e) { _TOTAL_ROOMS = 161; _HOTEL_NAME = ''; }
+  // Also try Firebase
+  if (window._fbDB) {
+    window._fbDB.ref('pearl/hotel').once('value').then(function(snap) {
+      var d = snap.val();
+      if (d) {
+        _TOTAL_ROOMS = d.rooms || _TOTAL_ROOMS;
+        _HOTEL_NAME  = d.name  || _HOTEL_NAME;
+        localStorage.setItem('pearl_hotel_settings', JSON.stringify({ rooms: _TOTAL_ROOMS, name: _HOTEL_NAME }));
+      }
+    }).catch(function(){});
+  }
+}
+
+function openHotelSettings() {
+  loadHotelSettings();
+  var ni = document.getElementById('hotel-name-inp');
+  var ri = document.getElementById('total-rooms-inp');
+  var nd = document.getElementById('hotel-name-display');
+  var rd = document.getElementById('rooms-display');
+  if (ni) ni.value = _HOTEL_NAME;
+  if (ri) ri.value = _TOTAL_ROOMS;
+  if (nd) nd.textContent = _HOTEL_NAME || '(not set)';
+  if (rd) rd.textContent = _TOTAL_ROOMS + ' rooms';
+}
+
+function saveTotalRooms() {
+  var val = parseInt(document.getElementById('total-rooms-inp')?.value) || 161;
+  if (val < 1 || val > 9999) { toast('⚠️ Enter a valid room count (1-9999)', 'err'); return; }
+  _TOTAL_ROOMS = val;
+  var stored = JSON.parse(localStorage.getItem('pearl_hotel_settings') || '{}');
+  stored.rooms = val;
+  localStorage.setItem('pearl_hotel_settings', JSON.stringify(stored));
+  if (window._fbDB) window._fbDB.ref('pearl/hotel/rooms').set(val);
+  var msg = document.getElementById('rooms-saved-msg');
+  var rd  = document.getElementById('rooms-display');
+  if (msg) { msg.style.display = 'block'; setTimeout(function(){ msg.style.display='none'; }, 2000); }
+  if (rd)  rd.textContent = val + ' rooms';
+  toast('🏨 Total rooms set to ' + val, 'ok');
+}
+
+function saveHotelSettings() {
+  var name = document.getElementById('hotel-name-inp')?.value?.trim() || '';
+  _HOTEL_NAME = name;
+  var stored = JSON.parse(localStorage.getItem('pearl_hotel_settings') || '{}');
+  stored.name = name;
+  localStorage.setItem('pearl_hotel_settings', JSON.stringify(stored));
+  if (window._fbDB) window._fbDB.ref('pearl/hotel/name').set(name);
+  var nd = document.getElementById('hotel-name-display');
+  if (nd) nd.textContent = name || '(not set)';
+  toast('🏨 Property name saved: ' + (name||'(cleared)'), 'ok');
+}
+
+// ── Load daily occupancy ──
+function loadDayOcc(y, m, d) {
+  try {
+    var key = 'occ_' + y + '_' + m + '_' + d;
+    var stored = JSON.parse(localStorage.getItem(key) || 'null');
+    return stored; // { rooms: 120, pct: 74.5 } or null
+  } catch(e) { return null; }
+}
+
+function saveDayOcc(y, m, d, rooms, pct) {
+  var data = { rooms: rooms, pct: pct };
+  var key = 'occ_' + y + '_' + m + '_' + d;
+  localStorage.setItem(key, JSON.stringify(data));
+  if (window._fbDB) {
+    window._fbDB.ref('pearl/occupancy/' + y + '/' + m + '/' + d).set(data);
+  }
+}
+
+function loadMonthOcc(y, m) {
+  // Returns array of {rooms, pct} for each day (index 0 = day 1)
+  var result = [];
+  var nd = dim(y, m);
+  for (var d = 1; d <= nd; d++) {
+    result.push(loadDayOcc(y, m, d));
+  }
+  return result;
+}
+
+function syncOccFromFB(y, m) {
+  if (!window._fbDB) return;
+  window._fbDB.ref('pearl/occupancy/' + y + '/' + m).once('value').then(function(snap) {
+    var data = snap.val() || {};
+    Object.keys(data).forEach(function(d) {
+      var key = 'occ_' + y + '_' + m + '_' + d;
+      localStorage.setItem(key, JSON.stringify(data[d]));
+    });
+  }).catch(function(){});
+}
 
 function loadCurrency() {
   try {
@@ -3877,7 +4158,7 @@ function clearAuditLog() {
 }
 
 function switchStab(name) {
-  ['admin','team','access','audit','currency','licence'].forEach(function(t) {
+  ['admin','team','access','audit','currency','hotel','licence'].forEach(function(t) {
     var btn = document.getElementById('stab-'+t);
     var pan = document.getElementById('spanel-'+t);
     if (btn) btn.classList.toggle('on', t===name);
@@ -3887,6 +4168,7 @@ function switchStab(name) {
   if (name === 'team') prefillTeam();
   if (name === 'audit') renderAuditLog();
   if (name === 'currency') openCurrencySettings();
+  if (name === 'hotel') openHotelSettings();
   if (name === 'licence') {
     // Reset auth every time tab opens
     var authWrap = document.getElementById('lic-auth-wrap');
@@ -4289,6 +4571,14 @@ function updateOnlineUI(users) {
 }
 
 function toggleOnlinePopup(e) {
+  // Position popup below the indicator using fixed coords
+  var indicator = document.getElementById('online-indicator');
+  var popup = document.getElementById('online-popup');
+  if (indicator && popup) {
+    var rect = indicator.getBoundingClientRect();
+    popup.style.top  = (rect.bottom + 6) + 'px';
+    popup.style.right = (window.innerWidth - rect.right) + 'px';
+  }
   e.stopPropagation();
   var popup = document.getElementById('online-popup');
   popup.classList.toggle('show');
@@ -4712,6 +5002,8 @@ function renderDash() {
   // Render target progress bar
   renderTargetBar(qr, m);
   renderNotifications(m, qr, nd);
+  renderInsightBadge(m);
+  renderOccStrip(m);
 }
 
 function renderCal(m) {
@@ -6481,7 +6773,7 @@ function buildDeptOpts(el, selectedD, includeAll) {
 }
 
 function showPriceSubTab(name) {
-  ['list','tools','schedules'].forEach(function(t) {
+  ['history','list','tools','schedules'].forEach(function(t) {
     var el = document.getElementById('ptab-' + t);
     var btn = document.getElementById('ptab-btn-' + t);
     if (el) el.style.display = t === name ? 'block' : 'none';
@@ -6491,6 +6783,8 @@ function showPriceSubTab(name) {
       btn.style.fontWeight = t === name ? '700' : '600';
     }
   });
+  if (name === 'schedules') renderPriceScheduleList();
+  if (name === 'history')   renderRateHistory();
 }
 
 function pschQuickMonth(m) {
@@ -6749,10 +7043,453 @@ function applyCopyPrices() {
   renderPriceTable();
 }
 
+// ══════════════════════════════════════════════════════════════
+//  RATE VERSIONING ENGINE
+//  Prices versioned by year + optional month override
+//  Weights versioned by year only
+//  Historical data NEVER affected — locked prices/weights stored per entry
+// ══════════════════════════════════════════════════════════════
+
+// ── Storage keys ──
+function rvKey(y, m)   { return 'pearl_rates_' + y + (m ? '_' + m : '_base'); }
+function rvWKey(y)     { return 'pearl_weights_' + y; }
+function rvHistKey()   { return 'pearl_rate_history'; }
+
+// ── Load rate version for a year+month ──
+// Returns prices object {dept: [[name,price,kg],...]} or null
+function loadRateVersion(y, m) {
+  // Month override first
+  if (m) {
+    try {
+      var mo = JSON.parse(_STORE.getItem(rvKey(y, m)) || 'null');
+      if (mo) return mo;
+    } catch(e) {}
+  }
+  // Year base
+  try {
+    var yb = JSON.parse(_STORE.getItem(rvKey(y, null)) || 'null');
+    if (yb) return yb;
+  } catch(e) {}
+  return null;
+}
+
+// ── Save rate version ──
+function saveRateVersion(y, m, prices, note, applyPrice, applyWeight) {
+  var key = rvKey(y, m);
+  // Build merged version: start from existing or MASTER
+  var existing = loadRateVersion(y, null) || buildMasterCopy();
+  var merged = JSON.parse(JSON.stringify(existing));
+
+  // Apply new prices/weights
+  DEPT_KEYS.forEach(function(dept) {
+    if (!merged[dept]) merged[dept] = MASTER[dept].map(function(r){ return [...r]; });
+    MASTER[dept].forEach(function(_, i) {
+      if (prices && prices[dept] && prices[dept][i]) {
+        if (applyPrice  !== false) merged[dept][i][1] = prices[dept][i][1];
+        if (applyWeight !== false) merged[dept][i][2] = prices[dept][i][2];
+      }
+    });
+  });
+
+  try { _STORE.setItem(key, JSON.stringify(merged)); } catch(e) {}
+  if (window._fbSaveKey) window._fbSaveKey('pearl/rate_versions/' + y + '/' + (m || 'base'), merged);
+
+  // Log to history
+  addRateHistoryEntry({
+    year: y,
+    month: m || null,
+    label: y + (m ? '-' + String(m).padStart(2,'0') : ' (full year)'),
+    note: note || '',
+    applyPrice:  applyPrice  !== false,
+    applyWeight: applyWeight !== false,
+    savedAt: new Date().toISOString(),
+    savedBy: (_SESSION.getItem('ph_user') || 'Admin')
+  });
+
+  // Update PRICES global if this is current year base
+  if (y === CY && !m) {
+    PRICES = merged;
+    savePR(y, merged);
+  }
+}
+
+function buildMasterCopy() {
+  var p = {};
+  DEPT_KEYS.forEach(function(d) { p[d] = MASTER[d].map(function(r){ return [...r]; }); });
+  return p;
+}
+
+// ── Get price for calculation (versioned) ──
+// Priority: 1. Locked price in entry, 2. Month override, 3. Year base, 4. Previous year, 5. MASTER
+function getVersionedPrice(dept, i, y, m) {
+  // Month override
+  try {
+    var mo = JSON.parse(_STORE.getItem(rvKey(y, m)) || 'null');
+    if (mo && mo[dept] && mo[dept][i]) return mo[dept][i][1];
+  } catch(e) {}
+  // Year base
+  try {
+    var yb = JSON.parse(_STORE.getItem(rvKey(y, null)) || 'null');
+    if (yb && yb[dept] && yb[dept][i]) return yb[dept][i][1];
+  } catch(e) {}
+  // Fallback: loadPR (existing system — preserves old data)
+  var pr = (y === CY) ? PRICES : loadPR(y);
+  return pr[dept]?.[i]?.[1] ?? MASTER[dept][i][1];
+}
+
+function getVersionedWeight(dept, i, y) {
+  // Year base weight
+  try {
+    var wb = JSON.parse(_STORE.getItem(rvWKey(y)) || 'null');
+    if (wb && wb[dept] && wb[dept][i] !== undefined) return wb[dept][i];
+  } catch(e) {}
+  // Fallback: existing system
+  var pr = (y === CY) ? PRICES : loadPR(y);
+  return pr[dept]?.[i]?.[2] ?? MASTER[dept][i][2];
+}
+
+// ── Rate history log ──
+var _RATE_HISTORY = [];
+function loadRateHistory() {
+  try { _RATE_HISTORY = JSON.parse(_STORE.getItem(rvHistKey()) || '[]'); } catch(e) { _RATE_HISTORY = []; }
+}
+function addRateHistoryEntry(entry) {
+  loadRateHistory();
+  _RATE_HISTORY.unshift(entry); // newest first
+  if (_RATE_HISTORY.length > 200) _RATE_HISTORY = _RATE_HISTORY.slice(0, 200);
+  try { _STORE.setItem(rvHistKey(), JSON.stringify(_RATE_HISTORY)); } catch(e) {}
+  if (window._fbSaveKey) window._fbSaveKey('pearl/rate_history', _RATE_HISTORY);
+}
+
+// ── Render Rate History sub-tab ──
+function renderRateHistory() {
+  var wrap = document.getElementById('rh-wrap');
+  if (!wrap) return;
+
+  // Populate year selector
+  var rhYear = document.getElementById('rh-year');
+  if (rhYear && rhYear.options.length === 0) {
+    for (var y = CY - 3; y <= CY + 2; y++) {
+      var o = document.createElement('option');
+      o.value = y; o.textContent = y;
+      if (y === CY) o.selected = true;
+      rhYear.appendChild(o);
+    }
+  }
+
+  // Populate dept selector
+  var rhDept = document.getElementById('rh-dept');
+  if (rhDept && rhDept.options.length === 1) {
+    DEPT_KEYS.forEach(function(d) {
+      var o = document.createElement('option'); o.value = d; o.textContent = d;
+      rhDept.appendChild(o);
+    });
+  }
+
+  var selYear = parseInt(rhYear?.value || CY);
+  var selDept = document.getElementById('rh-dept')?.value || 'ALL';
+  var selType = document.getElementById('rh-type')?.value || 'both';
+
+  // Load rate version for selected year
+  var rates = loadRateVersion(selYear, null);
+  var isPast = selYear < CY;
+  var isFuture = selYear > CY;
+
+  // Year status badge
+  var statusBadge = isPast
+    ? '<span style="background:#fee2e2;color:#dc2626;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700">🔒 LOCKED — Historical</span>'
+    : isFuture
+    ? '<span style="background:#eff6ff;color:#1d4ed8;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700">📅 FUTURE — Scheduled</span>'
+    : '<span style="background:#f0fdf4;color:#16a34a;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700">● ACTIVE — Current Year</span>';
+
+  var html = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">' +
+    '<div style="display:flex;align-items:center;gap:10px">' +
+      '<div style="font-size:15px;font-weight:800;color:#0d1b2e">' + selYear + ' Rate Card</div>' +
+      statusBadge +
+    '</div>';
+
+  if (!isPast) {
+    html += '<button onclick="openNewVersionModal(' + selYear + ')" style="padding:8px 16px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">➕ Add/Edit Rates</button>';
+  } else {
+    html += '<div style="font-size:11px;color:#94a3b8">Past year — read only. Historical data uses these locked values.</div>';
+  }
+  html += '</div>';
+
+  if (!rates) {
+    html += '<div style="text-align:center;padding:30px;color:#94a3b8;font-size:13px">No rate version saved for ' + selYear + '.<br>' +
+      (isPast ? 'Historical data uses the prices that were active at entry time.' : '<button onclick="openNewVersionModal(' + selYear + ')" style="margin-top:10px;padding:9px 18px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">➕ Create Rate Card for ' + selYear + '</button>') +
+      '</div>';
+    wrap.innerHTML = html;
+    return;
+  }
+
+  // Show month override status
+  var monthOverrides = [];
+  for (var m2 = 1; m2 <= 12; m2++) {
+    try {
+      var mo = JSON.parse(_STORE.getItem(rvKey(selYear, m2)) || 'null');
+      if (mo) monthOverrides.push(m2);
+    } catch(e) {}
+  }
+
+  if (monthOverrides.length > 0) {
+    html += '<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:#92400e">' +
+      '📅 Month overrides active for: <strong>' + monthOverrides.map(function(m){ return MONTH_NAMES[m-1]; }).join(', ') + '</strong>' +
+    '</div>';
+  }
+
+  // Rate table
+  var depts = selDept === 'ALL' ? DEPT_KEYS : [selDept];
+  html += '<div style="overflow-x:auto">';
+  html += '<table style="width:100%;border-collapse:collapse;font-size:12px">';
+  html += '<tr style="background:#0d1b2e">' +
+    '<th style="padding:10px 14px;text-align:left;color:#c9a84c;font-weight:700;letter-spacing:.5px">DEPARTMENT</th>' +
+    '<th style="padding:10px 14px;text-align:left;color:#c9a84c;font-weight:700">ITEM</th>' +
+    (selType !== 'weight' ? '<th style="padding:10px 14px;text-align:right;color:#c9a84c;font-weight:700">PRICE (QR)</th>' : '') +
+    (selType !== 'price'  ? '<th style="padding:10px 14px;text-align:right;color:#c9a84c;font-weight:700">WEIGHT (KG)</th>' : '') +
+    (isPast ? '' : '<th style="padding:10px 14px;text-align:center;color:#c9a84c;font-weight:700">MONTH OVERRIDE</th>') +
+    '</tr>';
+
+  var rowNum = 0;
+  depts.forEach(function(dept) {
+    if (!rates[dept]) return;
+    rates[dept].forEach(function(item, i) {
+      var bg = rowNum % 2 === 0 ? '#fff' : '#f8fafc';
+      // Check if month override exists for this item
+      var hasOverride = monthOverrides.length > 0;
+      html += '<tr style="background:' + bg + ';border-bottom:1px solid #f1f5f9">' +
+        '<td style="padding:9px 14px;font-size:11px;color:#64748b">' + (i === 0 ? dept : '') + '</td>' +
+        '<td style="padding:9px 14px;font-weight:600;color:#0d1b2e">' + (item[0] || 'Item ' + (i+1)) + '</td>' +
+        (selType !== 'weight' ? '<td style="padding:9px 14px;text-align:right;font-weight:700;color:#0d1b2e;font-family:monospace">' + (item[1]||0).toFixed(2) + '</td>' : '') +
+        (selType !== 'price'  ? '<td style="padding:9px 14px;text-align:right;font-weight:700;color:#16a34a;font-family:monospace">' + (item[2]||0).toFixed(3) + ' kg</td>' : '') +
+        (isPast ? '' : '<td style="padding:9px 14px;text-align:center">' + (hasOverride ? '<span style="font-size:10px;color:#d97706;font-weight:700">⚡ Has overrides</span>' : '<span style="font-size:10px;color:#94a3b8">—</span>') + '</td>') +
+        '</tr>';
+      rowNum++;
+    });
+  });
+  html += '</table></div>';
+
+  // History log
+  loadRateHistory();
+  var relevant = _RATE_HISTORY.filter(function(h){ return h.year === selYear; });
+  if (relevant.length > 0) {
+    html += '<div style="margin-top:20px"><div style="font-size:13px;font-weight:800;color:#0d1b2e;margin-bottom:10px">📋 Change Log — ' + selYear + '</div>';
+    relevant.forEach(function(h) {
+      html += '<div style="display:flex;gap:12px;padding:10px 14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:6px;flex-wrap:wrap">' +
+        '<div style="font-size:12px;font-weight:700;color:#0d1b2e">' + h.label + '</div>' +
+        '<div style="font-size:11px;color:#64748b">' + (h.note || 'No note') + '</div>' +
+        '<div style="margin-left:auto;font-size:10px;color:#94a3b8">' + (h.savedBy||'') + ' · ' + (h.savedAt ? new Date(h.savedAt).toLocaleDateString() : '') + '</div>' +
+      '</div>';
+    });
+    html += '</div>';
+  }
+
+  wrap.innerHTML = html;
+}
+
+// ── Open new version modal ──
+function openNewVersionModal(presetYear) {
+  var modal = document.getElementById('rh-new-modal');
+  if (!modal) return;
+
+  // Populate year select
+  var nvYear = document.getElementById('nv-year');
+  if (nvYear) {
+    nvYear.innerHTML = '';
+    for (var y = CY - 1; y <= CY + 3; y++) {
+      var o = document.createElement('option');
+      o.value = y; o.textContent = y;
+      if (y === (presetYear || CY)) o.selected = true;
+      nvYear.appendChild(o);
+    }
+  }
+
+  // Populate month select
+  var nvMonth = document.getElementById('nv-month');
+  if (nvMonth && nvMonth.options.length === 1) {
+    MONTH_NAMES.forEach(function(mn, i) {
+      var o = document.createElement('option'); o.value = i+1; o.textContent = mn;
+      nvMonth.appendChild(o);
+    });
+  }
+
+  // Populate dept
+  var nvDept = document.getElementById('nv-dept');
+  if (nvDept && nvDept.options.length === 1) {
+    DEPT_KEYS.forEach(function(d) {
+      var o = document.createElement('option'); o.value = d; o.textContent = d;
+      nvDept.appendChild(o);
+    });
+  }
+
+  // Populate source year
+  var nvSrc = document.getElementById('nv-source');
+  if (nvSrc) {
+    nvSrc.innerHTML = '<option value="current">Current Active Prices (' + CY + ')</option>';
+    for (var sy = CY - 1; sy >= CY - 3; sy--) {
+      var so = document.createElement('option'); so.value = sy; so.textContent = sy + ' prices';
+      nvSrc.appendChild(so);
+    }
+  }
+
+  // Clear preview
+  var preview = document.getElementById('nv-preview');
+  if (preview) preview.style.display = 'none';
+  var note = document.getElementById('nv-note');
+  if (note) note.value = '';
+  var pct = document.getElementById('nv-pct');
+  if (pct) pct.value = '0';
+
+  modal.style.display = 'flex';
+}
+
+function previewNewVersion() {
+  var y    = parseInt(document.getElementById('nv-year')?.value || CY);
+  var m    = parseInt(document.getElementById('nv-month')?.value) || null;
+  var dept = document.getElementById('nv-dept')?.value || 'ALL';
+  var src  = document.getElementById('nv-source')?.value || 'current';
+  var pct  = parseFloat(document.getElementById('nv-pct')?.value) || 0;
+  var applyP = document.getElementById('nv-apply-price')?.checked !== false;
+  var applyW = document.getElementById('nv-apply-weight')?.checked;
+
+  // Load source prices
+  var srcPrices = src === 'current' ? PRICES : loadPR(parseInt(src));
+  if (!srcPrices) srcPrices = buildMasterCopy();
+
+  var depts = dept === 'ALL' ? DEPT_KEYS : [dept];
+  var factor = 1 + pct / 100;
+
+  var html = '<div style="font-size:11px;font-weight:800;color:#0d1b2e;margin-bottom:8px">Preview: ' + y + (m ? '-' + MONTH_NAMES[m-1] : ' (full year)') + ' · ' + (pct >= 0 ? '+' : '') + pct + '%</div>';
+  html += '<table style="width:100%;font-size:11px;border-collapse:collapse">';
+  html += '<tr style="background:#f8fafc"><th style="padding:6px 8px;text-align:left">Item</th>' +
+    (applyP ? '<th style="padding:6px 8px;text-align:right">Old QR</th><th style="padding:6px 8px;text-align:right">New QR</th>' : '') +
+    (applyW ? '<th style="padding:6px 8px;text-align:right">Old KG</th><th style="padding:6px 8px;text-align:right">New KG</th>' : '') +
+    '</tr>';
+
+  depts.forEach(function(d) {
+    if (!srcPrices[d]) return;
+    srcPrices[d].forEach(function(item, i) {
+      var newP = applyP ? (item[1] * factor) : item[1];
+      var newK = applyW ? (item[2] * factor) : item[2];
+      var changed = (applyP && Math.abs(newP - item[1]) > 0.001) || (applyW && Math.abs(newK - item[2]) > 0.0001);
+      html += '<tr style="background:' + (changed ? '#fffbeb' : '#fff') + ';border-bottom:1px solid #f1f5f9">' +
+        '<td style="padding:5px 8px;color:#0d1b2e">' + (item[0]||'Item '+(i+1)) + '</td>' +
+        (applyP ? '<td style="padding:5px 8px;text-align:right;color:#64748b">' + item[1].toFixed(2) + '</td><td style="padding:5px 8px;text-align:right;font-weight:700;color:' + (newP>item[1]?'#16a34a':'#dc2626') + '">' + newP.toFixed(2) + '</td>' : '') +
+        (applyW ? '<td style="padding:5px 8px;text-align:right;color:#64748b">' + item[2].toFixed(3) + '</td><td style="padding:5px 8px;text-align:right;font-weight:700;color:' + (newK>item[2]?'#16a34a':'#dc2626') + '">' + newK.toFixed(3) + '</td>' : '') +
+        '</tr>';
+    });
+  });
+  html += '</table>';
+
+  var preview = document.getElementById('nv-preview');
+  if (preview) { preview.innerHTML = html; preview.style.display = 'block'; }
+}
+
+function saveNewVersion() {
+  var y    = parseInt(document.getElementById('nv-year')?.value || CY);
+  var m    = parseInt(document.getElementById('nv-month')?.value) || null;
+  var dept = document.getElementById('nv-dept')?.value || 'ALL';
+  var src  = document.getElementById('nv-source')?.value || 'current';
+  var pct  = parseFloat(document.getElementById('nv-pct')?.value) || 0;
+  var note = document.getElementById('nv-note')?.value?.trim() || '';
+  var applyP = document.getElementById('nv-apply-price')?.checked !== false;
+  var applyW = document.getElementById('nv-apply-weight')?.checked;
+
+  if (!applyP && !applyW) { toast('⚠️ Select at least one: Prices or Weights', 'err'); return; }
+
+  // Confirm if past year
+  if (y < CY) {
+    if (!confirm('⚠️ You are creating a rate version for ' + y + ' (past year). This does NOT affect already-saved entry data — only future recalculations. Continue?')) return;
+  }
+
+  // Load source
+  var srcPrices = src === 'current' ? PRICES : loadPR(parseInt(src));
+  if (!srcPrices) srcPrices = buildMasterCopy();
+
+  // Apply % adjustment
+  var factor = 1 + pct / 100;
+  var newPrices = {};
+  var depts = dept === 'ALL' ? DEPT_KEYS : [dept];
+
+  // Start from existing version for this year or master copy
+  var existing = loadRateVersion(y, null) || buildMasterCopy();
+  newPrices = JSON.parse(JSON.stringify(existing));
+
+  depts.forEach(function(d) {
+    if (!newPrices[d]) newPrices[d] = MASTER[d].map(function(r){ return [...r]; });
+    if (!srcPrices[d]) return;
+    srcPrices[d].forEach(function(item, i) {
+      if (newPrices[d][i]) {
+        if (applyP) newPrices[d][i][1] = parseFloat((item[1] * factor).toFixed(4));
+        if (applyW) newPrices[d][i][2] = parseFloat((item[2] * factor).toFixed(4));
+      }
+    });
+  });
+
+  // Save
+  var storKey = m ? rvKey(y, m) : rvKey(y, null);
+  try { _STORE.setItem(storKey, JSON.stringify(newPrices)); } catch(e) {}
+  if (window._fbSaveKey) window._fbSaveKey('pearl/rate_versions/' + y + '/' + (m || 'base'), newPrices);
+
+  // If this is current year base — update PRICES global + savePR
+  if (y === CY && !m) {
+    PRICES = newPrices;
+    savePR(y, newPrices);
+  }
+
+  // Log
+  addRateHistoryEntry({
+    year: y,
+    month: m || null,
+    label: y + (m ? '-' + MONTH_NAMES[m-1] : ' (full year)'),
+    note: note || (pct !== 0 ? (pct > 0 ? '+' : '') + pct + '% from ' + src : 'Manual update'),
+    applyPrice: applyP,
+    applyWeight: applyW,
+    savedAt: new Date().toISOString(),
+    savedBy: (_SESSION.getItem('ph_user') || 'Admin')
+  });
+
+  toast('✅ Rate version saved for ' + y + (m ? '-' + MONTH_NAMES[m-1] : ''), 'ok');
+  document.getElementById('rh-new-modal').style.display = 'none';
+  renderRateHistory();
+}
+
+function openBulkPctModal() {
+  var pct = prompt('Apply % change to ALL items in current year (' + CY + ')\nEnter percentage (e.g. 5 for +5%, -3 for -3%):');
+  if (pct === null) return;
+  var val = parseFloat(pct);
+  if (isNaN(val)) { toast('⚠️ Invalid percentage', 'err'); return; }
+  if (!confirm('Apply ' + (val>=0?'+':'') + val + '% to ALL prices for ' + CY + '? This will NOT affect already-saved entries.')) return;
+
+  var factor = 1 + val / 100;
+  var current = loadRateVersion(CY, null) || buildMasterCopy();
+  var updated = JSON.parse(JSON.stringify(current));
+  DEPT_KEYS.forEach(function(d) {
+    if (!updated[d]) return;
+    updated[d].forEach(function(item) { item[1] = parseFloat((item[1] * factor).toFixed(4)); });
+  });
+
+  _STORE.setItem(rvKey(CY, null), JSON.stringify(updated));
+  if (window._fbSaveKey) window._fbSaveKey('pearl/rate_versions/' + CY + '/base', updated);
+  PRICES = updated;
+  savePR(CY, updated);
+
+  addRateHistoryEntry({
+    year: CY, month: null, label: CY + ' (full year)',
+    note: 'Bulk ' + (val>=0?'+':'') + val + '% price adjustment',
+    applyPrice: true, applyWeight: false,
+    savedAt: new Date().toISOString(),
+    savedBy: (_SESSION.getItem('ph_user') || 'Admin')
+  });
+
+  toast('✅ ' + (val>=0?'+':'') + val + '% applied to all ' + CY + ' prices', 'ok');
+  renderRateHistory();
+}
+
 function renderPriceTable() {
   // Ensure correct sub-tab shown on first load
-  if (document.getElementById('ptab-list') && document.getElementById('ptab-list').style.display === '') {
-    showPriceSubTab('list');
+  if (document.getElementById('ptab-history') && document.getElementById('ptab-history').style.display === '') {
+    showPriceSubTab('history');
   }
   // Always rebuild all price tool selectors fresh
   var py   = document.getElementById('padj-year');
@@ -7303,32 +8040,55 @@ function renderBenchmark() {
   var days = dim(CY, m);
   var occ  = loadBenchOcc(CY, m);
   var settings = loadBenchSettings();
-  var totalRooms = parseInt(document.getElementById('bench-total-rooms')?.value) || settings.totalRooms || 0;
-  if (document.getElementById('bench-total-rooms') && !document.getElementById('bench-total-rooms').value && settings.totalRooms)
-    document.getElementById('bench-total-rooms').value = settings.totalRooms;
+  // Use global _TOTAL_ROOMS as primary source
+  var totalRooms = _TOTAL_ROOMS || parseInt(document.getElementById('bench-total-rooms')?.value) || settings.totalRooms || 161;
+  var tri2 = document.getElementById('bench-total-rooms');
+  if (tri2) tri2.value = totalRooms;
 
-  // Build occupancy entry grid — only if not already built for this month
+  // Build occupancy entry grid — dual input (rooms + %)
+  var totalRoomsNow = _TOTAL_ROOMS || totalRooms || 161;
   var grid = document.getElementById('bench-occ-grid');
-  if (grid && (grid.dataset.month !== String(m) || grid.dataset.year !== String(CY))) {
+  if (grid) {
+    // Update total rooms from global setting
+    var tri = document.getElementById('bench-total-rooms');
+    if (tri && !tri.value && totalRoomsNow) tri.value = totalRoomsNow;
+
     var html = '';
+    var DAY_SHORT = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
     for (var d = 1; d <= days; d++) {
-      var val = occ[d] !== undefined ? occ[d] : '';
-      var dn = DAY_NAMES[new Date(CY, m-1, d).getDay()].slice(0,3);
-      html += '<div style="display:flex;flex-direction:column;align-items:center;gap:3px">' +
-        '<div style="font-size:9px;font-weight:700;color:#94a3b8">' + dn + ' ' + d + '</div>' +
-        '<div style="display:flex;align-items:center;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:7px;overflow:hidden">' +
-        '<input type="number" min="0" max="100" step="0.1" value="' + val + '" id="bocc_' + d + '" ' +
-        'style="width:52px;padding:5px 4px;border:none;background:transparent;font-size:12px;font-weight:600;color:#1a2332;text-align:center;outline:none">' +
-        '<span style="font-size:10px;color:#94a3b8;padding-right:4px">%</span></div></div>';
+      var savedPct   = occ[d] !== undefined ? occ[d] : '';
+      var savedRooms = savedPct !== '' && totalRoomsNow > 0 ? Math.round(totalRoomsNow * savedPct / 100) : '';
+      var dn = DAY_SHORT[new Date(CY, m-1, d).getDay()];
+      // Color code by occupancy level
+      var occVal = parseFloat(savedPct) || 0;
+      var dotCol = occVal >= 80 ? '#16a34a' : occVal >= 60 ? '#d97706' : occVal > 0 ? '#dc2626' : '#e2e8f0';
+      html +=
+        '<div style="display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 4px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;transition:border-color .15s" ' +
+        'id="occ-cell-' + d + '">' +
+        '<div style="display:flex;align-items:center;gap:4px">' +
+          '<div style="width:6px;height:6px;border-radius:50%;background:' + dotCol + ';flex-shrink:0" id="occ-dot-' + d + '"></div>' +
+          '<div style="font-size:9px;font-weight:700;color:#64748b">' + dn + ' ' + d + '</div>' +
+        '</div>' +
+        // Rooms input
+        '<div style="width:100%;text-align:center">' +
+          '<div style="font-size:8px;color:#94a3b8;margin-bottom:1px">Rooms</div>' +
+          '<input type="number" min="0" max="' + totalRoomsNow + '" id="bocc_rooms_' + d + '" value="' + savedRooms + '" ' +
+          'style="width:52px;padding:3px 2px;border:1px solid #e2e8f0;border-radius:5px;font-size:12px;font-weight:700;color:#0d1b2e;text-align:center;outline:none;background:#fff"' +
+          ' oninput="occRoomsChanged(' + d + ')">' +
+        '</div>' +
+        // Pct input
+        '<div style="width:100%;text-align:center">' +
+          '<div style="font-size:8px;color:#94a3b8;margin-bottom:1px">Occ %</div>' +
+          '<input type="number" min="0" max="100" step="0.1" id="bocc_' + d + '" value="' + savedPct + '" ' +
+          'style="width:52px;padding:3px 2px;border:1px solid #e2e8f0;border-radius:5px;font-size:12px;font-weight:700;color:#0d1b2e;text-align:center;outline:none;background:#fff"' +
+          ' oninput="occPctChanged(' + d + ')">' +
+        '</div>' +
+        '</div>';
     }
     grid.innerHTML = html;
+    grid.style.gridTemplateColumns = 'repeat(auto-fill,minmax(72px,1fr))';
     grid.dataset.month = m;
     grid.dataset.year = CY;
-    // Restore saved values
-    for (var d2 = 1; d2 <= days; d2++) {
-      var inp = document.getElementById('bocc_' + d2);
-      if (inp && occ[d2] !== undefined) inp.value = occ[d2];
-    }
   }
 
   // Collect live data
@@ -7611,6 +8371,42 @@ function importBenchExcel(input) {
   reader.readAsArrayBuffer(file);
 }
 
+function occRoomsChanged(d) {
+  var totalRoomsNow = _TOTAL_ROOMS || parseInt(document.getElementById('bench-total-rooms')?.value) || 161;
+  var rInp = document.getElementById('bocc_rooms_' + d);
+  var pInp = document.getElementById('bocc_' + d);
+  if (!rInp || !pInp) return;
+  var rooms = parseFloat(rInp.value);
+  if (!isNaN(rooms) && totalRoomsNow > 0) {
+    var pct = (rooms / totalRoomsNow * 100);
+    pInp.value = Math.min(100, pct).toFixed(1);
+  }
+  updateOccDot(d);
+}
+
+function occPctChanged(d) {
+  var totalRoomsNow = _TOTAL_ROOMS || parseInt(document.getElementById('bench-total-rooms')?.value) || 161;
+  var rInp = document.getElementById('bocc_rooms_' + d);
+  var pInp = document.getElementById('bocc_' + d);
+  if (!rInp || !pInp) return;
+  var pct = parseFloat(pInp.value);
+  if (!isNaN(pct) && totalRoomsNow > 0) {
+    rInp.value = Math.round(totalRoomsNow * Math.min(100, pct) / 100);
+  }
+  updateOccDot(d);
+}
+
+function updateOccDot(d) {
+  var pInp = document.getElementById('bocc_' + d);
+  var dot  = document.getElementById('occ-dot-' + d);
+  var cell = document.getElementById('occ-cell-' + d);
+  if (!pInp || !dot) return;
+  var pct = parseFloat(pInp.value) || 0;
+  var col = pct >= 80 ? '#16a34a' : pct >= 60 ? '#d97706' : pct > 0 ? '#dc2626' : '#e2e8f0';
+  dot.style.background = col;
+  if (cell) cell.style.borderColor = pct > 0 ? col : '#e2e8f0';
+}
+
 function saveBenchOcc() {
   var m = parseInt(document.getElementById('bench-month')?.value || new Date().getMonth() + 1);
   var days = dim(CY, m);
@@ -7628,6 +8424,7 @@ function saveBenchOcc() {
 }
 
 function fillBenchOcc() {
+  var totalRoomsNow = _TOTAL_ROOMS || parseInt(document.getElementById('bench-total-rooms')?.value) || 161;
   var pct = prompt('Enter occupancy % to fill for all days (e.g. 85):');
   if (!pct || isNaN(parseFloat(pct))) return;
   var m = parseInt(document.getElementById('bench-month')?.value || new Date().getMonth() + 1);
@@ -7770,7 +8567,212 @@ function initBenchmark() {
   }
 }
 
+var _anaTab = 'charts';
+
+function renderKPIs(m) {
+  var wrap = document.getElementById('ana-kpi-wrap');
+  if (!wrap) return;
+
+  var today  = new Date();
+  var todayD = (today.getMonth()+1 === m && today.getFullYear() === CY) ? today.getDate() : dim(CY, m);
+  var prevM  = m === 1 ? 12 : m - 1;
+  var prevY  = m === 1 ? CY - 1 : CY;
+
+  // ── Gather current month ──
+  var curQR = 0, curKG = 0, actDays = 0;
+  for (var d = 1; d <= dim(CY,m); d++) {
+    var dt = dayTotals(CY, m, d);
+    curQR += dt.qr; curKG += dt.kg;
+    if (dt.qr > 0) actDays++;
+  }
+  var curAvgQR = actDays > 0 ? curQR / actDays : 0;
+  var curAvgKG = actDays > 0 ? curKG / actDays : 0;
+
+  // ── Gather previous month ──
+  var prevQR = 0, prevKG = 0, prevActs = 0;
+  for (var d3 = 1; d3 <= dim(prevY,prevM); d3++) {
+    var pd = dayTotals(prevY, prevM, d3);
+    prevQR += pd.qr; prevKG += pd.kg;
+    if (pd.qr > 0) prevActs++;
+  }
+  var prevAvgQR = prevActs > 0 ? prevQR / prevActs : 0;
+  var prevAvgKG = prevActs > 0 ? prevKG / prevActs : 0;
+
+  // ── Same month last year ──
+  var lyQR = 0, lyKG = 0;
+  for (var d4 = 1; d4 <= dim(CY-1,m); d4++) {
+    var ld = dayTotals(CY-1, m, d4);
+    lyQR += ld.qr; lyKG += ld.kg;
+  }
+
+  // ── Today vs yesterday ──
+  var todayRev = dayTotals(CY, m, todayD).qr;
+  var todayKG  = dayTotals(CY, m, todayD).kg;
+  var yRev = todayD > 1 ? dayTotals(CY, m, todayD-1).qr : 0;
+  var yKG  = todayD > 1 ? dayTotals(CY, m, todayD-1).kg : 0;
+
+  // ── Helpers ──
+  function pct(cur, prev) {
+    if (!prev || prev === 0) return null;
+    return (cur - prev) / prev * 100;
+  }
+
+  function badge(val) {
+    if (val === null) return '<span style="font-size:10px;color:rgba(255,255,255,.3)">— N/A</span>';
+    var up  = val >= 0;
+    var col = up ? '#86efac' : '#fca5a5';
+    var bg  = up ? 'rgba(22,163,74,.3)' : 'rgba(220,38,38,.3)';
+    return '<span style="background:' + bg + ';color:' + col + ';padding:2px 8px;border-radius:20px;font-size:10px;font-weight:800">' +
+      (up ? '▲' : '▼') + ' ' + Math.abs(val).toFixed(1) + '%</span>';
+  }
+
+  function card(label, val, unit, r1val, r1lbl, r2val, r2lbl, icon, grad) {
+    return '<div style="background:' + grad + ';border-radius:14px;padding:18px 20px;position:relative;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.15)">' +
+      '<div style="position:absolute;top:-6px;right:-6px;font-size:48px;opacity:.08">' + icon + '</div>' +
+      '<div style="font-size:9px;font-weight:800;color:rgba(255,255,255,.55);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:5px">' + label + '</div>' +
+      '<div style="font-size:22px;font-weight:900;color:#fff;margin-bottom:10px;line-height:1.1">' +
+        fmtMoney(val) + (unit ? ' <span style="font-size:12px;opacity:.6">' + unit + '</span>' : '') +
+      '</div>' +
+      '<div style="display:flex;flex-direction:column;gap:5px">' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;gap:4px">' +
+          '<span style="font-size:10px;color:rgba(255,255,255,.4);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + r1lbl + '</span>' +
+          badge(r1val) +
+        '</div>' +
+        (r2lbl ? '<div style="display:flex;align-items:center;justify-content:space-between;gap:4px">' +
+          '<span style="font-size:10px;color:rgba(255,255,255,.4);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + r2lbl + '</span>' +
+          badge(r2val) +
+        '</div>' : '') +
+      '</div>' +
+    '</div>';
+  }
+
+  var prevLbl = MONTH_NAMES[prevM-1] + (prevY !== CY ? ' ' + prevY : '');
+
+  var cards = [
+    card('Monthly Revenue', curQR, '',
+      pct(curQR, prevQR), 'vs ' + prevLbl,
+      pct(curQR, lyQR),   'vs ' + MONTH_NAMES[m-1] + ' ' + (CY-1),
+      '💰', 'linear-gradient(135deg,#1d4ed8,#2563eb)'),
+
+    card('Avg Daily Revenue', curAvgQR, '',
+      pct(curAvgQR, prevAvgQR), 'vs ' + prevLbl + ' avg',
+      pct(todayRev, yRev),      'today vs yesterday',
+      '📈', 'linear-gradient(135deg,#b45309,#d97706)'),
+
+    card('Total KG Washed', curKG, 'kg',
+      pct(curKG, prevKG), 'vs ' + prevLbl,
+      pct(curKG, lyKG),   'vs ' + MONTH_NAMES[m-1] + ' ' + (CY-1),
+      '⚖️', 'linear-gradient(135deg,#15803d,#16a34a)'),
+
+    card('Avg Daily KG', curAvgKG, 'kg',
+      pct(curAvgKG, prevAvgKG), 'vs ' + prevLbl + ' avg',
+      pct(todayKG, yKG),        'today vs yesterday',
+      '📦', 'linear-gradient(135deg,#0e7490,#0891b2)'),
+
+    card('Active Days', actDays, '/ ' + dim(CY,m),
+      pct(actDays, prevActs), 'vs ' + prevLbl,
+      null, null,
+      '📅', 'linear-gradient(135deg,#334155,#475569)'),
+  ];
+
+  wrap.innerHTML =
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">' +
+      '<div>' +
+        '<div style="font-size:15px;font-weight:800;color:#0d1b2e">📊 KPI Summary — ' + MONTH_NAMES[m-1] + ' ' + CY + '</div>' +
+        '<div style="font-size:11px;color:#94a3b8;margin-top:2px">Comparing vs previous month & same month last year</div>' +
+      '</div>' +
+      '<div style="display:flex;gap:14px">' +
+        '<div style="display:flex;align-items:center;gap:5px"><span style="color:#16a34a;font-weight:900;font-size:13px">▲</span><span style="font-size:11px;color:#64748b">Increase</span></div>' +
+        '<div style="display:flex;align-items:center;gap:5px"><span style="color:#dc2626;font-weight:900;font-size:13px">▼</span><span style="font-size:11px;color:#64748b">Decrease</span></div>' +
+      '</div>' +
+    '</div>' +
+    '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:12px">' +
+      cards.join('') +
+    '</div>' +
+    // ── Insights + Top/Bottom rendered below KPI cards ──
+    renderInsightsPanel(m) +
+    renderTopBottomPanel(m);
+}
+
+function renderInsightsPanel(m) {
+  var insights = generateInsights(m);
+  if (!insights.length) return '';
+
+  var levelCfg = {
+    warning:  { bg:'#fee2e2', border:'#fca5a5', col:'#b91c1c', label:'Warning' },
+    watch:    { bg:'#fffbeb', border:'#fde68a', col:'#92400e', label:'Watch' },
+    positive: { bg:'#f0fdf4', border:'#86efac', col:'#15803d', label:'Positive' },
+    info:     { bg:'#eff6ff', border:'#bfdbfe', col:'#1d4ed8', label:'Info' }
+  };
+
+  var rows = insights.map(function(ins, idx) {
+    var cfg = levelCfg[ins.level] || levelCfg.info;
+    return '<div style="display:flex;gap:12px;align-items:flex-start;padding:12px 14px;background:' + cfg.bg + ';border:1px solid ' + cfg.border + ';border-radius:10px">' +
+      '<span style="font-size:20px;flex-shrink:0;line-height:1.3">' + ins.icon + '</span>' +
+      '<div style="flex:1;min-width:0">' +
+        '<div style="font-size:13px;font-weight:700;color:' + cfg.col + '">' + ins.msg + '</div>' +
+        '<div style="font-size:11px;color:#64748b;margin-top:2px">' + ins.detail + '</div>' +
+      '</div>' +
+      '<span style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;background:' + cfg.border + ';color:' + cfg.col + ';white-space:nowrap;flex-shrink:0;align-self:center">' + cfg.label + '</span>' +
+    '</div>';
+  }).join('');
+
+  return '<div style="margin-top:20px">' +
+    '<div style="font-size:15px;font-weight:800;color:#0d1b2e;margin-bottom:10px">🧠 Auto Insights — ' + MONTH_NAMES[m-1] + ' ' + CY + '</div>' +
+    '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:8px">' + rows + '</div>' +
+  '</div>';
+}
+
+function renderTopBottomPanel(m) {
+  var data = getTopBottomItems(m);
+  var items = data.items;
+  if (!items.length) return '';
+
+  var medals = ['🥇','🥈','🥉','4️⃣','5️⃣'];
+  var DEPT_COLORS2 = ['#2563eb','#16a34a','#0891b2','#7c3aed','#d97706','#db2777'];
+
+  function itemRow(item, rank, isTop) {
+    var barW = Math.max(4, Math.round(item.pct * 1.8));
+    var medal = isTop ? (medals[rank] || (rank+1)) : '';
+    var rankNum = isTop ? '' : '<span style="font-size:11px;font-weight:700;color:#94a3b8;width:20px;text-align:center;flex-shrink:0">' + (items.length - rank) + '</span>';
+    return '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f1f5f9">' +
+      (isTop ? '<span style="font-size:16px;width:24px;text-align:center;flex-shrink:0">' + medal + '</span>' : rankNum) +
+      '<div style="flex:1;min-width:0">' +
+        '<div style="font-size:12px;font-weight:700;color:#0d1b2e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + item.name + '</div>' +
+        '<div style="font-size:10px;color:#94a3b8;margin-top:1px">' + item.dept + '</div>' +
+        '<div style="margin-top:4px;height:4px;background:#f1f5f9;border-radius:2px;overflow:hidden">' +
+          '<div style="height:100%;width:' + barW + '%;background:' + (isTop?'#2563eb':'#dc2626') + ';border-radius:2px"></div>' +
+        '</div>' +
+      '</div>' +
+      '<div style="text-align:right;flex-shrink:0">' +
+        '<div style="font-size:12px;font-weight:800;color:#0d1b2e">' + fmtMoney(item.qr) + '</div>' +
+        '<div style="font-size:10px;color:#94a3b8">' + item.pct.toFixed(1) + '%</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  var top5 = items.slice(0, 5);
+  var bot5 = items.slice(-5).reverse();
+
+  var topHTML = top5.map(function(it,i){ return itemRow(it,i,true); }).join('');
+  var botHTML = bot5.map(function(it,i){ return itemRow(it,i,false); }).join('');
+
+  return '<div style="margin-top:20px;display:grid;grid-template-columns:1fr 1fr;gap:16px">' +
+    '<div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:18px">' +
+      '<div style="font-size:13px;font-weight:800;color:#0d1b2e;margin-bottom:4px">🏆 Top 5 Items</div>' +
+      '<div style="font-size:11px;color:#94a3b8;margin-bottom:12px">Highest revenue items · ' + MONTH_NAMES[m-1] + ' ' + CY + '</div>' +
+      topHTML +
+    '</div>' +
+    '<div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:18px">' +
+      '<div style="font-size:13px;font-weight:800;color:#0d1b2e;margin-bottom:4px">📉 Bottom 5 Items</div>' +
+      '<div style="font-size:11px;color:#94a3b8;margin-bottom:12px">Lowest revenue (excl. zero) · ' + MONTH_NAMES[m-1] + ' ' + CY + '</div>' +
+      botHTML +
+    '</div>' +
+  '</div>';
+}
+
 function showAnalyticsTab(name) {
+  _anaTab = name;
   ['charts','yoy','trend'].forEach(function(t) {
     var el = document.getElementById('atab-' + t);
     var btn = document.getElementById('atab-btn-' + t);
@@ -8047,6 +9049,10 @@ function renderAnalytics() {
         buildLineChart(nd, dailyKG, '#10b981') +
       '</div>' +
     '</div>';
+
+  // ── KPI cards + Risk Indicators ──
+  renderKPIs(m);
+  setTimeout(function(){ renderRiskIndicators(null); }, 60);
 }
 
 // ── Dashboard mini charts (called from renderDash) ─────────
@@ -8068,6 +9074,100 @@ function saveDashTarget() {
   if (window._fbSaveKey) window._fbSaveKey('pearl/targets/' + CY + '/' + m, { revenue: val });
   toast('✅ Target saved — ' + fmtMoney(val) + ' for ' + MONTH_NAMES[m-1], 'ok');
   renderDash();
+}
+
+function renderOccStrip(m) {
+  var el = document.getElementById('dash-occ-strip');
+  if (!el) return;
+  var nd = dim(CY, m);
+  var occ = loadBenchOcc(CY, m);
+  var totalRoomsNow = _TOTAL_ROOMS || 161;
+
+  // Calculate stats
+  var occDays = [], totalOccPct = 0, occCount = 0;
+  var bestDay = 0, bestPct = 0, worstDay = 0, worstPct = 100;
+  var totalOccRooms = 0;
+
+  for (var d = 1; d <= nd; d++) {
+    var pct = parseFloat(occ[d]) || 0;
+    occDays.push(pct);
+    if (pct > 0) {
+      totalOccPct += pct; occCount++;
+      totalOccRooms += Math.round(totalRoomsNow * pct / 100);
+      if (pct > bestPct) { bestPct = pct; bestDay = d; }
+      if (pct < worstPct) { worstPct = pct; worstDay = d; }
+    }
+  }
+
+  var avgOcc = occCount > 0 ? totalOccPct / occCount : 0;
+  var avgOccRooms = occCount > 0 ? Math.round(totalOccRooms / occCount) : 0;
+
+  if (occCount === 0) {
+    el.innerHTML = '<div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">' +
+      '<div style="display:flex;align-items:center;gap:10px">' +
+        '<div style="font-size:18px">🏨</div>' +
+        '<div>' +
+          '<div style="font-size:13px;font-weight:800;color:#0d1b2e">Occupancy — ' + MONTH_NAMES[m-1] + ' ' + CY + '</div>' +
+          '<div style="font-size:11px;color:#94a3b8">No occupancy data entered yet</div>' +
+        '</div>' +
+      '</div>' +
+      '<button onclick="showTab(\'benchmark\')" style="padding:7px 14px;background:#eff6ff;border:1.5px solid #bfdbfe;color:#1d4ed8;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer">✏️ Enter Occupancy →</button>' +
+    '</div>';
+    return;
+  }
+
+  // Mini bar chart — one bar per day
+  var bars = '';
+  for (var d2 = 1; d2 <= nd; d2++) {
+    var p = occDays[d2-1];
+    var col = p >= 80 ? '#16a34a' : p >= 60 ? '#d97706' : p > 0 ? '#dc2626' : '#e2e8f0';
+    var h = p > 0 ? Math.max(4, Math.round(p * 0.36)) : 2;
+    bars += '<div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:38px;cursor:pointer" title="Day ' + d2 + ': ' + (p > 0 ? p.toFixed(0)+'%' : 'No data') + '">' +
+      '<div style="width:100%;background:' + col + ';border-radius:2px 2px 0 0;height:' + h + 'px;min-height:' + (p>0?'4':'2') + 'px;transition:height .2s"></div>' +
+    '</div>';
+  }
+
+  var avgCol = avgOcc >= 80 ? '#16a34a' : avgOcc >= 60 ? '#d97706' : '#dc2626';
+  var avgBg  = avgOcc >= 80 ? '#f0fdf4' : avgOcc >= 60 ? '#fffbeb' : '#fee2e2';
+
+  el.innerHTML =
+    '<div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;padding:14px 18px">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">' +
+        '<div style="display:flex;align-items:center;gap:10px">' +
+          '<div style="font-size:18px">🏨</div>' +
+          '<div>' +
+            '<div style="font-size:13px;font-weight:800;color:#0d1b2e">Occupancy — ' + MONTH_NAMES[m-1] + ' ' + CY + '</div>' +
+            '<div style="font-size:11px;color:#94a3b8">' + totalRoomsNow + ' total rooms · ' + occCount + ' days tracked</div>' +
+          '</div>' +
+        '</div>' +
+        '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">' +
+          '<div style="text-align:center;padding:6px 14px;background:' + avgBg + ';border-radius:8px">' +
+            '<div style="font-size:18px;font-weight:900;color:' + avgCol + '">' + avgOcc.toFixed(1) + '%</div>' +
+            '<div style="font-size:9px;color:#64748b;font-weight:600">AVG OCC</div>' +
+          '</div>' +
+          '<div style="text-align:center;padding:6px 14px;background:#f8fafc;border-radius:8px">' +
+            '<div style="font-size:18px;font-weight:900;color:#0d1b2e">' + avgOccRooms + '</div>' +
+            '<div style="font-size:9px;color:#64748b;font-weight:600">AVG ROOMS</div>' +
+          '</div>' +
+          (bestDay > 0 ? '<div style="text-align:center;padding:6px 14px;background:#f0fdf4;border-radius:8px">' +
+            '<div style="font-size:14px;font-weight:900;color:#16a34a">Day ' + bestDay + ' · ' + bestPct.toFixed(0) + '%</div>' +
+            '<div style="font-size:9px;color:#64748b;font-weight:600">BEST DAY</div>' +
+          '</div>' : '') +
+          '<button onclick="showTab(\'benchmark\')" style="padding:6px 12px;background:#eff6ff;border:1.5px solid #bfdbfe;color:#1d4ed8;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer">✏️ Edit →</button>' +
+        '</div>' +
+      '</div>' +
+      // Mini bar chart
+      '<div style="display:grid;grid-template-columns:repeat(' + nd + ',1fr);gap:2px;align-items:flex-end;padding:0 2px">' +
+        bars +
+      '</div>' +
+      // Legend
+      '<div style="display:flex;gap:12px;margin-top:6px">' +
+        '<div style="display:flex;align-items:center;gap:4px"><div style="width:8px;height:8px;border-radius:2px;background:#16a34a"></div><span style="font-size:9px;color:#64748b">≥80%</span></div>' +
+        '<div style="display:flex;align-items:center;gap:4px"><div style="width:8px;height:8px;border-radius:2px;background:#d97706"></div><span style="font-size:9px;color:#64748b">60-79%</span></div>' +
+        '<div style="display:flex;align-items:center;gap:4px"><div style="width:8px;height:8px;border-radius:2px;background:#dc2626"></div><span style="font-size:9px;color:#64748b"><60%</span></div>' +
+        '<div style="display:flex;align-items:center;gap:4px"><div style="width:8px;height:8px;border-radius:2px;background:#e2e8f0"></div><span style="font-size:9px;color:#64748b">No data</span></div>' +
+      '</div>' +
+    '</div>';
 }
 
 function renderTargetBar(totalRev, m) {
@@ -8154,6 +9254,176 @@ function showMissingDaysPopup(m, missingList) {
     });
   }, 10);
   return popup;
+}
+
+function generateInsights(m) {
+  // Returns array of insight objects {level, icon, msg, detail}
+  var insights = [];
+  var nd = dim(CY, m);
+  var prevM = m === 1 ? 12 : m - 1;
+  var prevY = m === 1 ? CY - 1 : CY;
+
+  // Gather data
+  var curQR = 0, curKG = 0, actDays = 0, dailyRevs = [];
+  for (var d = 1; d <= nd; d++) {
+    var dt = dayTotals(CY, m, d);
+    curQR += dt.qr; curKG += dt.kg;
+    dailyRevs.push(dt.qr);
+    if (dt.qr > 0) actDays++;
+  }
+  var avgRev = actDays > 0 ? curQR / actDays : 0;
+
+  var prevQR = 0, prevActs = 0;
+  for (var d2 = 1; d2 <= dim(prevY, prevM); d2++) {
+    var pd = dayTotals(prevY, prevM, d2);
+    prevQR += pd.qr;
+    if (pd.qr > 0) prevActs++;
+  }
+  var prevAvg = prevActs > 0 ? prevQR / prevActs : 0;
+
+  var lyQR = 0;
+  for (var d3 = 1; d3 <= dim(CY-1, m); d3++) { lyQR += dayTotals(CY-1, m, d3).qr; }
+
+  var target = loadTarget(CY, m)?.revenue || 0;
+
+  // ── Insight 1: MoM trend ──
+  if (prevQR > 0 && curQR > 0) {
+    var momPct = (avgRev - prevAvg) / prevAvg * 100;
+    if (Math.abs(momPct) > 5) {
+      insights.push({
+        level: momPct > 0 ? 'positive' : 'warning',
+        icon: momPct > 0 ? '📈' : '📉',
+        msg: 'Daily avg ' + (momPct > 0 ? 'up' : 'down') + ' ' + Math.abs(momPct).toFixed(1) + '% vs ' + MONTH_NAMES[prevM-1],
+        detail: fmtMoney(avgRev) + '/day this month vs ' + fmtMoney(prevAvg) + '/day last month'
+      });
+    }
+  }
+
+  // ── Insight 2: YoY comparison ──
+  if (lyQR > 0 && curQR > 0) {
+    var yoyPct = (curQR - lyQR) / lyQR * 100;
+    insights.push({
+      level: yoyPct > 0 ? 'positive' : 'watch',
+      icon: yoyPct > 0 ? '🏆' : '⚡',
+      msg: (yoyPct > 0 ? 'Ahead' : 'Behind') + ' same month last year by ' + Math.abs(yoyPct).toFixed(1) + '%',
+      detail: fmtMoney(curQR) + ' this year vs ' + fmtMoney(lyQR) + ' in ' + (CY-1)
+    });
+  }
+
+  // ── Insight 3: Target pace ──
+  if (target > 0 && actDays > 0) {
+    var daysLeft = nd - actDays;
+    var needed = (target - curQR) / Math.max(daysLeft, 1);
+    var estClose = avgRev * nd;
+    var estPct = estClose / target * 100;
+    if (estPct >= 100) {
+      insights.push({ level: 'positive', icon: '🎯', msg: 'On track to exceed target — projected ' + estPct.toFixed(0) + '% of goal', detail: 'Est. ' + fmtMoney(estClose) + ' vs target ' + fmtMoney(target) });
+    } else if (estPct < 80) {
+      insights.push({ level: 'warning', icon: '⚠️', msg: 'Behind target — need ' + fmtMoney(needed) + '/day to hit goal', detail: 'Projected ' + estPct.toFixed(0) + '% of ' + fmtMoney(target) + ' target' });
+    }
+  }
+
+  // ── Insight 4: Spike / anomaly detection ──
+  if (avgRev > 0) {
+    var maxDay = 0, maxVal = 0, minDay = 0, minVal = Infinity;
+    for (var dx = 1; dx <= nd; dx++) {
+      var rv = dailyRevs[dx-1];
+      if (rv > 0 && rv > maxVal) { maxVal = rv; maxDay = dx; }
+      if (rv > 0 && rv < minVal) { minVal = rv; minDay = dx; }
+    }
+    if (maxVal > avgRev * 2.2) {
+      insights.push({ level: 'info', icon: '⚡', msg: 'Day ' + maxDay + ' was unusually high — ' + (maxVal/avgRev).toFixed(1) + 'x the daily average', detail: fmtMoney(maxVal) + ' vs avg ' + fmtMoney(avgRev) + ' — verify entry' });
+    }
+    if (minVal > 0 && minVal < avgRev * 0.3 && actDays > 5) {
+      insights.push({ level: 'watch', icon: '🔍', msg: 'Day ' + minDay + ' was unusually low — only ' + fmtMoney(minVal), detail: 'Only ' + (minVal/avgRev*100).toFixed(0) + '% of daily average — check if complete' });
+    }
+  }
+
+  // ── Insight 5: Best performing department ──
+  var deptRevs = {};
+  DEPT_KEYS.forEach(function(dept) {
+    var qr = 0;
+    MASTER[dept].forEach(function(_, i) {
+      for (var d4 = 1; d4 <= nd; d4++) qr += getVal(CY, m, dept, i, d4-1) * getP(dept, i);
+    });
+    deptRevs[dept] = qr;
+  });
+  var topDept = Object.keys(deptRevs).sort(function(a,b){ return deptRevs[b]-deptRevs[a]; })[0];
+  var topPct = curQR > 0 ? deptRevs[topDept]/curQR*100 : 0;
+  if (topDept && deptRevs[topDept] > 0) {
+    insights.push({ level: 'info', icon: '🥇', msg: topDept + ' is the top department at ' + topPct.toFixed(1) + '% of revenue', detail: fmtMoney(deptRevs[topDept]) + ' from ' + topDept });
+  }
+
+  // ── Insight 6: Silent department ──
+  var silentDepts = DEPT_KEYS.filter(function(dept){ return deptRevs[dept] === 0; });
+  if (silentDepts.length > 0) {
+    insights.push({ level: 'warning', icon: '🔴', msg: silentDepts.length + ' department' + (silentDepts.length>1?'s have':' has') + ' no revenue this month', detail: silentDepts.join(', ') });
+  }
+
+  // ── Insight 7: Best day of week ──
+  var dowTotals = {0:0,1:0,2:0,3:0,4:0,5:0,6:0}, dowCounts = {0:0,1:0,2:0,3:0,4:0,5:0,6:0};
+  var dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  for (var dw = 1; dw <= nd; dw++) {
+    var rv2 = dailyRevs[dw-1];
+    if (rv2 > 0) {
+      var dow = new Date(CY, m-1, dw).getDay();
+      dowTotals[dow] += rv2; dowCounts[dow]++;
+    }
+  }
+  var bestDow = -1, bestDowAvg = 0;
+  for (var w = 0; w < 7; w++) {
+    if (dowCounts[w] > 1) {
+      var avg2 = dowTotals[w] / dowCounts[w];
+      if (avg2 > bestDowAvg) { bestDowAvg = avg2; bestDow = w; }
+    }
+  }
+  if (bestDow >= 0) {
+    insights.push({ level: 'info', icon: '📅', msg: dayNames[bestDow] + ' is the strongest day — avg ' + fmtMoney(bestDowAvg), detail: 'Based on ' + dowCounts[bestDow] + ' ' + dayNames[bestDow] + 's this month' });
+  }
+
+  return insights;
+}
+
+function getTopBottomItems(m) {
+  var nd = dim(CY, m);
+  var items = [];
+  DEPT_KEYS.forEach(function(dept) {
+    MASTER[dept].forEach(function(row, i) {
+      var qr = 0, kg = 0, pcs = 0;
+      for (var d = 1; d <= nd; d++) {
+        var v = getVal(CY, m, dept, i, d-1);
+        qr  += v * getP(dept, i);
+        kg  += v * getK(dept, i);
+        pcs += v;
+      }
+      if (qr > 0) { // exclude zero items
+        items.push({ name: row[0], dept: dept, qr: qr, kg: kg, pcs: pcs });
+      }
+    });
+  });
+  items.sort(function(a,b){ return b.qr - a.qr; });
+  var totalQR = items.reduce(function(s,i){ return s + i.qr; }, 0);
+  items.forEach(function(it){ it.pct = totalQR > 0 ? it.qr/totalQR*100 : 0; });
+  return { items: items, totalQR: totalQR };
+}
+
+function renderInsightBadge(m) {
+  var el = document.getElementById('dash-insight-badge');
+  if (!el) return;
+  var insights = generateInsights(m);
+  var warnings = insights.filter(function(i){ return i.level==='warning'; }).length;
+  var positives = insights.filter(function(i){ return i.level==='positive'; }).length;
+  var col = warnings > 0 ? '#dc2626' : positives > 0 ? '#16a34a' : '#0284c7';
+  var bg  = warnings > 0 ? '#fee2e2' : positives > 0 ? '#f0fdf4' : '#eff6ff';
+  var bdr = warnings > 0 ? '#fca5a5' : positives > 0 ? '#86efac' : '#bfdbfe';
+  var icon = warnings > 0 ? '⚠️' : positives > 0 ? '✅' : '💡';
+  el.innerHTML = '<div onclick="showTab(\'analytics\')" style="cursor:pointer;display:flex;align-items:center;gap:8px;background:' + bg + ';border:1.5px solid ' + bdr + ';border-radius:10px;padding:8px 14px;transition:all .2s" title="Click to view full insights in Analytics">' +
+    '<span style="font-size:14px">' + icon + '</span>' +
+    '<div>' +
+      '<div style="font-size:12px;font-weight:700;color:' + col + '">' + insights.length + ' insights this month</div>' +
+      '<div style="font-size:10px;color:#64748b">' + (warnings>0 ? warnings+' warning'+(warnings>1?'s':'') : positives+' positive') + ' · click to view →</div>' +
+    '</div>' +
+  '</div>';
 }
 
 function renderNotifications(m, totalRev, nd) {
@@ -9050,7 +10320,169 @@ function renderGuide() {
      tip('Set an expiry date when generating keys for clients — e.g. 1 year from today. When it expires they need to renew, giving you control over annual licensing.')
     ],
 
-    // ── 21. COPYRIGHT ───────────────────────────────────────────
+    // ── 21. HOTEL SETTINGS ──────────────────────────────────────
+    ['🏨 Hotel Settings — Property Name & Total Rooms',
+     '<strong>Where to find:</strong> ⚙️ Settings → 🏨 Hotel tab' +
+     '<br><br><strong>🏷️ Property Name:</strong>' +
+     ul([
+       'Set your hotel name — e.g. Pearl Hotel, Sheraton Doha, etc.',
+       'This name appears throughout the system instead of the default.',
+       'Saves to Firebase so all devices see the same name.'
+     ]) +
+     '<br><strong>🏠 Total Rooms:</strong>' +
+     ul([
+       'Default is <strong>161 rooms</strong> — change to your hotel\'s actual room count.',
+       'Used for all occupancy % calculations throughout the system.',
+       'Changes here automatically update Benchmark, Forecast and What-If.',
+       'Reset to 161 button available if needed.'
+     ]) +
+     tip('Set your total rooms first before entering any occupancy data — all calculations depend on it.')
+    ],
+
+    // ── 22. RATES MANAGER ────────────────────────────────────────
+    ['💰 Rates Manager — Versioned Prices & Weights',
+     '<strong>Where to find:</strong> 💰 Rates Mgr tab' +
+     '<br><br><strong>Why versioning?</strong>' +
+     ul([
+       'Prices and weights change over time. If you change them, old historical data must NEVER be recalculated with new values.',
+       'The system uses <strong>"Values are never updated — they are versioned over time"</strong> approach.',
+       'Each version is locked to its time period. Past years are read-only.'
+     ]) +
+     '<br><strong>📅 Rate History (default sub-tab):</strong>' +
+     ul([
+       'Select a year to view its rate card.',
+       '<strong>🔒 LOCKED</strong> — past years, read-only, historical data protected.',
+       '<strong>● ACTIVE</strong> — current year, editable.',
+       '<strong>📅 FUTURE</strong> — scheduled for future year.',
+       'Change log shows every version change with date and note.'
+     ]) +
+     '<br><strong>➕ Adding a new rate version:</strong>' +
+     step([
+       'Click <strong>➕ New Version</strong> button.',
+       'Select year and optionally a specific month (for mid-year changes).',
+       'Choose source prices to copy from (current or previous year).',
+       'Enter % adjustment — e.g. 5 for +5%, -3 for -3%.',
+       'Check: apply to Prices ✓ and/or Weights ✓.',
+       'Add a note — e.g. "+5% increase from Jan 2026".',
+       'Click <strong>👁 Preview</strong> to see before/after for every item.',
+       'Click <strong>✅ Save Version</strong> to confirm.'
+     ]) +
+     warn('Never edit past years\' rate cards. Historical entries use locked prices stored at entry time — changing rates here does NOT affect past data.') +
+     tip('Set up next year\'s rates in advance using the year selector. The system will automatically use them when that year\'s data is entered.')
+    ],
+
+    // ── 23. DAILY OCCUPANCY ──────────────────────────────────────
+    ['🏨 Daily Occupancy — Enter & Track',
+     '<strong>Where to enter:</strong> 🎯 Benchmark tab → Daily Occupancy grid' +
+     '<br><strong>Where to view summary:</strong> 📊 Dashboard → Occupancy strip' +
+     '<br><br><strong>How it works:</strong>' +
+     ul([
+       'Each day has TWO input fields: <strong>Rooms</strong> (number of occupied rooms) and <strong>Occ %</strong> (percentage).',
+       'Enter either one — the other calculates automatically.',
+       'Example: enter 120 rooms → % shows 74.5% automatically (for 161 room hotel).',
+       'Or enter 74.5% → rooms shows 120 automatically.',
+       'Color coded dot per day: 🟢 ≥80% · 🟡 60-79% · 🔴 <60%'
+     ]) +
+     '<br><strong>📊 Dashboard occupancy strip:</strong>' +
+     ul([
+       'Shows mini bar chart of all days in the month.',
+       'Displays: Avg Occ%, Avg Rooms, Best Day.',
+       'Click <strong>✏️ Edit →</strong> to jump to Benchmark for data entry.',
+       'If no data — shows prompt to enter occupancy.'
+     ]) +
+     '<br><strong>📋 Fill Same %:</strong> apply same occupancy % to all days at once.' +
+     tip('Enter occupancy daily or at end of each week. More accurate data = better RevPOR calculations and forecast accuracy.')
+    ],
+
+    // ── 24. WHAT-IF SIMULATION ───────────────────────────────────
+    ['🎮 What-If Simulation',
+     '<strong>Where to find:</strong> 🔮 Forecast tab → View: 🎮 What-If Simulation' +
+     '<br><br><strong>What it does:</strong>' +
+     ul([
+       'Lets you test different scenarios before committing to a plan.',
+       'Adjust sliders → all numbers recalculate instantly.',
+       'Compare occupancy-based forecast vs growth-based forecast.',
+       'See recommendations based on your inputs.'
+     ]) +
+     '<br><strong>🎛️ The 4 variables you control:</strong>' +
+     ul([
+       '<strong>🏨 Occupancy %</strong> — slide from 10% to 100%. See how occupancy affects revenue.',
+       '<strong>📈 Growth %</strong> — from -20% to +50%. Negative = planned decline, positive = growth target.',
+       '<strong>💰 RevPOR</strong> — revenue per occupied room. Historical shown for reference.',
+       '<strong>🏨 Total Rooms</strong> — adjustable directly here too.'
+     ]) +
+     '<br><strong>📊 Results shown:</strong>' +
+     ul([
+       '<strong>Projected Revenue</strong> — blended 50% occupancy model + 50% growth model.',
+       '<strong>Occ-Based</strong> — RevPOR × Occupied Rooms × Days.',
+       '<strong>Growth-Based</strong> — Base Revenue × (1 + Growth%).',
+       'vs ' + (new Date().getFullYear()-1) + ' actual and vs target (if set).'
+     ]) +
+     '<br><strong>💡 Recommendations panel</strong> — appears automatically based on your settings:' +
+     ul([
+       'Gap to target analysis — what RevPOR or occupancy needed to hit target.',
+       'RevPOR vs historical benchmark — is your rate realistic?',
+       'Growth rate warnings if too aggressive.',
+       'Occupancy feasibility check (>92% flagged as unrealistic).'
+     ]) +
+     tip('Run 3 scenarios: conservative (low occ, low growth), realistic (historical), optimistic (best case). Compare all three before deciding.')
+    ],
+
+    // ── 25. RISK INDICATORS ──────────────────────────────────────
+    ['🔴 Risk Indicators',
+     '<strong>Where to find:</strong> 📈 Analytics tab → Risk Indicators section (above charts)' +
+     '<br><br><strong>What it does:</strong>' +
+     ul([
+       'Analyzes each month for revenue instability and performance issues.',
+       'Assigns a risk level to each month automatically.',
+       'Updates every time you open Analytics.'
+     ]) +
+     '<br><strong>Risk levels:</strong>' +
+     ul([
+       badge('🟢 Low Risk','#f0fdf4','#15803d','#86efac') + ' — stable month, on track.',
+       badge('🟡 Medium Risk','#fffbeb','#92400e','#fde68a') + ' — some concerns, monitor.',
+       badge('🔴 High Risk','#fee2e2','#b91c1c','#fca5a5') + ' — multiple issues detected.',
+       badge('🚨 Critical','#f5f3ff','#7c3aed','#c4b5fd') + ' — serious problems, investigate.'
+     ]) +
+     '<br><strong>What triggers risk flags:</strong>' +
+     ul([
+       '<strong>High variance</strong> — daily revenue is very inconsistent (coefficient of variation >60%).',
+       '<strong>Below target</strong> — less than 60% of monthly target achieved.',
+       '<strong>YoY decline</strong> — more than 15% below same month last year.',
+       '<strong>Missing days</strong> — more than 5 days with no data entered.'
+     ]) +
+     tip('Review high-risk months first. Each card shows specific issues so you know exactly what to address.')
+    ],
+
+    // ── 26. REALITY CHECK ────────────────────────────────────────
+    ['⚖️ Reality Check — Plan Next Year',
+     '<strong>Where to find:</strong> 🔮 Forecast → Plan Next Year → below summary cards' +
+     '<br><br><strong>What it does:</strong>' +
+     ul([
+       'Automatically checks your plan inputs against historical data.',
+       'Detects unrealistic values and warns you before you commit.',
+       'Updates instantly as you change growth % or occupancy values.'
+     ]) +
+     '<br><strong>What it checks:</strong>' +
+     ul([
+       '<strong>Growth > 25%</strong> — flagged as very aggressive vs historical avg.',
+       '<strong>Growth < -10%</strong> — planned significant decline flagged.',
+       '<strong>Occupancy > 97%</strong> — physically impossible, flagged.',
+       '<strong>Occ 30%+ above historical</strong> — watch flag, may be optimistic.',
+       '<strong>No base data</strong> — month with no prior year data.',
+       '<strong>Overall growth > 20%</strong> — overall plan flagged as high.'
+     ]) +
+     '<br><strong>Result labels:</strong>' +
+     ul([
+       badge('✅ Looks Good','#f0fdf4','#15803d','#86efac') + ' — input is realistic.',
+       badge('⚠️ Warning','#fee2e2','#b91c1c','#fca5a5') + ' — needs review.',
+       badge('💡 Watch','#fffbeb','#92400e','#fde68a') + ' — monitor carefully.',
+       badge('ℹ️ Info','#eff6ff','#1d4ed8','#bfdbfe') + ' — informational note.'
+     ]) +
+     tip('Reality Check doesn\'t prevent you from saving — it\'s advisory. Use it to stress-test your assumptions before presenting to management.')
+    ],
+
+    // ── 27. COPYRIGHT ───────────────────────────────────────────
     ['© Copyright & Ownership',
      '<div style="background:linear-gradient(135deg,#0d1b2e,#1e3a5f);border-radius:10px;padding:20px 24px;color:#fff;margin-bottom:12px"><div style="font-size:18px;font-weight:700;color:#c9a84c;letter-spacing:1px;margin-bottom:6px">© 2026 Reda Salah</div><div style="font-size:13px;color:rgba(255,255,255,.75);line-height:1.9">All Rights Reserved.<br><strong style="color:#fff">RS · Pearl Laundry Management System</strong> — proprietary software created and owned by <strong style="color:#c9a84c">Reda Salah</strong>.<br>Developed for professional laundry operations management.<br>Unauthorised copying, distribution, or modification is strictly prohibited.</div></div><div style="font-size:12px;color:#6b7a8d;line-height:1.8">Intellectual property and full ownership: <strong>Reda Salah</strong><br>For support or licensing enquiries, contact the author directly.</div>'
     ],
@@ -9832,6 +11264,177 @@ function getConfidence(activeDays, nd, hasOccData, hasLastYear) {
   return { label: 'Low', col: '#dc2626', bg: '#fee2e2' };
 }
 
+// ══════════════════════════════════════════════════════════════
+//  WHAT-IF SIMULATION ENGINE
+// ══════════════════════════════════════════════════════════════
+var _wiState = { occ:75, growth:5, revPOR:20, totalRooms:161, month:0, baseYear:0 };
+
+function renderWhatIf(baseY, m) {
+  var wrap = document.getElementById('forecast-wrap');
+  if (!wrap) return;
+  var totalRoomsNow = _TOTAL_ROOMS || 161;
+  var nd       = dim(baseY+1, m);
+  var baseRev  = getMonthRevenue(baseY, m);
+  var baseKG   = monthTotals(baseY, m).kg;
+  var baseOcc  = getAvgOccupancy(baseY, m) || 70;
+  var avgRevPOR = (baseOcc>0 && totalRoomsNow>0 && nd>0)
+    ? baseRev / (totalRoomsNow * baseOcc/100 * nd) : 20;
+
+  _wiState = { occ: Math.min(95,Math.round(baseOcc+2)), growth:5, revPOR: parseFloat(avgRevPOR.toFixed(2)), totalRooms: totalRoomsNow, month:m, baseYear:baseY };
+
+  wrap.innerHTML =
+    '<div style="background:linear-gradient(135deg,#0d1b2e,#1e3a5f);border-radius:16px;padding:22px 24px;margin-bottom:20px">' +
+      '<div style="font-size:20px;font-weight:800;color:#c9a84c">🎮 What-If Simulation</div>' +
+      '<div style="font-size:12px;color:rgba(255,255,255,.55);margin-top:4px">' + MONTH_NAMES[m-1] + ' ' + (baseY+1) + ' — adjust sliders and results update instantly</div>' +
+    '</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">' +
+
+    // Controls
+    '<div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:22px">' +
+      '<div style="font-size:13px;font-weight:800;color:#0d1b2e;margin-bottom:16px">🎛️ Adjust Variables</div>' +
+      buildSlider('wi-occ',   'wi-occ-val',    '🏨 Occupancy %', 10, 100, 1,   _wiState.occ,      'Historical: '+baseOcc.toFixed(0)+'%',   '#0d1b2e') +
+      buildSlider('wi-growth','wi-growth-val', '📈 Growth %',    -20, 50, 1,   _wiState.growth,   '0% = same as last year',                '#16a34a') +
+      buildSlider('wi-revpor','wi-revpor-val', '💰 RevPOR (QR)', 5, 200, 0.5, _wiState.revPOR,   'Hist: '+(avgRevPOR>0?avgRevPOR.toFixed(2):'N/A'), '#7c3aed') +
+      '<div style="margin-top:14px"><div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:5px">🏨 Total Rooms</div>' +
+      '<input type="number" id="wi-rooms" value="' + totalRoomsNow + '" min="1" max="9999" oninput="wiUpdate()" ' +
+        'style="width:100%;padding:8px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;font-weight:700;color:#0d1b2e;outline:none;box-sizing:border-box"></div>' +
+    '</div>' +
+
+    // Results
+    '<div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:22px">' +
+      '<div style="font-size:13px;font-weight:800;color:#0d1b2e;margin-bottom:16px">📊 Projected — ' + MONTH_NAMES[m-1] + ' ' + (baseY+1) + '</div>' +
+      '<div id="wi-results"></div>' +
+    '</div>' +
+    '</div>' +
+    '<div id="wi-recommendations"></div>';
+
+  wiUpdate();
+}
+
+function buildSlider(id, valId, label, min, max, step, val, hint, color) {
+  return '<div style="margin-bottom:18px">' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">' +
+      '<label style="font-size:11px;font-weight:700;color:#64748b">' + label + '</label>' +
+      '<span id="' + valId + '" style="font-size:17px;font-weight:900;color:#0d1b2e">' + val + '</span>' +
+    '</div>' +
+    '<input type="range" id="' + id + '" min="' + min + '" max="' + max + '" step="' + step + '" value="' + val + '" oninput="wiUpdate()" style="width:100%;accent-color:' + color + '">' +
+    '<div style="font-size:10px;color:#94a3b8;margin-top:2px">' + hint + '</div>' +
+  '</div>';
+}
+
+function wiUpdate() {
+  var occ    = parseFloat(document.getElementById('wi-occ')?.value    || 75);
+  var growth = parseFloat(document.getElementById('wi-growth')?.value || 5);
+  var revPOR = parseFloat(document.getElementById('wi-revpor')?.value || 20);
+  var rooms  = parseInt(document.getElementById('wi-rooms')?.value    || 161);
+  var m      = _wiState.month;
+  var baseY  = _wiState.baseYear;
+  var nd     = dim(baseY+1, m);
+  var baseRev = getMonthRevenue(baseY, m);
+  var baseKG  = monthTotals(baseY, m).kg;
+
+  // Update labels
+  var ov = document.getElementById('wi-occ-val');   if(ov) ov.textContent = occ + '%';
+  var gv = document.getElementById('wi-growth-val');if(gv){ gv.textContent = (growth>=0?'+':'')+growth+'%'; gv.style.color = growth>=0?'#16a34a':'#dc2626'; }
+  var rv = document.getElementById('wi-revpor-val');if(rv) rv.textContent = parseFloat(revPOR).toFixed(2);
+
+  var occRooms    = Math.round(rooms * occ / 100);
+  var occRevFc    = revPOR * occRooms * nd;
+  var growthRevFc = baseRev * (1 + growth/100);
+  var blendedFc   = baseRev > 0 ? (occRevFc*0.5 + growthRevFc*0.5) : occRevFc;
+  var kgFc        = baseKG > 0 ? baseKG * (1+growth/100) * (occ / (getAvgOccupancy(baseY,m)||occ)) : 0;
+  var vsBase      = baseRev > 0 ? (blendedFc-baseRev)/baseRev*100 : 0;
+  var target      = loadTarget(CY,m)?.revenue || 0;
+  var vsTgt       = target > 0 ? blendedFc/target*100 : 0;
+
+  function pc(v){ return v>=0?'#16a34a':'#dc2626'; }
+  function pb(v){ return v>=0?'#f0fdf4':'#fee2e2'; }
+
+  var res = document.getElementById('wi-results');
+  if (res) res.innerHTML =
+    '<div style="background:linear-gradient(135deg,#1d4ed8,#2563eb);border-radius:12px;padding:18px;margin-bottom:12px">' +
+      '<div style="font-size:9px;font-weight:700;color:rgba(255,255,255,.6);margin-bottom:4px">PROJECTED REVENUE</div>' +
+      '<div style="font-size:26px;font-weight:900;color:#fff">' + fmtMoney(blendedFc) + '</div>' +
+      '<div style="font-size:10px;color:rgba(255,255,255,.55);margin-top:3px">50% growth + 50% occupancy blend</div>' +
+    '</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">' +
+      metricCard('Occ-Based', fmtMoney(occRevFc), occRooms+' rooms × '+parseFloat(revPOR).toFixed(2)+' × '+nd+'d', '#f8fafc') +
+      metricCard('Growth-Based', fmtMoney(growthRevFc), 'Base '+fmtMoney(baseRev)+' × '+(growth>=0?'+':'')+growth+'%', '#f8fafc') +
+      metricCard('vs '+baseY, (vsBase>=0?'↑ +':'↓ ')+vsBase.toFixed(1)+'%', vsBase>=0?'Growth':'Decline', pb(vsBase), pc(vsBase)) +
+      (target>0 ? metricCard('vs Target', vsTgt.toFixed(0)+'%', 'of '+fmtMoney(target), pb(vsTgt-100), pc(vsTgt-100)) :
+       metricCard('KG Forecast', kgFc>0?kgFc.toFixed(0)+' kg':'—', 'Estimated', '#f8fafc')) +
+    '</div>' +
+    '<div style="background:#0d1b2e;border-radius:10px;padding:11px 14px;display:flex;gap:14px;flex-wrap:wrap">' +
+      miniStat('OCC%', occ+'%') + miniStat('ROOMS', occRooms) + miniStat('TOTAL', rooms) +
+      miniStat('REVPOR', parseFloat(revPOR).toFixed(2)+' QR') + miniStat('DAYS', nd) +
+    '</div>';
+
+  renderWhatIfRecommendations(blendedFc, baseRev, occ, growth, revPOR, rooms, m, baseY, target);
+}
+
+function metricCard(label, val, sub, bg, col) {
+  return '<div style="background:'+(bg||'#f8fafc')+';border-radius:10px;padding:11px">' +
+    '<div style="font-size:9px;font-weight:700;color:#94a3b8;margin-bottom:3px">' + label + '</div>' +
+    '<div style="font-size:14px;font-weight:800;color:'+(col||'#0d1b2e')+'">' + val + '</div>' +
+    '<div style="font-size:10px;color:#64748b;margin-top:2px">' + sub + '</div>' +
+  '</div>';
+}
+
+function miniStat(label, val) {
+  return '<div style="text-align:center">' +
+    '<div style="font-size:8px;color:rgba(255,255,255,.45)">' + label + '</div>' +
+    '<div style="font-size:14px;font-weight:800;color:#c9a84c">' + val + '</div>' +
+  '</div>';
+}
+
+function renderWhatIfRecommendations(fc, baseRev, occ, growth, revPOR, rooms, m, baseY, target) {
+  var el = document.getElementById('wi-recommendations');
+  if (!el) return;
+  var recs = [];
+  var nd = dim(baseY+1, m);
+  var gap = target > 0 ? target - fc : 0;
+
+  if (target > 0 && gap > 0) {
+    var needRP  = target / (Math.round(rooms*occ/100) * nd);
+    var needOcc = Math.min(100, target / (revPOR * nd * rooms) * 100);
+    recs.push({ icon:'🎯', title:'Gap to Target: '+fmtMoney(gap), items:[
+      'Increase RevPOR to '+needRP.toFixed(2)+' QR/room (current: '+parseFloat(revPOR).toFixed(2)+')',
+      'Or increase occupancy to '+needOcc.toFixed(0)+'% (current: '+occ+'%)',
+      'Or combine both adjustments'
+    ], level:'warning' });
+  } else if (target > 0 && fc >= target) {
+    recs.push({ icon:'✅', title:'Target achievable', items:['Projected '+fmtMoney(fc)+' ≥ target '+fmtMoney(target)], level:'positive' });
+  }
+
+  var histRevPOR = (baseRev > 0 && rooms > 0)
+    ? baseRev / (rooms * (getAvgOccupancy(baseY,m)||occ)/100 * dim(baseY,m)) : 0;
+  if (histRevPOR > 0) {
+    var rpDiff = (revPOR - histRevPOR)/histRevPOR*100;
+    if (rpDiff > 20) recs.push({ icon:'⚠️', title:'RevPOR '+rpDiff.toFixed(0)+'% above historical', items:['Historical: '+histRevPOR.toFixed(2)+' QR/room','Validate pricing strategy'], level:'watch' });
+    else if (rpDiff < -10) recs.push({ icon:'💡', title:'RevPOR below historical — pricing opportunity', items:['Historical: '+histRevPOR.toFixed(2)+' QR/room','Potential gain: '+fmtMoney((histRevPOR-revPOR)*Math.round(rooms*occ/100)*nd)], level:'info' });
+  }
+
+  if (occ > 92) recs.push({ icon:'🏨', title:'Occ >92% — review feasibility', items:['Hotels rarely sustain >92%','88-90% more realistic max'], level:'watch' });
+  if (growth > 20) recs.push({ icon:'📊', title:'Growth '+growth+'% is aggressive', items:['Validate with operational capacity'], level:'warning' });
+  if (growth < 0)  recs.push({ icon:'📉', title:'Negative growth planned: '+growth+'%', items:['Review cost structure to maintain profitability'], level:'warning' });
+  if (!recs.length) recs.push({ icon:'✅', title:'Settings look balanced', items:['All inputs within realistic ranges'], level:'positive' });
+
+  var cfgs = { warning:{bg:'#fee2e2',br:'#fca5a5',col:'#b91c1c'}, watch:{bg:'#fffbeb',br:'#fde68a',col:'#92400e'}, positive:{bg:'#f0fdf4',br:'#86efac',col:'#15803d'}, info:{bg:'#eff6ff',br:'#bfdbfe',col:'#1d4ed8'} };
+  var html = '<div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;overflow:hidden">' +
+    '<div style="background:#0d1b2e;padding:14px 18px"><div style="font-size:14px;font-weight:800;color:#c9a84c">💡 Recommendations</div>' +
+    '<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">Based on current simulation settings</div></div>' +
+    '<div style="padding:16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px">';
+  recs.forEach(function(r){
+    var c = cfgs[r.level]||cfgs.info;
+    html += '<div style="background:'+c.bg+';border:1px solid '+c.br+';border-radius:10px;padding:12px">' +
+      '<div style="font-size:12px;font-weight:800;color:'+c.col+';margin-bottom:6px">'+r.icon+' '+r.title+'</div>' +
+      r.items.map(function(it){return '<div style="font-size:11px;color:#475569;padding:2px 0">→ '+it+'</div>';}).join('') +
+    '</div>';
+  });
+  html += '</div></div>';
+  el.innerHTML = html;
+}
+
 function renderForecast() {
   var wrap = document.getElementById('forecast-wrap');
   if (!wrap) return;
@@ -9865,7 +11468,8 @@ function renderForecast() {
     var nextY = m === 12 ? y + 1 : y;
     wrap.innerHTML = renderNextMonthForecast(y, m, nextM, nextY, prevY);
   }
-  else if (view === 'plan') renderPlanNextYear(y);
+  else if (view === 'plan')  renderPlanNextYear(y);
+  else if (view === 'whatif') renderWhatIf(y, m);
   else wrap.innerHTML = renderYearForecast(y, prevY);
 }
 
@@ -10676,6 +12280,7 @@ function recalcPlan() {
     el('plan-total-vs-kg').textContent = (totalVsKg>=0?'↑ +':'↓ ') + totalVsKg.toFixed(1) + '%';
     el('plan-total-vs-kg').style.color = totalVsKg >= 0 ? '#16a34a' : '#dc2626';
   }
+  setTimeout(runRealityCheck, 100);
 
   // Summary cards
   var cards = document.getElementById('plan-summary-cards');
