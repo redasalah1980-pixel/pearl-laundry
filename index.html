@@ -2279,6 +2279,22 @@ var _fbDB = null;
   <div style="text-align:center;padding:18px 0 10px;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;margin-top:32px;letter-spacing:0.3px">
     © Reda Salah · All Rights Reserved
   </div>
+
+  <!-- ── Backup History Panel ── -->
+  <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:16px;padding:24px;margin:0 0 20px">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+      <div style="width:44px;height:44px;background:#f8fafc;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px">🕐</div>
+      <div>
+        <div style="font-size:15px;font-weight:800;color:#0d1b2e">Backup History</div>
+        <div style="font-size:12px;color:#64748b;margin-top:2px">Last 10 versions kept · Restore any version · Oldest auto-deleted</div>
+      </div>
+      <button onclick="renderBackupHistory()" style="margin-left:auto;padding:8px 14px;background:#f8fafc;border:1.5px solid #e2e8f0;color:#64748b;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">🔄 Refresh</button>
+    </div>
+    <div id="backup-history-wrap">
+      <div style="text-align:center;padding:20px;color:#94a3b8;font-size:13px">Click Refresh or save a backup to see history</div>
+    </div>
+  </div>
+
   </div>
 
   <!-- GUIDE -->
@@ -9990,7 +10006,7 @@ function renderGuide() {
      warn('All Settings changes sync to cloud instantly. All devices update automatically within seconds.')
     ],
 
-    // ── 14. BACKUP ──────────────────────────────────────────────
+    // ── 14. BACKUP & HISTORY ────────────────────────────────────
     ['🛡️ Backup & Restore — Protecting Your Data',
      '<strong>Where to find it:</strong> Click the ' + badge('🛡️ Backup','#0d1b2e','#c9a84c') + ' tab in the top navigation bar.' +
      '<br><br>The system has <strong>two independent backup methods</strong>. Use both for maximum safety.' +
@@ -10010,7 +10026,29 @@ function renderGuide() {
      ]) +
      '<strong>📊 Data Summary</strong> — at the bottom of the Backup tab you can see how many data entries exist per year.' +
      warn('If you ever see your data disappear, go to the Backup tab immediately and restore from cloud backup. Do not enter new data first.') +
-     tip('Download a manual backup file at the end of every month and keep it. This is your ultimate safety net that works even without internet.')
+
+     '<br><strong>🕐 Backup History — Version Control (NEW):</strong>' +
+     step([
+       'Every time you click <strong>☁️ Save Cloud Backup Now</strong> — a new numbered version is created automatically.',
+       'Last <strong>10 versions</strong> are kept — oldest is deleted when 11th is saved.',
+       'Each version shows: date & time, who saved it, how many years of data, file size.',
+       '<strong>● LATEST</strong> badge marks the most recent version.',
+       '<strong>🔄 Restore</strong> — click on any version to restore it. Data is merged — nothing deleted.',
+       '<strong>🗑 Delete</strong> — remove old versions you no longer need (not available on latest).',
+       'History auto-loads when you open the Backup tab.'
+     ]) +
+
+     '<br><strong>📊 Room-Nights in Plan Next Year:</strong>' +
+     ul([
+       'Occupied Rooms = Total Rooms × Occ% ÷ 100',
+       'Room-Nights per Month = Occupied Rooms × Days in Month',
+       'Example: 161 rooms × 70% × 31 days = <strong>3,503 room-nights</strong> for January',
+       'Total Year Room-Nights = sum of all months',
+       'The rooms field (161) in Plan Next Year is now <strong>editable directly</strong> — change it and the entire plan recalculates instantly.',
+       'Click 💾 next to the rooms field to save permanently to Hotel Settings.'
+     ]) +
+
+     tip('Save a cloud backup before uploading a new version of the system file to GitHub. This creates a restore point. Download a manual backup file monthly as ultimate safety net.')
     ],
 
     // ── 15. CLOUD SYNC ──────────────────────────────────────────
@@ -12026,10 +12064,17 @@ function buildPlanHTML(baseY, targetY) {
           '<button onclick="fillAllOcc()" style="padding:6px 12px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer">Apply</button>' +
         '</div>' +
       '</div>' +
-      (totalRooms > 0 ? '<div style="background:#f8fafc;border-radius:8px;padding:8px 12px">' +
-        '<div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:2px">HOTEL ROOMS</div>' +
-        '<div style="font-size:16px;font-weight:800;color:#0d1b2e">' + totalRooms + ' rooms</div>' +
-      '</div>' : '<div style="background:#fff5f5;border:1px solid #fca5a5;border-radius:8px;padding:8px 12px;font-size:11px;color:#dc2626;font-weight:700">⚠️ Set hotel rooms in Benchmark</div>') +
+      '<div style="background:#f8fafc;border-radius:8px;padding:8px 12px">' +
+        '<div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px">HOTEL ROOMS</div>' +
+        '<div style="display:flex;align-items:center;gap:6px">' +
+          '<input type="number" id="plan-total-rooms" value="' + (_TOTAL_ROOMS||totalRooms||161) + '" min="1" max="9999" ' +
+            'oninput="_TOTAL_ROOMS=parseInt(this.value)||161;recalcPlan()" ' +
+            'style="width:70px;padding:4px 8px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:15px;font-weight:800;color:#0d1b2e;outline:none;text-align:center">' +
+          '<span style="font-size:12px;color:#64748b;font-weight:600">rooms</span>' +
+          '<button onclick="saveTotalRooms();recalcPlan()" style="padding:4px 8px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer">💾</button>' +
+        '</div>' +
+        '<div style="font-size:9px;color:#94a3b8;margin-top:2px">Click 💾 to save permanently</div>' +
+      '</div>' +
     '</div>' +
   '</div>';
 
@@ -13473,6 +13518,7 @@ function restoreCloudBackup() {
 
 // ── Render backup tab ─────────────────────────────────────────
 function renderBackupTab() {
+  setTimeout(renderBackupHistory, 400);
   // Data summary cards
   var summary = document.getElementById('backup-data-summary');
   if (summary) {
