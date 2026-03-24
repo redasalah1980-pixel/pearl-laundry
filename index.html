@@ -2277,26 +2277,9 @@ var _fbDB = null;
       <div id="trend-wrap" style="margin-top:16px"></div>
     </div>
 
-  <div style="text-align:center;padding:18px 0 10px;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;margin-top:32px;letter-spacing:0.3px">
-    © Reda Salah · All Rights Reserved
   </div>
 
-  <!-- ── Backup History Panel ── -->
-  <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:16px;padding:24px;margin:0 0 20px">
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
-      <div style="width:44px;height:44px;background:#f8fafc;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px">🕐</div>
-      <div>
-        <div style="font-size:15px;font-weight:800;color:#0d1b2e">Backup History</div>
-        <div style="font-size:12px;color:#64748b;margin-top:2px">Last 10 versions kept · Restore any version · Oldest auto-deleted</div>
-      </div>
-      <button onclick="renderBackupHistory()" style="margin-left:auto;padding:8px 14px;background:#f8fafc;border:1.5px solid #e2e8f0;color:#64748b;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">🔄 Refresh</button>
-    </div>
-    <div id="backup-history-wrap">
-      <div style="text-align:center;padding:20px;color:#94a3b8;font-size:13px">Click Refresh or save a backup to see history</div>
-    </div>
-  </div>
 
-  </div>
 
   <!-- GUIDE -->
   <div class="pg" id="tab-guide" style="padding:0;max-width:100%">
@@ -2399,6 +2382,21 @@ var _fbDB = null;
       <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:24px">
         <div style="font-size:11px;font-weight:800;letter-spacing:1.5px;color:#94a3b8;text-transform:uppercase;margin-bottom:16px">📊 Current Data Summary</div>
         <div id="backup-data-summary" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px"></div>
+      </div>
+
+      <!-- ── Backup History Panel ── -->
+      <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:24px;margin-top:20px">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+          <div style="width:44px;height:44px;background:#f8fafc;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px">🕐</div>
+          <div>
+            <div style="font-size:15px;font-weight:800;color:#0d1b2e">Backup History</div>
+            <div style="font-size:12px;color:#64748b;margin-top:2px">Last 10 versions kept · Restore any version · Oldest auto-deleted</div>
+          </div>
+          <button onclick="renderBackupHistory()" style="margin-left:auto;padding:8px 14px;background:#f8fafc;border:1.5px solid #e2e8f0;color:#64748b;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">🔄 Refresh</button>
+        </div>
+        <div id="backup-history-wrap">
+          <div style="text-align:center;padding:20px;color:#94a3b8;font-size:13px">Click Refresh or save a backup to see history</div>
+        </div>
       </div>
 
     </div>
