@@ -1573,6 +1573,7 @@ var _fbDB = null;
     </div>
     <div class="stats" id="dash-stats"></div>
     <div id="dash-target-bar" style="margin-bottom:14px"></div>
+    <div id="dash-occ-quick" style="margin-bottom:10px"></div>
     <div id="dash-occ-strip" style="margin-bottom:14px"></div>
     <div class="two-col">
       <div class="cal-wrap">
@@ -5467,6 +5468,7 @@ function renderDash() {
   renderTargetBar(qr, m);
   renderNotifications(m, qr, nd);
   renderInsightBadge(m);
+  renderDashOccQuick(m);
   renderOccStrip(m);
 }
 
@@ -9690,6 +9692,223 @@ function saveDashTarget() {
   renderDash();
 }
 
+function renderDashOccQuick(m) {
+  var el = document.getElementById('dash-occ-quick');
+  if (!el) return;
+
+  var today   = new Date();
+  var todayD  = today.getDate();
+  var todayM  = today.getMonth() + 1;
+  var todayY  = today.getFullYear();
+  var totalRoomsNow = _TOTAL_ROOMS || 161;
+  var nd = dim(CY, m);
+
+  // Use today\'s day if same month/year, else last day of month
+  var targetDay = (CY === todayY && m === todayM) ? todayD : nd;
+  var dayName   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][
+    new Date(CY, m-1, targetDay).getDay()
+  ];
+
+  // Load existing occupancy for target day
+  var occ       = loadBenchOcc(CY, m);
+  var savedPct  = occ[targetDay] !== undefined ? occ[targetDay] : '';
+  var savedRooms = savedPct !== '' ? Math.round(totalRoomsNow * parseFloat(savedPct) / 100) : '';
+
+  // Load yesterday
+  var yDay = targetDay - 1;
+  var yPct = (yDay >= 1 && occ[yDay] !== undefined) ? parseFloat(occ[yDay]) : null;
+
+  // Load month average
+  var occDays = [], occSum = 0, occCount = 0;
+  for (var d = 1; d <= nd; d++) {
+    if (occ[d] !== undefined && occ[d] !== '') {
+      var p = parseFloat(occ[d]);
+      if (p > 0) { occSum += p; occCount++; }
+    }
+  }
+  var monthAvg = occCount > 0 ? (occSum / occCount) : 0;
+
+  // Colour helper
+  function occCol(pct) {
+    return pct >= 80 ? '#16a34a' : pct >= 60 ? '#d97706' : '#dc2626';
+  }
+  function occBg(pct) {
+    return pct >= 80 ? '#f0fdf4' : pct >= 60 ? '#fffbeb' : '#fee2e2';
+  }
+
+  var curPct = savedPct !== '' ? parseFloat(savedPct) : 0;
+
+  el.innerHTML =
+    '<div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;padding:14px 18px">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">' +
+
+        // Left: title + date
+        '<div style="display:flex;align-items:center;gap:10px">' +
+          '<div style="width:40px;height:40px;background:linear-gradient(135deg,#0d1b2e,#1e3a5f);border-radius:10px;' +
+            'display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🏨</div>' +
+          '<div>' +
+            '<div style="font-size:13px;font-weight:800;color:#0d1b2e">Quick Occupancy Entry</div>' +
+            '<div style="font-size:11px;color:#64748b;margin-top:1px">' +
+              dayName + ' ' + targetDay + ' ' + MONTH_NAMES[m-1] + ' ' + CY +
+              ' · ' + totalRoomsNow + ' total rooms' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+
+        // Right: inputs + save
+        '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">' +
+
+          // Rooms input
+          '<div style="display:flex;flex-direction:column;align-items:center;gap:2px">' +
+            '<div style="font-size:9px;font-weight:700;color:#94a3b8;letter-spacing:.8px">ROOMS</div>' +
+            '<input id="dq-rooms" type="number" min="0" max="' + totalRoomsNow + '" ' +
+              'value="' + savedRooms + '" placeholder="e.g. 120" ' +
+              'oninput="dqRoomsChanged()" ' +
+              'style="width:70px;padding:7px 8px;border:1.5px solid #3b82f6;border-radius:8px;' +
+              'font-size:15px;font-weight:800;color:#0d1b2e;text-align:center;outline:none;background:#eff6ff">' +
+          '</div>' +
+
+          '<div style="font-size:16px;color:#94a3b8;font-weight:300;margin-top:12px">→</div>' +
+
+          // Pct display + input
+          '<div style="display:flex;flex-direction:column;align-items:center;gap:2px">' +
+            '<div style="font-size:9px;font-weight:700;color:#94a3b8;letter-spacing:.8px">OCC %</div>' +
+            '<input id="dq-pct" type="number" min="0" max="100" step="0.1" ' +
+              'value="' + savedPct + '" placeholder="e.g. 74.5" ' +
+              'oninput="dqPctChanged()" ' +
+              'style="width:70px;padding:7px 8px;border:1.5px solid #16a34a;border-radius:8px;' +
+              'font-size:15px;font-weight:800;color:#0d1b2e;text-align:center;outline:none;background:#f0fdf4">' +
+          '</div>' +
+
+          // Live indicator
+          '<div id="dq-indicator" style="display:flex;flex-direction:column;align-items:center;gap:2px;margin-top:12px">' +
+            '<div id="dq-dot" style="width:12px;height:12px;border-radius:50%;background:' + (curPct>0?occCol(curPct):'#e2e8f0') + '"></div>' +
+            '<div id="dq-pct-label" style="font-size:9px;font-weight:700;color:' + (curPct>0?occCol(curPct):'#94a3b8') + '">' +
+              (curPct > 0 ? curPct.toFixed(1) + '%' : '—') +
+            '</div>' +
+          '</div>' +
+
+          // Save button
+          '<button onclick="dqSave(' + targetDay + ',' + m + ')" ' +
+            'style="padding:8px 16px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:8px;' +
+            'font-size:12px;font-weight:800;cursor:pointer;margin-top:12px">💾 Save</button>' +
+        '</div>' +
+      '</div>' +
+
+      // Stats row: yesterday + month avg
+      '<div style="display:flex;gap:12px;margin-top:12px;padding-top:10px;border-top:1px solid #f1f5f9;flex-wrap:wrap">' +
+
+        // Today status
+        (curPct > 0 ?
+          '<div style="display:flex;align-items:center;gap:6px;padding:5px 12px;background:' + occBg(curPct) + ';border-radius:8px">' +
+            '<div style="width:8px;height:8px;border-radius:50%;background:' + occCol(curPct) + '"></div>' +
+            '<span style="font-size:11px;font-weight:700;color:' + occCol(curPct) + '">' +
+              'Today: ' + curPct.toFixed(1) + '% · ' + Math.round(totalRoomsNow * curPct / 100) + ' rooms' +
+            '</span>' +
+          '</div>'
+        : '<div style="font-size:11px;color:#94a3b8;padding:5px 0">No data for today yet</div>') +
+
+        // Yesterday
+        (yPct !== null ?
+          '<div style="display:flex;align-items:center;gap:6px;padding:5px 12px;background:#f8fafc;border-radius:8px">' +
+            '<span style="font-size:11px;color:#64748b">Yesterday: <strong style="color:#0d1b2e">' + yPct.toFixed(1) + '%</strong></span>' +
+            (curPct > 0 ?
+              '<span style="font-size:10px;color:' + (curPct>=yPct?'#16a34a':'#dc2626') + ';font-weight:700">' +
+                (curPct>=yPct?'▲':'▼') + ' ' + Math.abs(curPct-yPct).toFixed(1) + 'pp' +
+              '</span>' : '') +
+          '</div>' : '') +
+
+        // Month avg
+        (monthAvg > 0 ?
+          '<div style="display:flex;align-items:center;gap:6px;padding:5px 12px;background:#f8fafc;border-radius:8px">' +
+            '<span style="font-size:11px;color:#64748b">Month avg: <strong style="color:#0d1b2e">' + monthAvg.toFixed(1) + '%</strong></span>' +
+          '</div>' : '') +
+
+        // Saved indicator
+        '<div id="dq-saved-msg" style="display:none;font-size:11px;color:#16a34a;font-weight:700;' +
+          'padding:5px 12px;background:#f0fdf4;border-radius:8px">✅ Saved!</div>' +
+      '</div>' +
+    '</div>';
+
+  // Store target day globally for save function
+  window._dqTargetDay = targetDay;
+  window._dqMonth     = m;
+}
+
+function dqRoomsChanged() {
+  var totalRoomsNow = _TOTAL_ROOMS || 161;
+  var rInp = document.getElementById('dq-rooms');
+  var pInp = document.getElementById('dq-pct');
+  if (!rInp || !pInp) return;
+  var rooms = parseFloat(rInp.value);
+  if (!isNaN(rooms) && totalRoomsNow > 0) {
+    pInp.value = Math.min(100, rooms / totalRoomsNow * 100).toFixed(1);
+  }
+  dqUpdateIndicator();
+}
+
+function dqPctChanged() {
+  var totalRoomsNow = _TOTAL_ROOMS || 161;
+  var rInp = document.getElementById('dq-rooms');
+  var pInp = document.getElementById('dq-pct');
+  if (!rInp || !pInp) return;
+  var pct = parseFloat(pInp.value);
+  if (!isNaN(pct) && totalRoomsNow > 0) {
+    rInp.value = Math.round(totalRoomsNow * Math.min(100, pct) / 100);
+  }
+  dqUpdateIndicator();
+}
+
+function dqUpdateIndicator() {
+  var pInp = document.getElementById('dq-pct');
+  var dot  = document.getElementById('dq-dot');
+  var lbl  = document.getElementById('dq-pct-label');
+  if (!pInp) return;
+  var pct = parseFloat(pInp.value) || 0;
+  var col = pct >= 80 ? '#16a34a' : pct >= 60 ? '#d97706' : pct > 0 ? '#dc2626' : '#e2e8f0';
+  if (dot) dot.style.background = col;
+  if (lbl) {
+    lbl.style.color = col;
+    lbl.textContent = pct > 0 ? pct.toFixed(1) + '%' : '—';
+  }
+}
+
+function dqSave(day, m) {
+  var pInp = document.getElementById('dq-pct');
+  var rInp = document.getElementById('dq-rooms');
+  if (!pInp) return;
+  var pct   = parseFloat(pInp.value);
+  var rooms = parseFloat(rInp?.value);
+  if (isNaN(pct) || pct < 0 || pct > 100) {
+    toast('⚠️ Enter a valid occupancy %', 'err'); return;
+  }
+
+  // Save to benchmark occupancy store
+  var occ = loadBenchOcc(CY, m);
+  occ[day] = pct;
+  saveBenchOccData(CY, m, occ);
+
+  // Also update the benchmark grid if it's rendered
+  var bInp = document.getElementById('bocc_' + day);
+  if (bInp) bInp.value = pct;
+  var bRooms = document.getElementById('bocc_rooms_' + day);
+  if (bRooms && !isNaN(rooms)) bRooms.value = rooms;
+
+  // Show saved message
+  var msg = document.getElementById('dq-saved-msg');
+  if (msg) {
+    msg.style.display = 'block';
+    setTimeout(function() { msg.style.display = 'none'; }, 2000);
+  }
+
+  toast('🏨 Occupancy saved: ' + pct.toFixed(1) + '% for day ' + day, 'ok');
+
+  // Refresh strip
+  renderOccStrip(m);
+  // Re-render quick widget to update stats
+  setTimeout(function() { renderDashOccQuick(m); }, 300);
+}
+
 function renderOccStrip(m) {
   var el = document.getElementById('dash-occ-strip');
   if (!el) return;
@@ -11118,7 +11337,111 @@ function renderGuide() {
      tip('Reality Check doesn\'t prevent you from saving — it\'s advisory. Use it to stress-test your assumptions before presenting to management.')
     ],
 
-    // ── 27. COPYRIGHT ───────────────────────────────────────────
+    // ── 27. NAV DROPDOWNS ───────────────────────────────────────
+    ['📋 Navigation — Reports & More Dropdowns',
+     '<strong>What changed:</strong> The navigation bar now has two dropdown menus to reduce clutter.' +
+     '<br><br><strong>📋 Reports ▾ dropdown contains:</strong>' +
+     ul([
+       '<strong>📅 Monthly Overview</strong> — full month summary & exports',
+       '<strong>📄 Report & PDF</strong> — print and export reports',
+       '<strong>🏦 Finance Posting</strong> — revenue posting view'
+     ]) +
+     '<strong>⋯ More ▾ dropdown contains:</strong>' +
+     ul([
+       '<strong>🛡️ Backup</strong> — cloud & local data backup',
+       '<strong>💡 Help Center</strong> — full documentation & guides'
+     ]) +
+     '<br><strong>How to use:</strong>' +
+     ul([
+       'Click <strong>📋 Reports ▾</strong> or <strong>⋯ More ▾</strong> to open the dropdown',
+       'Click any item inside to navigate to that tab',
+       'Click anywhere outside to close the dropdown',
+       'The dropdown button turns <strong style="color:#c9a84c">gold</strong> when you are on one of its tabs',
+       'Both dropdowns cannot be open at the same time'
+     ]) +
+     tip('The main tabs that stay always visible are: Dash, Entry, Bench, Rates, Analytics, Forecast.')
+    ],
+
+    // ── 28. QUICK OCCUPANCY (DASHBOARD) ─────────────────────────
+    ['🏨 Quick Occupancy Entry — Dashboard Widget',
+     '<strong>Where to find:</strong> 📊 Dashboard tab → above the occupancy strip' +
+     '<br><br><strong>What it does:</strong>' +
+     ul([
+       'Enter today\'s occupancy directly from the dashboard — no need to go to Benchmark tab.',
+       'Saves instantly to Benchmark and Firebase — data syncs everywhere.',
+       'Shows today\'s date automatically.',
+       'Real-time colour indicator updates as you type.'
+     ]) +
+     '<br><strong>How to use:</strong>' +
+     step([
+       'Open the Dashboard tab',
+       'Find the <strong>🏨 Quick Occupancy Entry</strong> widget above the occupancy strip',
+       'Enter <strong>Occupied Rooms</strong> (blue field) → Occ% calculates automatically',
+       'Or enter <strong>Occ%</strong> (green field) → Rooms calculates automatically',
+       'Watch the <strong>🟢🟡🔴 dot</strong> update live as you type',
+       'Click <strong>💾 Save</strong> — data saves instantly'
+     ]) +
+     '<br><strong>Stats shown below the inputs:</strong>' +
+     ul([
+       '<strong>Today</strong> — current occupancy % and rooms occupied',
+       '<strong>Yesterday</strong> — previous day % with ▲▼ difference in percentage points',
+       '<strong>Month avg</strong> — average occupancy % for all entered days this month'
+     ]) +
+     '<br><strong>After saving:</strong>' +
+     ul([
+       'The occupancy strip below updates immediately',
+       'Benchmark tab reflects the new data — no manual sync needed',
+       'Firebase syncs to all devices automatically'
+     ]) +
+     warn('The widget always shows TODAY date. To edit past days, go to the Benchmark tab where you can edit any day.') +
+     tip('Enter occupancy every morning as part of your daily routine — takes 5 seconds and keeps all your forecasts and benchmarks accurate.')
+    ],
+
+    // ── 29. CALCULATOR ──────────────────────────────────────────
+    ['🧮 Quick Calculator',
+     '<strong>Where to find:</strong> Click <strong>🧮 Calc</strong> button in the top navigation bar' +
+     '<br><br><strong>What it does:</strong> A floating calculator available from any tab — no need to leave your current screen.' +
+     '<br><br><strong>4 calculation modes:</strong>' +
+     ul([
+       '<strong>% Change</strong> — enter base price + % → get new price instantly. ' +
+         'Quick buttons: +3.5% · +5% · +10% · -3.5% · -5%. ' +
+         'Shows: new price, difference, impact per 100 items, verification %.',
+       '<strong>% of Target</strong> — enter actual + target → see achievement %. ' +
+         'Shows gap remaining and daily amount needed to close.',
+       '<strong>Price Check</strong> — enter old price + new price → find what % was applied. ' +
+         'Useful to verify: "was this really +3.5%?"',
+       '<strong>General</strong> — any % calculation: A is what % of B, X% of A, A±X%, % difference.'
+     ]) +
+     tip('Use % Change to verify prices before applying them in the Rate Manager. Example: 15.00 + 3.5% = 15.525 QR.')
+    ],
+
+    // ── 30. BACKUP HISTORY ──────────────────────────────────────
+    ['🕐 Backup History — Version Control',
+     '<strong>Where to find:</strong> 🛡️ Backup tab (in ⋯ More dropdown) → scroll down to Backup History panel' +
+     '<br><br><strong>How versioning works:</strong>' +
+     ul([
+       'Every time you click <strong>☁️ Save Cloud Backup Now</strong> — a new numbered version is created.',
+       'Last <strong>10 versions</strong> are kept — oldest auto-deleted when 11th is saved.',
+       'Each version shows: number, date & time, who saved it, years of data, file size.',
+       '<strong>● LATEST</strong> badge on the newest version.'
+     ]) +
+     '<br><strong>Actions per version:</strong>' +
+     ul([
+       '<strong>🔄 Restore</strong> — merges that backup into current data. Nothing is deleted.',
+       '<strong>🗑 Delete</strong> — removes old versions (not available on latest).',
+       '<strong>🔄 Refresh</strong> button — reloads history from Firebase.'
+     ]) +
+     '<br><strong>Room-Nights formula:</strong>' +
+     ul([
+       'Occupied Rooms = Total Rooms × Occ% ÷ 100',
+       'Room-Nights = Occupied Rooms × Days in Month',
+       'Example: 161 × 70% × 31 days = 3,503 room-nights'
+     ]) +
+     warn('Always save a cloud backup before uploading a new version of the system to GitHub.') +
+     tip('Save a backup at least once a week. The version history means you can always go back to any point in the last 10 saves.')
+    ],
+
+    // ── 31. COPYRIGHT ───────────────────────────────────────────
     ['© Copyright & Ownership',
      '<div style="background:linear-gradient(135deg,#0d1b2e,#1e3a5f);border-radius:10px;padding:20px 24px;color:#fff;margin-bottom:12px"><div style="font-size:18px;font-weight:700;color:#c9a84c;letter-spacing:1px;margin-bottom:6px">© 2026 Reda Salah</div><div style="font-size:13px;color:rgba(255,255,255,.75);line-height:1.9">All Rights Reserved.<br><strong style="color:#fff">RS · Pearl Laundry Management System</strong> — proprietary software created and owned by <strong style="color:#c9a84c">Reda Salah</strong>.<br>Developed for professional laundry operations management.<br>Unauthorised copying, distribution, or modification is strictly prohibited.</div></div><div style="font-size:12px;color:#6b7a8d;line-height:1.8">Intellectual property and full ownership: <strong>Reda Salah</strong><br>For support or licensing enquiries, contact the author directly.</div>'
     ],
