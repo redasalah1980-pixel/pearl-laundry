@@ -8643,12 +8643,18 @@ function renderKPIs(m) {
       (up ? '▲' : '▼') + ' ' + Math.abs(val).toFixed(1) + '%</span>';
   }
 
+  function fmtCardVal(val, unit, nd) {
+    if (unit === 'kg') return f2(val);
+    if (unit && unit.indexOf('/') === 0) return Math.round(val).toString();
+    return fmtMoney(val);
+  }
   function card(label, val, unit, r1val, r1lbl, r2val, r2lbl, icon, grad) {
     return '<div style="background:' + grad + ';border-radius:14px;padding:18px 20px;position:relative;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.15)">' +
       '<div style="position:absolute;top:-6px;right:-6px;font-size:48px;opacity:.08">' + icon + '</div>' +
       '<div style="font-size:9px;font-weight:800;color:rgba(255,255,255,.55);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:5px">' + label + '</div>' +
       '<div style="font-size:22px;font-weight:900;color:#fff;margin-bottom:10px;line-height:1.1">' +
-        fmtMoney(val) + (unit ? ' <span style="font-size:12px;opacity:.6">' + unit + '</span>' : '') +
+        fmtCardVal(val, unit) +
+        (unit ? ' <span style="font-size:12px;opacity:.6">' + unit + '</span>' : '') +
       '</div>' +
       '<div style="display:flex;flex-direction:column;gap:5px">' +
         '<div style="display:flex;align-items:center;justify-content:space-between;gap:4px">' +
