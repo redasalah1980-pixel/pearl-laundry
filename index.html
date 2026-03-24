@@ -11479,6 +11479,128 @@ function renderWhatIfRecommendations(fc, baseRev, occ, growth, revPOR, rooms, m,
   el.innerHTML = html;
 }
 
+// ══════════════════════════════════════════════════════════════
+//  RISK INDICATORS — monthly stability analysis
+// ══════════════════════════════════════════════════════════════
+function renderRiskIndicators(filterMonth) {
+  var wrap = document.getElementById('ana-risk-wrap');
+  if (!wrap) return;
+
+  var risks = [];
+  var months = [];
+  // Only show months that have data
+  for (var mo = 1; mo <= 12; mo++) {
+    var hasDat = false;
+    for (var d = 1; d <= dim(CY, mo); d++) {
+      if (dayTotals(CY, mo, d).qr > 0) { hasDat = true; break; }
+    }
+    if (hasDat) months.push(mo);
+  }
+
+  if (months.length === 0) {
+    wrap.innerHTML = '';
+    return;
+  }
+
+  months.forEach(function(mo) {
+    var nd = dim(CY, mo);
+    var dailyRevs = [], actDays = 0, totalRev = 0;
+    for (var d = 1; d <= nd; d++) {
+      var dt = dayTotals(CY, mo, d);
+      dailyRevs.push(dt.qr);
+      if (dt.qr > 0) { actDays++; totalRev += dt.qr; }
+    }
+    if (actDays < 2) return;
+
+    var avgRev  = totalRev / actDays;
+    var target  = loadTarget(CY, mo)?.revenue || 0;
+    var lyRev   = getMonthRevenue(CY-1, mo);
+    var issues  = [], score = 0;
+
+    // Risk 1: High variance
+    var diffs = dailyRevs.filter(function(r){return r>0;});
+    if (diffs.length > 1) {
+      var mean = diffs.reduce(function(a,b){return a+b;},0)/diffs.length;
+      var variance = diffs.reduce(function(s,r){return s+Math.pow(r-mean,2);},0)/diffs.length;
+      var cv = mean > 0 ? Math.sqrt(variance)/mean : 0;
+      if (cv > 0.6)      { score += 3; issues.push('High revenue volatility — daily performance very inconsistent (CV: '+Math.round(cv*100)+'%)'); }
+      else if (cv > 0.35){ score += 1; issues.push('Moderate variance in daily revenue'); }
+    }
+
+    // Risk 2: Below target
+    if (target > 0) {
+      var tPct = totalRev / target * 100;
+      if (tPct < 60)       { score += 3; issues.push('Significantly below target — only '+tPct.toFixed(0)+'% achieved of '+fmtMoney(target)); }
+      else if (tPct < 80)  { score += 2; issues.push('Below target — '+tPct.toFixed(0)+'% of '+fmtMoney(target)); }
+      else if (tPct >= 100){ score -= 1; }
+    }
+
+    // Risk 3: YoY decline
+    if (lyRev > 0 && totalRev > 0) {
+      var yoy = (totalRev - lyRev)/lyRev*100;
+      if (yoy < -15)      { score += 3; issues.push('Major YoY decline: '+yoy.toFixed(1)+'% vs '+(CY-1)); }
+      else if (yoy < -5)  { score += 1; issues.push('YoY decline: '+yoy.toFixed(1)+'% vs '+(CY-1)); }
+      else if (yoy > 10)  { score -= 1; }
+    }
+
+    // Risk 4: Missing days
+    var today = new Date();
+    var maxDay = (CY===today.getFullYear() && mo===today.getMonth()+1) ? today.getDate()-1 : nd;
+    var missing = 0;
+    for (var d2=1;d2<=maxDay;d2++){ if(dailyRevs[d2-1]===0) missing++; }
+    if (missing > 5)     { score += 2; issues.push(missing+' days with no data — check for gaps'); }
+    else if (missing > 2){ score += 1; issues.push(missing+' missing days'); }
+
+    var level = score<=0?'low':score<=2?'medium':score<=4?'high':'critical';
+    risks.push({ month:mo, level:level, score:score, issues:issues, totalRev:totalRev, avgRev:avgRev });
+  });
+
+  if (risks.length === 0) { wrap.innerHTML = ''; return; }
+
+  var cfgs = {
+    low:      { col:'#16a34a', bg:'#f0fdf4', br:'#86efac', icon:'🟢', lbl:'Low Risk' },
+    medium:   { col:'#d97706', bg:'#fffbeb', br:'#fde68a', icon:'🟡', lbl:'Medium Risk' },
+    high:     { col:'#dc2626', bg:'#fee2e2', br:'#fca5a5', icon:'🔴', lbl:'High Risk' },
+    critical: { col:'#7c3aed', bg:'#f5f3ff', br:'#c4b5fd', icon:'🚨', lbl:'Critical' }
+  };
+
+  var html = '<div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:18px 20px;margin-bottom:16px">' +
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">' +
+      '<div>' +
+        '<div style="font-size:15px;font-weight:800;color:#0d1b2e">🔴 Risk Indicators — ' + CY + '</div>' +
+        '<div style="font-size:11px;color:#94a3b8;margin-top:2px">Monthly stability analysis · variance, target performance and YoY trends</div>' +
+      '</div>' +
+      '<div style="display:flex;gap:10px;flex-wrap:wrap">' +
+        ['low','medium','high','critical'].map(function(l){
+          var c=cfgs[l];
+          return '<div style="display:flex;align-items:center;gap:4px"><span>'+c.icon+'</span><span style="font-size:10px;color:#64748b">'+c.lbl+'</span></div>';
+        }).join('') +
+      '</div>' +
+    '</div>' +
+    '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px">';
+
+  risks.forEach(function(r) {
+    var cfg = cfgs[r.level];
+    html += '<div style="background:'+cfg.bg+';border:1.5px solid '+cfg.br+';border-radius:12px;padding:14px 16px">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">' +
+        '<div style="font-size:13px;font-weight:800;color:#0d1b2e">'+MONTH_NAMES[r.month-1]+' '+CY+'</div>' +
+        '<span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:'+cfg.br+';color:'+cfg.col+'">'+cfg.icon+' '+cfg.lbl+'</span>' +
+      '</div>' +
+      '<div style="font-size:11px;color:#64748b;margin-bottom:8px">'+fmtMoney(r.totalRev)+' total · '+fmtMoney(r.avgRev)+'/day avg</div>' +
+      (r.issues.length ?
+        '<div style="display:flex;flex-direction:column;gap:4px">'+
+          r.issues.map(function(iss){
+            return '<div style="font-size:11px;color:'+cfg.col+';padding:4px 8px;background:rgba(255,255,255,.6);border-radius:6px">• '+iss+'</div>';
+          }).join('')+
+        '</div>'
+      : '<div style="font-size:11px;color:'+cfg.col+'">✅ No risk factors detected</div>') +
+    '</div>';
+  });
+
+  html += '</div></div>';
+  wrap.innerHTML = html;
+}
+
 function renderForecast() {
   var wrap = document.getElementById('forecast-wrap');
   if (!wrap) return;
