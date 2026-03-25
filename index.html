@@ -113,21 +113,21 @@ input,select,textarea{font-family:inherit;outline:none;border:none}
 /* Hide old left panel */
 .login-left  { display: none !important; }
 
-/* Right wrapper — positions the card on the LEFT third of the screen */
+/* Right wrapper — positions the card on the RIGHT side */
 .login-right {
   width: 100%;
   background: transparent;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: flex-end;
   justify-content: center;
-  padding: 0 0 0 7vw;
+  padding: 0 7vw 0 0;
   position: relative;
   z-index: 2;
 }
 .login-right::before { display: none; }
 
-/* ── The card — sits LEFT, right side of screen is open for the space scene ── */
+/* ── The card — sits RIGHT, left side open for the epic scene ── */
 .login-card {
   width: 420px;
   max-width: 88vw;
@@ -15255,17 +15255,8 @@ function autoCloudBackup() {
     canvas.style.height = '100%';
     canvas.style.display = 'block';
     var ctx = canvas.getContext('2d');
-    var W, H, stars, orbs, waveOffset = 0, shootX, shootY, shootProgress = -1, shootTimer = 0;
-
-    // ── Floating orb / planet shapes on the RIGHT side ──
-    var orbDefs = [
-      // big gold planet top-right
-      { xFrac:0.78, yFrac:0.22, r:110, colorA:'rgba(201,168,76,0.13)', colorB:'rgba(201,168,76,0)', rings:true,  ringColor:'rgba(201,168,76,0.18)' },
-      // smaller blue-teal nebula orb bottom-right
-      { xFrac:0.88, yFrac:0.72, r:70,  colorA:'rgba(30,90,160,0.18)',  colorB:'rgba(30,90,160,0)', rings:false, ringColor:'' },
-      // tiny accent orb mid-right
-      { xFrac:0.65, yFrac:0.55, r:38,  colorA:'rgba(201,168,76,0.09)', colorB:'rgba(201,168,76,0)', rings:false, ringColor:'' }
-    ];
+    var W, H, stars, waveOffset = 0, breathe = 0;
+    var shootProgress = -1, shootTimer = 0, shootX, shootY;
 
     function resize() {
       W = canvas.width  = canvas.offsetWidth;
@@ -15275,204 +15266,244 @@ function autoCloudBackup() {
 
     function initStars() {
       stars = [];
-      var count = Math.floor((W * H) / 4500);
+      var count = Math.floor((W * H) / 4000);
       for (var i = 0; i < count; i++) {
         stars.push({
-          x: Math.random() * W,
-          y: Math.random() * H,
-          r: Math.random() * 1.6 + 0.2,
-          gold: Math.random() > 0.6,
-          alpha: Math.random() * 0.8 + 0.15,
+          x: Math.random() * W, y: Math.random() * H,
+          r: Math.random() * 1.5 + 0.2,
+          gold: Math.random() > 0.65,
+          alpha: Math.random() * 0.75 + 0.15,
           twinkle: Math.random() * Math.PI * 2,
-          twinkleSpeed: Math.random() * 0.018 + 0.004,
-          drift: (Math.random() - 0.5) * 0.06,
-          rise: Math.random() * 0.12 + 0.02
+          twinkleSpeed: Math.random() * 0.02 + 0.004
         });
       }
     }
 
-    var frame = 0;
-    function draw() {
-      frame++;
-      waveOffset += 0.004;
-      ctx.clearRect(0, 0, W, H);
+    function drawWarrior(cx, cy, scale, breatheAmt) {
+      ctx.save();
+      ctx.translate(cx, cy + breatheAmt);
+      var s = scale;
 
-      // ── 1. Deep space base ──
-      var bg = ctx.createLinearGradient(0, 0, W, H);
-      bg.addColorStop(0,   '#020810');
-      bg.addColorStop(0.4, '#06101c');
-      bg.addColorStop(0.7, '#091520');
-      bg.addColorStop(1,   '#020810');
-      ctx.fillStyle = bg;
-      ctx.fillRect(0, 0, W, H);
+      // shadow
+      var shadowGrad = ctx.createRadialGradient(0,s*1.72,0, 0,s*1.72,s*1.1);
+      shadowGrad.addColorStop(0,'rgba(201,168,76,0.18)');
+      shadowGrad.addColorStop(1,'rgba(201,168,76,0)');
+      ctx.fillStyle=shadowGrad; ctx.beginPath();
+      ctx.ellipse(0,s*1.72,s*1.1,s*0.18,0,0,Math.PI*2); ctx.fill();
 
-      // ── 2. Large ambient nebula clouds spread across whole scene ──
-      var nebulaDefs = [
-        // Left warmth (behind card)
-        { x: W*0.08, y: H*0.35, r: W*0.38, ca: 'rgba(201,168,76,0.055)', cb: 'rgba(201,168,76,0)' },
-        // Right dominant gold cloud
-        { x: W*0.82, y: H*0.28, r: W*0.42, ca: 'rgba(201,168,76,0.09)',  cb: 'rgba(201,168,76,0)' },
-        // Right deep blue
-        { x: W*0.75, y: H*0.7,  r: W*0.35, ca: 'rgba(20,70,140,0.12)',   cb: 'rgba(20,70,140,0)'  },
-        // Centre soft glow
-        { x: W*0.5,  y: H*0.5,  r: W*0.3,  ca: 'rgba(13,40,80,0.08)',    cb: 'rgba(13,40,80,0)'   },
-        // Bottom right accent
-        { x: W*0.9,  y: H*0.85, r: W*0.25, ca: 'rgba(201,168,76,0.06)',  cb: 'rgba(201,168,76,0)' }
-      ];
-      nebulaDefs.forEach(function(n) {
-        var g = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r);
-        g.addColorStop(0, n.ca);
-        g.addColorStop(1, n.cb);
-        ctx.fillStyle = g;
-        ctx.beginPath();
-        ctx.arc(n.x, n.y, n.r, 0, Math.PI*2);
-        ctx.fill();
+      // legs
+      [[-s*0.38,s*1.0,s*0.32],[s*0.06,s*1.0,s*0.32]].forEach(function(l,i){
+        ctx.fillStyle='#1a2e48';
+        ctx.beginPath(); ctx.roundRect(l[0],l[1],l[2],s*0.72,s*0.06); ctx.fill();
+        ctx.fillStyle='#243d5e';
+        ctx.beginPath(); ctx.roundRect(i===0?l[0]:l[0]+l[2]-s*0.14,l[1],s*0.14,s*0.72,s*0.04); ctx.fill();
+      });
+      // knee plates
+      [[-s*0.28,s*1.25],[s*0.16,s*1.25]].forEach(function(k){
+        ctx.fillStyle='#2a4a6e';
+        ctx.beginPath(); ctx.roundRect(k[0]-s*0.06,k[1],s*0.22,s*0.16,s*0.04); ctx.fill();
+        ctx.fillStyle='rgba(201,168,76,0.3)';
+        ctx.beginPath(); ctx.roundRect(k[0]-s*0.06,k[1],s*0.22,s*0.03,s*0.02); ctx.fill();
+      });
+      // boots
+      [[-s*0.38,s*1.62],[s*0.06,s*1.62]].forEach(function(b){
+        ctx.fillStyle='#111e2e';
+        ctx.beginPath(); ctx.roundRect(b[0],b[1],s*0.34,s*0.18,s*0.05); ctx.fill();
+        ctx.fillStyle='rgba(201,168,76,0.22)';
+        ctx.fillRect(b[0]+s*0.02,b[1]+s*0.14,s*0.3,s*0.02);
       });
 
-      // ── 3. Animated flowing gold wave ribbons on the RIGHT half ──
-      ctx.save();
-      ctx.globalAlpha = 1;
-      var waveCount = 4;
-      for (var wi = 0; wi < waveCount; wi++) {
-        var wPhase  = waveOffset + wi * (Math.PI * 2 / waveCount);
-        var wAlpha  = 0.035 + wi * 0.008;
-        var wWidth  = 1.2 + wi * 0.5;
-        ctx.strokeStyle = 'rgba(201,168,76,' + wAlpha + ')';
-        ctx.lineWidth = wWidth;
-        ctx.beginPath();
-        var startX = W * 0.45;
-        var startY = H * (0.15 + wi * 0.18);
-        ctx.moveTo(startX, startY);
-        for (var px = startX; px <= W + 20; px += 4) {
-          var t  = (px - startX) / (W * 0.55);
-          var py = startY
-                 + Math.sin(t * Math.PI * 2.5 + wPhase) * (H * 0.09)
-                 + Math.sin(t * Math.PI * 1.2 + wPhase * 0.7) * (H * 0.04);
-          ctx.lineTo(px, py);
-        }
-        ctx.stroke();
+      // torso
+      ctx.fillStyle='#1e3450';
+      ctx.beginPath(); ctx.roundRect(-s*0.44,s*0.28,s*0.88,s*0.74,s*0.08); ctx.fill();
+      var chGrad=ctx.createLinearGradient(-s*0.44,s*0.28,s*0.44,s*0.28);
+      chGrad.addColorStop(0,'rgba(255,255,255,0)');
+      chGrad.addColorStop(0.45,'rgba(255,255,255,0.07)');
+      chGrad.addColorStop(1,'rgba(255,255,255,0)');
+      ctx.fillStyle=chGrad;
+      ctx.beginPath(); ctx.roundRect(-s*0.44,s*0.28,s*0.88,s*0.74,s*0.08); ctx.fill();
+      ctx.fillStyle='#2a4a6e';
+      ctx.beginPath(); ctx.roundRect(-s*0.06,s*0.32,s*0.12,s*0.62,s*0.04); ctx.fill();
+      for(var li=0;li<3;li++){
+        ctx.strokeStyle='rgba(201,168,76,'+(0.5-li*0.1)+')';
+        ctx.lineWidth=s*0.018;
+        ctx.beginPath(); ctx.moveTo(-s*0.28+li*s*0.28,s*0.38); ctx.lineTo(-s*0.28+li*s*0.28,s*0.78); ctx.stroke();
+      }
+      // reactor
+      var rGrad=ctx.createRadialGradient(0,s*0.56,0, 0,s*0.56,s*0.14);
+      rGrad.addColorStop(0,'rgba(180,255,235,0.95)');
+      rGrad.addColorStop(0.4,'rgba(80,200,180,0.6)');
+      rGrad.addColorStop(1,'rgba(80,200,180,0)');
+      ctx.fillStyle=rGrad; ctx.beginPath(); ctx.arc(0,s*0.56,s*0.14,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle='rgba(200,255,240,0.9)';
+      ctx.beginPath(); ctx.arc(0,s*0.56,s*0.055,0,Math.PI*2); ctx.fill();
+
+      // shoulders
+      [[-s*0.72,s*0.24],[s*0.38,s*0.24]].forEach(function(sh){
+        ctx.fillStyle='#1a2e48';
+        ctx.beginPath(); ctx.roundRect(sh[0],sh[1],s*0.34,s*0.42,s*0.08); ctx.fill();
+        ctx.fillStyle='#243d5e';
+        ctx.beginPath(); ctx.roundRect(sh[0],sh[1],s*0.34,s*0.12,[s*0.08,s*0.08,0,0]); ctx.fill();
+        ctx.strokeStyle='rgba(201,168,76,0.4)'; ctx.lineWidth=s*0.02;
+        ctx.strokeRect(sh[0]+s*0.02,sh[1]+s*0.02,s*0.3,s*0.38);
+      });
+      // arms
+      [[-s*0.72,s*0.62],[s*0.44,s*0.62]].forEach(function(arm){
+        ctx.fillStyle='#1a2e48';
+        ctx.beginPath(); ctx.roundRect(arm[0],arm[1],s*0.28,s*0.58,s*0.06); ctx.fill();
+      });
+      [[-s*0.7,s*0.94],[s*0.46,s*0.94]].forEach(function(fa){
+        ctx.fillStyle='rgba(201,168,76,0.45)';
+        ctx.fillRect(fa[0],fa[1],s*0.24,s*0.04);
+        ctx.fillRect(fa[0],fa[1]+s*0.1,s*0.24,s*0.04);
+      });
+
+      // neck
+      ctx.fillStyle='#111e2e';
+      ctx.beginPath(); ctx.roundRect(-s*0.1,s*0.06,s*0.2,s*0.24,s*0.04); ctx.fill();
+
+      // helmet
+      ctx.fillStyle='#1a2e48';
+      ctx.beginPath(); ctx.ellipse(0,-s*0.28,s*0.38,s*0.46,0,0,Math.PI*2); ctx.fill();
+      var hGrad=ctx.createLinearGradient(-s*0.3,-s*0.7,s*0.3,-s*0.1);
+      hGrad.addColorStop(0,'rgba(100,160,220,0.18)');
+      hGrad.addColorStop(0.5,'rgba(100,160,220,0.06)');
+      hGrad.addColorStop(1,'rgba(100,160,220,0)');
+      ctx.fillStyle=hGrad;
+      ctx.beginPath(); ctx.ellipse(0,-s*0.28,s*0.38,s*0.46,0,0,Math.PI*2); ctx.fill();
+
+      // visor - iconic amber gold
+      var vGrad=ctx.createLinearGradient(-s*0.28,-s*0.34,s*0.28,-s*0.18);
+      vGrad.addColorStop(0,'rgba(255,210,80,0.95)');
+      vGrad.addColorStop(0.35,'rgba(255,175,35,0.88)');
+      vGrad.addColorStop(0.7,'rgba(200,115,15,0.75)');
+      vGrad.addColorStop(1,'rgba(140,75,5,0.6)');
+      ctx.fillStyle=vGrad;
+      ctx.beginPath(); ctx.ellipse(0,-s*0.28,s*0.28,s*0.1,0,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle='rgba(255,255,200,0.35)';
+      ctx.beginPath(); ctx.ellipse(-s*0.08,-s*0.31,s*0.1,s*0.035,-0.3,0,Math.PI*2); ctx.fill();
+
+      // crest
+      ctx.fillStyle='#243d5e';
+      ctx.beginPath();
+      ctx.moveTo(-s*0.06,-s*0.72); ctx.lineTo(s*0.06,-s*0.72);
+      ctx.lineTo(s*0.08,-s*0.12); ctx.lineTo(-s*0.08,-s*0.12); ctx.closePath(); ctx.fill();
+
+      // side details
+      [[-s*0.36,-s*0.38],[s*0.24,-s*0.38]].forEach(function(hd){
+        ctx.fillStyle='rgba(201,168,76,0.3)';
+        ctx.fillRect(hd[0],hd[1],s*0.1,s*0.03);
+        ctx.fillRect(hd[0],hd[1]+s*0.06,s*0.08,s*0.03);
+      });
+
+      // body aura
+      var aura=ctx.createRadialGradient(0,s*0.4,0, 0,s*0.4,s*1.1);
+      aura.addColorStop(0,'rgba(100,220,200,0.04)');
+      aura.addColorStop(0.5,'rgba(201,168,76,0.03)');
+      aura.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=aura;
+      ctx.beginPath(); ctx.ellipse(0,s*0.4,s*1.1,s*1.3,0,0,Math.PI*2); ctx.fill();
+
+      ctx.restore();
+    }
+
+    function draw() {
+      waveOffset += 0.004;
+      breathe = Math.sin(waveOffset * 0.8) * 4;
+      ctx.clearRect(0,0,W,H);
+
+      // space base
+      var bg=ctx.createLinearGradient(0,0,W,H);
+      bg.addColorStop(0,'#020810'); bg.addColorStop(0.35,'#05101c');
+      bg.addColorStop(0.7,'#081420'); bg.addColorStop(1,'#020810');
+      ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+
+      // nebula clouds
+      [{x:W*0.22,y:H*0.30,r:W*0.45,ca:'rgba(201,168,76,0.07)',cb:'rgba(201,168,76,0)'},
+       {x:W*0.18,y:H*0.68,r:W*0.38,ca:'rgba(20,70,150,0.10)',cb:'rgba(20,70,150,0)'},
+       {x:W*0.50,y:H*0.50,r:W*0.32,ca:'rgba(13,40,80,0.06)',cb:'rgba(13,40,80,0)'},
+       {x:W*0.08,y:H*0.15,r:W*0.28,ca:'rgba(201,168,76,0.06)',cb:'rgba(201,168,76,0)'},
+       {x:W*0.38,y:H*0.82,r:W*0.30,ca:'rgba(40,20,100,0.08)',cb:'rgba(40,20,100,0)'}
+      ].forEach(function(n){
+        var g=ctx.createRadialGradient(n.x,n.y,0,n.x,n.y,n.r);
+        g.addColorStop(0,n.ca); g.addColorStop(1,n.cb);
+        ctx.fillStyle=g; ctx.beginPath(); ctx.arc(n.x,n.y,n.r,0,Math.PI*2); ctx.fill();
+      });
+
+      // background planet (top-left area)
+      var px=W*0.12, py=H*0.14+Math.sin(waveOffset*0.4)*8, pr=W*0.12;
+      var pglow=ctx.createRadialGradient(px,py,0,px,py,pr*2.5);
+      pglow.addColorStop(0,'rgba(201,168,76,0.12)'); pglow.addColorStop(1,'rgba(201,168,76,0)');
+      ctx.fillStyle=pglow; ctx.beginPath(); ctx.arc(px,py,pr*2.5,0,Math.PI*2); ctx.fill();
+      var pgrad=ctx.createRadialGradient(px-pr*0.3,py-pr*0.3,pr*0.05,px,py,pr);
+      pgrad.addColorStop(0,'rgba(201,168,76,0.22)'); pgrad.addColorStop(0.5,'rgba(201,168,76,0.08)'); pgrad.addColorStop(1,'rgba(201,168,76,0)');
+      ctx.fillStyle=pgrad; ctx.beginPath(); ctx.arc(px,py,pr,0,Math.PI*2); ctx.fill();
+      ctx.save(); ctx.translate(px,py); ctx.scale(1,0.25);
+      for(var ri=0;ri<3;ri++){
+        ctx.strokeStyle='rgba(201,168,76,'+(0.2-ri*0.05)+')'; ctx.lineWidth=2-ri*0.4;
+        ctx.beginPath(); ctx.arc(0,0,pr*(1.5+ri*0.28),0,Math.PI*2); ctx.stroke();
       }
       ctx.restore();
 
-      // ── 4. Planet / orb shapes on the right ──
-      orbDefs.forEach(function(o) {
-        var ox = o.xFrac * W;
-        var oy = o.yFrac * H;
-        // subtle float
-        oy += Math.sin(waveOffset * 0.6 + o.xFrac * 4) * 6;
-
-        // glow halo
-        var halo = ctx.createRadialGradient(ox, oy, 0, ox, oy, o.r * 2.2);
-        halo.addColorStop(0, o.colorA.replace(/[\d.]+\)$/, '0.07)'));
-        halo.addColorStop(1, o.colorB);
-        ctx.fillStyle = halo;
-        ctx.beginPath();
-        ctx.arc(ox, oy, o.r * 2.2, 0, Math.PI*2);
-        ctx.fill();
-
-        // core sphere gradient
-        var sphere = ctx.createRadialGradient(ox - o.r*0.3, oy - o.r*0.3, o.r*0.05, ox, oy, o.r);
-        sphere.addColorStop(0, o.colorA);
-        sphere.addColorStop(0.5, o.colorA.replace(/[\d.]+\)$/, '0.06)'));
-        sphere.addColorStop(1, o.colorB);
-        ctx.fillStyle = sphere;
-        ctx.beginPath();
-        ctx.arc(ox, oy, o.r, 0, Math.PI*2);
-        ctx.fill();
-
-        // rim light
-        ctx.strokeStyle = o.ringColor || o.colorA;
-        ctx.lineWidth = 0.8;
-        ctx.globalAlpha = 0.35;
-        ctx.beginPath();
-        ctx.arc(ox, oy, o.r, 0, Math.PI*2);
-        ctx.stroke();
-        ctx.globalAlpha = 1;
-
-        // rings (for big planet)
-        if (o.rings) {
-          ctx.save();
-          ctx.translate(ox, oy);
-          ctx.scale(1, 0.28);
-          for (var ri = 0; ri < 3; ri++) {
-            var rr = o.r * (1.45 + ri * 0.22);
-            ctx.strokeStyle = 'rgba(201,168,76,' + (0.14 - ri*0.04) + ')';
-            ctx.lineWidth = 2.5 - ri * 0.6;
-            ctx.beginPath();
-            ctx.arc(0, 0, rr, 0, Math.PI*2);
-            ctx.stroke();
-          }
-          ctx.restore();
+      // stars
+      stars.forEach(function(s){
+        s.twinkle+=s.twinkleSpeed;
+        var tw=0.4+0.6*Math.sin(s.twinkle), a=s.alpha*tw;
+        ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+        ctx.fillStyle=s.gold?'rgba(201,168,76,'+a+')':'rgba(210,230,255,'+(a*0.7)+')'; ctx.fill();
+        if(s.r>1.1&&tw>0.85){
+          ctx.strokeStyle=s.gold?'rgba(201,168,76,'+(a*0.3)+')':'rgba(210,230,255,'+(a*0.25)+')';
+          ctx.lineWidth=0.5; ctx.beginPath();
+          ctx.moveTo(s.x-s.r*3,s.y); ctx.lineTo(s.x+s.r*3,s.y);
+          ctx.moveTo(s.x,s.y-s.r*3); ctx.lineTo(s.x,s.y+s.r*3); ctx.stroke();
         }
       });
 
-      // ── 5. Stars ──
-      stars.forEach(function(s) {
-        s.y -= s.rise;
-        s.x += s.drift;
-        s.twinkle += s.twinkleSpeed;
-        if (s.y < -4) { s.y = H + 4; s.x = Math.random() * W; }
-        if (s.x < -4) s.x = W + 4;
-        if (s.x > W+4) s.x = -4;
-        var tw = 0.45 + 0.55 * Math.sin(s.twinkle);
-        var a  = s.alpha * tw;
-        ctx.beginPath();
-        ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
-        ctx.fillStyle = s.gold ? 'rgba(201,168,76,'+a+')' : 'rgba(220,235,255,'+(a*0.65)+')';
-        ctx.fill();
-        // sparkle cross on bright stars
-        if (s.r > 1.1 && tw > 0.82) {
-          ctx.strokeStyle = s.gold ? 'rgba(201,168,76,'+(a*0.35)+')' : 'rgba(220,235,255,'+(a*0.25)+')';
-          ctx.lineWidth = 0.5;
-          ctx.beginPath();
-          ctx.moveTo(s.x - s.r*3, s.y); ctx.lineTo(s.x + s.r*3, s.y);
-          ctx.moveTo(s.x, s.y - s.r*3); ctx.lineTo(s.x, s.y + s.r*3);
-          ctx.stroke();
-        }
-      });
+      // ground platform glow
+      var fx=W*0.27, fy=H*0.845;
+      var platGrad=ctx.createLinearGradient(fx-120,fy,fx+120,fy);
+      platGrad.addColorStop(0,'rgba(201,168,76,0)');
+      platGrad.addColorStop(0.5,'rgba(201,168,76,0.22)');
+      platGrad.addColorStop(1,'rgba(201,168,76,0)');
+      ctx.fillStyle=platGrad; ctx.fillRect(fx-120,fy,240,2);
+      var glowLine=ctx.createLinearGradient(fx-100,fy,fx+100,fy);
+      glowLine.addColorStop(0,'rgba(100,220,200,0)');
+      glowLine.addColorStop(0.5,'rgba(100,220,200,0.35)');
+      glowLine.addColorStop(1,'rgba(100,220,200,0)');
+      ctx.fillStyle=glowLine; ctx.fillRect(fx-100,fy+2,200,1);
 
-      // ── 6. Shooting star ──
+      // THE WARRIOR
+      var warriorScale = Math.min(W,H)*0.30;
+      drawWarrior(W*0.27, H*0.52, warriorScale, breathe);
+
+      // shooting star
       shootTimer++;
-      if (shootTimer > 280 && shootProgress < 0) {
-        shootTimer = 0;
-        shootProgress = 0;
-        shootX = W * (0.5 + Math.random() * 0.4);
-        shootY = H * (Math.random() * 0.35);
-      }
-      if (shootProgress >= 0 && shootProgress <= 1) {
-        shootProgress += 0.018;
-        var sLen = 140;
-        var sAngle = Math.PI * 0.18;
-        var sx0 = shootX - Math.cos(sAngle) * sLen * shootProgress;
-        var sy0 = shootY - Math.sin(sAngle) * sLen * shootProgress;
-        var sx1 = sx0 + Math.cos(sAngle) * sLen;
-        var sy1 = sy0 + Math.sin(sAngle) * sLen;
-        var sg = ctx.createLinearGradient(sx0, sy0, sx1, sy1);
-        sg.addColorStop(0,   'rgba(201,168,76,0)');
-        sg.addColorStop(0.5, 'rgba(255,240,180,0.9)');
-        sg.addColorStop(1,   'rgba(255,255,255,0)');
-        ctx.strokeStyle = sg;
-        ctx.lineWidth = 1.8;
-        ctx.beginPath();
-        ctx.moveTo(sx0, sy0);
-        ctx.lineTo(sx1, sy1);
-        ctx.stroke();
-        if (shootProgress > 1) shootProgress = -1;
+      if(shootTimer>260&&shootProgress<0){ shootTimer=0; shootProgress=0; shootX=W*(0.05+Math.random()*0.5); shootY=H*Math.random()*0.3; }
+      if(shootProgress>=0&&shootProgress<=1){
+        shootProgress+=0.022;
+        var sLen=130, sAngle=Math.PI*0.2;
+        var sx0=shootX-Math.cos(sAngle)*sLen*shootProgress, sy0=shootY-Math.sin(sAngle)*sLen*shootProgress;
+        var sx1=sx0+Math.cos(sAngle)*sLen, sy1=sy0+Math.sin(sAngle)*sLen;
+        var sg=ctx.createLinearGradient(sx0,sy0,sx1,sy1);
+        sg.addColorStop(0,'rgba(201,168,76,0)'); sg.addColorStop(0.5,'rgba(255,235,160,0.92)'); sg.addColorStop(1,'rgba(255,255,255,0)');
+        ctx.strokeStyle=sg; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(sx0,sy0); ctx.lineTo(sx1,sy1); ctx.stroke();
+        if(shootProgress>1) shootProgress=-1;
       }
 
-      // ── 7. Soft vignette to focus centre ──
-      var vig = ctx.createRadialGradient(W*0.5, H*0.5, H*0.15, W*0.5, H*0.5, H*0.85);
-      vig.addColorStop(0, 'rgba(0,0,0,0)');
-      vig.addColorStop(1, 'rgba(2,6,14,0.55)');
-      ctx.fillStyle = vig;
-      ctx.fillRect(0, 0, W, H);
+      // vignette
+      var vig=ctx.createRadialGradient(W*0.5,H*0.5,H*0.1,W*0.5,H*0.5,H*0.88);
+      vig.addColorStop(0,'rgba(0,0,0,0)'); vig.addColorStop(1,'rgba(2,6,14,0.58)');
+      ctx.fillStyle=vig; ctx.fillRect(0,0,W,H);
 
       requestAnimationFrame(draw);
     }
 
-    window.addEventListener('resize', function() { resize(); });
+    window.addEventListener('resize', function(){ resize(); });
     resize();
     draw();
+  }
+
+
   }
 
   // Init when login page is visible
