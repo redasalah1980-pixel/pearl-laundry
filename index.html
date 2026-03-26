@@ -14484,7 +14484,7 @@ function loadDeviceLicenceStatus() {
   if (!cached) {
     el.innerHTML = '<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#dc2626;font-weight:600">' +
       '<span style="font-size:16px">❌</span> No licence activated on this device — ' +
-      '<a href="#" onclick="openSettings();switchStab('licence');return false" style="color:#0284c7">activate one</a>' +
+      '<a href="#" onclick="openSettings();switchStab(\'licence\');return false" style="color:#0284c7">activate one</a>' +
     '</div>';
     return;
   }
@@ -14510,7 +14510,7 @@ function loadDeviceLicenceStatus() {
             'Last verified: ' + daysSince + ' day(s) ago' +
           '</div>' +
         '</div>' +
-        '<button onclick="if(confirm('Clear this device licence? You will need to re-enter a key.')){clearLicenceCache();loadDeviceLicenceStatus();toast('Licence cleared','ok')}" ' +
+        '<button onclick="if(confirm(\'Clear this device licence? You will need to re-enter a key.\')){clearLicenceCache();loadDeviceLicenceStatus();toast(\'Licence cleared\',\'ok\')}" ' +
           'style="padding:6px 12px;background:#fff5f5;border:1.5px solid #fca5a5;color:#dc2626;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer">' +
           '🗑 Clear Device Licence' +
         '</button>' +
@@ -16451,16 +16451,16 @@ function _showRestorePrompt() {
       'Your ' + CY + ' data was not found in this browser.<br>This usually means a new device or cleared storage.' +
     '</div>' +
     '<div style="display:flex;flex-direction:column;gap:8px">' +
-      '<button onclick="restoreCloudBackup();document.getElementById('restore-prompt').remove()" ' +
+      '<button onclick="restoreCloudBackup();document.getElementById(\'restore-prompt\').remove()" ' +
         'style="padding:12px;background:#c9a84c;color:#0d1b2e;border:none;border-radius:10px;' +
         'font-size:13px;font-weight:800;cursor:pointer">☁️ Restore from Cloud Backup</button>' +
-      '<button onclick="showTab('backup');document.getElementById('restore-prompt').remove()" ' +
+      '<button onclick="showTab(\'backup\');document.getElementById(\'restore-prompt\').remove()" ' +
         'style="padding:10px;background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);' +
         'border:1px solid rgba(255,255,255,.15);border-radius:10px;font-size:12px;font-weight:600;cursor:pointer">' +
         '📁 Open Backup Tab to Restore Manually</button>' +
-      '<button onclick="document.getElementById('restore-prompt').remove()" ' +
+      '<button onclick="document.getElementById(\'restore-prompt\').remove()" ' +
         'style="padding:8px;background:none;color:rgba(255,255,255,.3);border:none;' +
-        'font-size:11px;cursor:pointer">Dismiss — I'll handle it later</button>' +
+        'font-size:11px;cursor:pointer">Dismiss &#8212; I\'ll handle it later</button>' +
     '</div>';
   document.body.appendChild(prompt);
 }
@@ -16581,8 +16581,7 @@ function reportIssue() {
     } catch(e) {}
   }
 
-  var text = lines.join('
-');
+  var text = lines.join('\n');
   // Copy to clipboard
   if (navigator.clipboard) {
     navigator.clipboard.writeText(text).then(function() {
