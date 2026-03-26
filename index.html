@@ -52,7 +52,7 @@ input,select,textarea{font-family:inherit;outline:none;border:none}
   min-height: 100vh;
   align-items: center;
   justify-content: center;
-  background: #06101e;
+  background: #0a0f1a;
   position: relative;
   overflow: hidden;
 }
@@ -60,19 +60,19 @@ input,select,textarea{font-family:inherit;outline:none;border:none}
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse 80% 60% at 50% 30%, rgba(220,38,38,.06) 0%, transparent 60%);
+  background: radial-gradient(ellipse 60% 50% at 50% 20%, rgba(30,58,95,.25) 0%, transparent 70%);
   pointer-events: none;
 }
 .licence-card {
-  width: 460px;
-  max-width: 94vw;
+  width: 420px;
+  max-width: 92vw;
   background: rgba(255,255,255,.03);
-  border: 1px solid rgba(220,38,38,.25);
-  border-radius: 24px;
-  padding: 48px 44px 40px;
-  backdrop-filter: blur(24px);
-  box-shadow: 0 32px 80px rgba(0,0,0,.6);
-  animation: rise .7s cubic-bezier(.22,1,.36,1) both;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 20px;
+  padding: 44px 40px 36px;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 32px 80px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.04) inset;
+  animation: rise .6s cubic-bezier(.22,1,.36,1) both;
   position: relative;
   z-index: 1;
 }
@@ -921,40 +921,53 @@ var _fbDB = null;
 <!-- ══ LICENCE PAGE ══════════════════════════════════════════ -->
 <div id="pg-licence">
   <div class="licence-card">
-    <!-- Lock icon -->
+
+    <!-- Lock icon — generic -->
     <div style="text-align:center;margin-bottom:32px">
-      <div style="position:relative;display:inline-block;margin-bottom:20px">
-        <div style="position:absolute;inset:-8px;border-radius:50%;background:radial-gradient(circle,rgba(220,38,38,.15) 0%,transparent 70%)"></div>
-        <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#1a0505,#3b0606);border:2px solid rgba(220,38,38,.4);display:flex;align-items:center;justify-content:center;font-size:32px;position:relative">🔒</div>
-      </div>
-      <h1 style="font-family:Georgia,serif;font-size:22px;font-weight:700;color:#fff;margin:0 0 8px">RS · Pearl System</h1>
-      <p style="font-size:12px;color:rgba(255,255,255,.4);letter-spacing:2px;text-transform:uppercase;margin:0">Licence Activation Required</p>
+      <div style="width:64px;height:64px;border-radius:16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 18px">🔐</div>
+      <h1 style="font-size:18px;font-weight:700;color:rgba(255,255,255,.85);margin:0 0 6px;letter-spacing:.2px">Authorisation Required</h1>
+      <p style="font-size:11px;color:rgba(255,255,255,.3);letter-spacing:1.5px;text-transform:uppercase;margin:0">Enter your licence key to continue</p>
     </div>
 
     <!-- Activation form -->
     <div id="lic-activate-section">
-      <div style="font-size:11px;font-weight:700;color:rgba(220,38,38,.8);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px">Licence Key</div>
       <input id="lic-key-input" type="text" placeholder="XXXX-XXXX-XXXX-XXXX"
-        style="width:100%;padding:14px 16px;background:rgba(255,255,255,.06);border:1.5px solid rgba(220,38,38,.3);border-radius:12px;color:#fff;font-size:16px;font-weight:700;letter-spacing:2px;text-transform:uppercase;outline:none;box-sizing:border-box;margin-bottom:12px"
+        style="width:100%;padding:15px 16px;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.12);border-radius:10px;color:#fff;font-size:17px;font-weight:700;letter-spacing:3px;text-transform:uppercase;outline:none;box-sizing:border-box;margin-bottom:10px;text-align:center;transition:.2s;font-family:monospace"
+        onfocus="this.style.borderColor='rgba(255,255,255,.35)'"
+        onblur="this.style.borderColor='rgba(255,255,255,.12)'"
         onkeydown="if(event.key==='Enter') activateLicence()"
-        oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9-]/g,'')">
-      <div id="lic-err" style="display:none;background:rgba(220,38,38,.15);border:1px solid rgba(220,38,38,.4);border-radius:8px;padding:10px 14px;font-size:12px;font-weight:700;color:#fca5a5;margin-bottom:12px"></div>
+        oninput="
+          var v=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'');
+          var p=[];
+          for(var i=0;i<v.length&&i<16;i++){if(i>0&&i%4===0)p.push('-');p.push(v[i]);}
+          this.value=p.join('');
+        ">
+
+      <div id="lic-err" style="display:none;background:rgba(220,38,38,.1);border:1px solid rgba(220,38,38,.3);border-radius:8px;padding:10px 14px;font-size:12px;font-weight:600;color:#fca5a5;margin-bottom:10px;line-height:1.6"></div>
+
       <button onclick="activateLicence()" id="lic-btn"
-        style="width:100%;padding:14px;background:linear-gradient(135deg,#dc2626,#b91c1c);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;letter-spacing:.5px">
-        🔓 ACTIVATE SYSTEM
+        style="width:100%;padding:14px;background:rgba(255,255,255,.1);color:#fff;border:1.5px solid rgba(255,255,255,.18);border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.5px;transition:.2s"
+        onmouseover="this.style.background='rgba(255,255,255,.15)'" onmouseout="this.style.background='rgba(255,255,255,.1)'">
+        Activate →
       </button>
+
+      <div style="text-align:center;margin-top:20px;font-size:11px;color:rgba(255,255,255,.2);line-height:1.8">
+        Licenced software — authorised users only.<br>
+        Contact your system administrator for access.
+      </div>
     </div>
 
-    <!-- Success section (hidden) -->
-    <div id="lic-success-section" style="display:none;text-align:center">
-      <div style="font-size:48px;margin-bottom:12px">✅</div>
-      <div style="font-size:16px;font-weight:800;color:#86efac;margin-bottom:6px">Licence Activated!</div>
-      <div style="font-size:12px;color:rgba(255,255,255,.5)">Loading system...</div>
+    <!-- Success (hidden) -->
+    <div id="lic-success-section" style="display:none;text-align:center;padding:8px 0">
+      <div style="font-size:44px;margin-bottom:14px">✓</div>
+      <div style="font-size:16px;font-weight:700;color:rgba(255,255,255,.85);margin-bottom:6px">Access Granted</div>
+      <div id="lic-success-holder" style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:8px"></div>
+      <div style="font-size:11px;color:rgba(255,255,255,.25)">Loading...</div>
     </div>
 
-    <div style="text-align:center;margin-top:28px;font-size:10px;color:rgba(255,255,255,.2)">
-      © Reda Salah · RS Pearl Management System · All Rights Reserved<br>
-      Unauthorised use is strictly prohibited
+    <!-- Minimal footer -->
+    <div style="text-align:center;margin-top:28px;padding-top:18px;border-top:1px solid rgba(255,255,255,.06);font-size:9px;color:rgba(255,255,255,.12);letter-spacing:.5px">
+      PROPRIETARY SOFTWARE — UNAUTHORISED USE PROHIBITED
     </div>
   </div>
 </div>
@@ -2819,11 +2832,17 @@ var _fbDB = null;
 
         </div><!-- /lic-locked-content -->
 
-        <!-- Master key info — always visible -->
-        <div style="margin-top:16px;background:#fefce8;border:1.5px solid #fde68a;border-radius:10px;padding:14px 16px">
-          <div style="font-size:11px;font-weight:800;color:#92400e;margin-bottom:6px">🛡️ YOUR MASTER KEY — Never expires</div>
-          <div style="font-size:13px;color:#b45309;font-weight:600">Your master key is stored privately. Keep it safe and never share it.</div>
-          <div style="font-size:10px;color:#92400e;margin-top:4px">Keep this private. Works on any approved domain.</div>
+        <!-- Device licence status + master key — always visible -->
+        <div style="margin-top:16px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:14px 16px" id="lic-device-status-wrap">
+          <div style="font-size:11px;font-weight:800;color:#64748b;margin-bottom:10px;letter-spacing:.8px">📱 THIS DEVICE — LICENCE STATUS</div>
+          <div id="lic-device-status">Loading...</div>
+          <div style="margin-top:12px;padding-top:12px;border-top:1px solid #e2e8f0">
+            <div style="font-size:11px;font-weight:800;color:#92400e;margin-bottom:6px">🛡️ MASTER KEY — Never expires, any device</div>
+            <div style="font-family:monospace;font-size:14px;font-weight:800;color:#b45309;letter-spacing:2px;padding:8px 12px;background:#fefce8;border:1px solid #fde68a;border-radius:6px;display:inline-block" id="lic-master-display">••••-••••-••••-••••</div>
+            <button onclick="var el=document.getElementById('lic-master-display');el.textContent=el.textContent==='5FVE-77LT-8MSV-JY9A'?'••••-••••-••••-••••':'5FVE-77LT-8MSV-JY9A'" style="margin-left:8px;padding:5px 10px;background:none;border:1px solid #fde68a;border-radius:6px;font-size:11px;cursor:pointer;color:#92400e">👁 Show/Hide</button>
+            <div style="font-size:10px;color:#94a3b8;margin-top:6px">Keep this private — never share it. Works on any device, never expires.</div>
+          </div>
+        </div>
         </div>
       </div>
 
@@ -2863,6 +2882,17 @@ var _fbDB = null;
           <div style="text-align:center;padding:40px;color:#94a3b8;font-size:13px">
             Click <strong>▶ Run Diagnostics</strong> to check your system health
           </div>
+        </div>
+
+        <!-- Inline progress bar — shown during run, hidden otherwise -->
+        <div id="diag-progress-wrap" style="display:none;margin-top:4px">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+            <div style="flex:1;background:#f1f5f9;border-radius:20px;height:8px;overflow:hidden">
+              <div id="diag-progress-fill" style="height:100%;width:0%;background:linear-gradient(90deg,#0d1b2e,#c9a84c);border-radius:20px;transition:width .4s ease"></div>
+            </div>
+            <div id="diag-progress-pct" style="font-size:11px;font-weight:800;color:#64748b;min-width:32px;text-align:right">0%</div>
+          </div>
+          <div id="diag-step-label" style="font-size:12px;color:#64748b;text-align:center"></div>
         </div>
 
         <!-- Last run timestamp -->
@@ -4565,6 +4595,8 @@ function switchStab(name) {
     renderDiagErrorLog();
   }
   if (name === 'licence') {
+    // Load device status always
+    loadDeviceLicenceStatus();
     // Reset auth every time tab opens
     var authWrap = document.getElementById('lic-auth-wrap');
     var lockedContent = document.getElementById('lic-locked-content');
@@ -11697,6 +11729,10 @@ function renderGuide() {
   var navEl = document.getElementById('guide-nav');
   if (navEl) navEl.innerHTML = style + navHtml;
 
+  // Clear existing content first to prevent stale sections showing
+  var guideWrap = document.getElementById('guide-wrap');
+  if (guideWrap) guideWrap.innerHTML = '';
+
   // Build all sections (hidden by default)
   var html2 = '';
   secs.forEach(function(s, idx) {
@@ -11715,8 +11751,9 @@ function renderGuide() {
       '</div>' +
     '</div>';
   });
-  document.getElementById('guide-wrap').innerHTML = html2;
-  showGuideSection(0);
+  if (guideWrap) guideWrap.innerHTML = html2;
+  // Small delay ensures DOM is painted before we show section
+  setTimeout(function() { showGuideSection(0); }, 20);
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -14026,93 +14063,233 @@ function printPlanPDF() {
   setTimeout(function() { win.print(); }, 500);
 }
 
-// ══════════════════════════════════════════════════════════════
-//  LICENCE & DOMAIN PROTECTION SYSTEM
-// ══════════════════════════════════════════════════════════════
 
-// ── Approved domains (add yours here) ──
-var _APPROVED_DOMAINS = [
-  'redasalah1980-pixel.github.io',
-  'localhost',
-  '127.0.0.1',
-  'pearl-laundry',
-  'github.io'
-];
+// ════════════════════════════════════════════════════════════════
+//  LICENCE & SECURITY SYSTEM v2 — Full redesign
+//  Every device must activate with a valid key before login.
+//  No domain whitelist — key is the ONLY gate.
+//  Master key works on any device, never expires.
+//  Per-client keys stored in Firebase pearl/licences/{keyClean}
+//  Revocation: set active:false in Firebase → blocked on next check
+// ════════════════════════════════════════════════════════════════
 
-// ── Also allow local file access ──
-function checkDomainAllowed() {
-  var host     = window.location.hostname.toLowerCase();
-  var protocol = window.location.protocol;
-  // Allow local file:// access
-  if (protocol === 'file:') return true;
-  // Allow empty hostname (some local setups)
-  if (!host || host === '') return true;
-  return _APPROVED_DOMAINS.some(function(d) {
-    return host === d || host.indexOf(d) !== -1;
-  });
+var _MASTER_KEY       = '5FVE-77LT-8MSV-JY9A';
+var _LIC_STORE_KEY    = 'pearl_licence_v2';
+var _LIC_SALT         = '0998bd7dd8e67fb76ca66cba2ae37aee';
+var _LIC_GRACE_DAYS   = 7;
+var _LIC_RECHECK_DAYS = 7;   // re-verify against Firebase every 7 days
+
+// ── Simple checksum to detect localStorage tampering ──
+function _licChecksum(obj) {
+  var s = _LIC_SALT + JSON.stringify(obj);
+  var h = 0;
+  for (var i = 0; i < s.length; i++) {
+    h = ((h << 5) - h) + s.charCodeAt(i);
+    h |= 0;
+  }
+  return Math.abs(h).toString(36);
 }
 
-// ── Valid licence keys stored in Firebase path: pearl/licences/{key} ──
-// Each key object: { active: true, holder: 'Name', expires: '2027-12-31', domain: 'optional' }
-var _LIC_STORE_KEY = 'pearl_licence_v1';
-
-// checkDomainAllowed defined above with _APPROVED_DOMAINS
-
 function getLicenceFromStorage() {
-  try { return JSON.parse(localStorage.getItem(_LIC_STORE_KEY) || 'null'); } catch(e) { return null; }
+  try {
+    var raw = localStorage.getItem(_LIC_STORE_KEY);
+    if (!raw) return null;
+    var obj = JSON.parse(raw);
+    // Verify checksum — detect tampering
+    var expected = _licChecksum({
+      key: obj.key, holder: obj.holder,
+      expires: obj.expires, activatedAt: obj.activatedAt
+    });
+    if (obj._cs !== expected) {
+      console.warn('[Licence] Checksum mismatch — cache cleared');
+      localStorage.removeItem(_LIC_STORE_KEY);
+      return null;
+    }
+    return obj;
+  } catch(e) {
+    localStorage.removeItem(_LIC_STORE_KEY);
+    return null;
+  }
 }
 
 function saveLicenceToStorage(data) {
-  try { localStorage.setItem(_LIC_STORE_KEY, JSON.stringify(data)); } catch(e) {}
+  try {
+    var payload = {
+      key:         data.key,
+      holder:      data.holder || '',
+      expires:     data.expires || null,
+      activatedAt: data.activatedAt || new Date().toISOString(),
+      lastChecked: new Date().toISOString(),
+      valid:       true
+    };
+    payload._cs = _licChecksum({
+      key: payload.key, holder: payload.holder,
+      expires: payload.expires, activatedAt: payload.activatedAt
+    });
+    localStorage.setItem(_LIC_STORE_KEY, JSON.stringify(payload));
+  } catch(e) {}
 }
 
+function clearLicenceCache() {
+  localStorage.removeItem(_LIC_STORE_KEY);
+}
+
+// ── Check if cached licence is within offline grace period ──
+function _licenceWithinGrace(cached) {
+  if (!cached || !cached.lastChecked) return false;
+  var daysSince = (Date.now() - new Date(cached.lastChecked)) / 86400000;
+  return daysSince <= _LIC_GRACE_DAYS;
+}
+
+// ── Check if licence needs re-verification against Firebase ──
+function _licenceNeedsRecheck(cached) {
+  if (!cached || !cached.lastChecked) return true;
+  var daysSince = (Date.now() - new Date(cached.lastChecked)) / 86400000;
+  return daysSince >= _LIC_RECHECK_DAYS;
+}
+
+// ── Main boot entry point — called 800ms after DOMContentLoaded ──
 function bootWithLicenceCheck() {
-  // 1. Domain check
-  if (!checkDomainAllowed()) {
-    showLockedPage('domain');
+  var cached = getLicenceFromStorage();
+
+  // No cached licence — must activate
+  if (!cached) {
+    _showLicenceScreen(null);
     return;
   }
 
-  // 2. Approved domain — skip licence screen, go straight to login
-  proceedToLogin();
-}
+  // Check client-side expiry
+  if (cached.expires && new Date(cached.expires) < new Date()) {
+    clearLicenceCache();
+    _showLicenceScreen('Your licence expired on ' + cached.expires + '. Please contact Reda Salah to renew.');
+    return;
+  }
 
-function showLockedPage(reason) {
-  document.getElementById('pg-licence').style.display = 'flex';
-  document.getElementById('pg-login').style.display = 'none';
-  if (document.getElementById('pg-app')) document.getElementById('pg-app').style.display = 'none';
-  var section = document.getElementById('lic-activate-section');
-  if (section) {
-    section.innerHTML = '<div style="text-align:center;padding:20px 0">' +
-      '<div style="font-size:48px;margin-bottom:16px">🚫</div>' +
-      '<div style="font-size:16px;font-weight:800;color:#fca5a5;margin-bottom:10px">Unauthorised Domain</div>' +
-      '<div style="font-size:13px;color:rgba(255,255,255,.5);line-height:1.6">This system is not authorised to run on this domain.<br>Contact <strong style="color:#c9a84c">Reda Salah</strong> to obtain a valid licence.</div>' +
-      '<div style="margin-top:20px;padding:12px;background:rgba(220,38,38,.1);border:1px solid rgba(220,38,38,.3);border-radius:8px;font-size:11px;color:rgba(255,255,255,.4)">' +
-        window.location.hostname +
-      '</div>' +
-    '</div>';
+  // Valid cache — does it need Firebase re-verification?
+  if (_licenceNeedsRecheck(cached)) {
+    _reVerifyLicence(cached);
+  } else {
+    // Cache is fresh — proceed directly to login
+    proceedToLogin();
   }
 }
 
-function showLicencePage(errMsg) {
+// ── Re-verify cached licence against Firebase (silent, background) ──
+function _reVerifyLicence(cached) {
+  if (!window._fbDB) {
+    // Firebase not ready — allow if within grace period
+    if (_licenceWithinGrace(cached)) {
+      proceedToLogin();
+    } else {
+      _showLicenceScreen('Cannot verify your licence — Firebase not connected. Please check your internet.');
+    }
+    return;
+  }
+
+  var keyClean = cached.key.replace(/-/g, '');
+  window._fbDB.ref('pearl/licences/' + keyClean).once('value').then(function(snap) {
+    var data = snap.val();
+
+    // Master key — always valid
+    if (cached.key === _MASTER_KEY) {
+      _updateLastChecked(cached);
+      proceedToLogin();
+      return;
+    }
+
+    // Key deleted or deactivated
+    if (!data || data.active === false) {
+      clearLicenceCache();
+      _showLicenceScreen('Your licence has been revoked. Please contact Reda Salah.');
+      return;
+    }
+
+    // Expired server-side
+    if (data.expires && new Date(data.expires) < new Date()) {
+      clearLicenceCache();
+      _showLicenceScreen('Your licence expired on ' + data.expires + '. Please contact Reda Salah to renew.');
+      return;
+    }
+
+    // All good — update cache with fresh lastChecked
+    saveLicenceToStorage({
+      key:         cached.key,
+      holder:      data.holder || cached.holder,
+      expires:     data.expires || null,
+      activatedAt: cached.activatedAt
+    });
+    // Log last seen
+    window._fbDB.ref('pearl/licences/' + keyClean + '/lastSeen').set(new Date().toISOString()).catch(function(){});
+    proceedToLogin();
+
+  }).catch(function(e) {
+    // Firebase error — allow if within grace period
+    if (_licenceWithinGrace(cached)) {
+      console.warn('[Licence] Firebase check failed, using grace period:', e.message);
+      proceedToLogin();
+    } else {
+      _showLicenceScreen('Cannot verify your licence. Please check your internet connection.');
+    }
+  });
+}
+
+function _updateLastChecked(cached) {
+  try {
+    var raw = localStorage.getItem(_LIC_STORE_KEY);
+    if (raw) {
+      var obj = JSON.parse(raw);
+      obj.lastChecked = new Date().toISOString();
+      // Recompute checksum with updated data
+      obj._cs = _licChecksum({
+        key: obj.key, holder: obj.holder,
+        expires: obj.expires, activatedAt: obj.activatedAt
+      });
+      localStorage.setItem(_LIC_STORE_KEY, JSON.stringify(obj));
+    }
+  } catch(e) {}
+}
+
+// ── Show the licence activation screen ──
+function _showLicenceScreen(errMsg) {
   document.getElementById('pg-licence').style.display = 'flex';
-  document.getElementById('pg-login').style.display = 'none';
+  document.getElementById('pg-login').style.display   = 'none';
+  var appEl = document.getElementById('pg-app');
+  if (appEl) appEl.style.display = 'none';
+
+  // Reset to activation form
+  var actSection = document.getElementById('lic-activate-section');
+  var sucSection = document.getElementById('lic-success-section');
+  if (actSection) actSection.style.display = 'block';
+  if (sucSection) sucSection.style.display = 'none';
+
+  // Show error if provided
   if (errMsg) {
     var errEl = document.getElementById('lic-err');
-    if (errEl) { errEl.textContent = '⚠️ ' + errMsg; errEl.style.display = 'block'; }
+    if (errEl) {
+      errEl.textContent = '⚠️ ' + errMsg;
+      errEl.style.display = 'block';
+    }
+  } else {
+    var errEl = document.getElementById('lic-err');
+    if (errEl) errEl.style.display = 'none';
   }
+
+  // Clear input
+  var inp = document.getElementById('lic-key-input');
+  if (inp) inp.value = '';
 }
 
-function proceedToLogin() {
-  document.getElementById('pg-licence').style.display = 'none';
-  document.getElementById('pg-login').style.display = 'flex';
-}
-
+// ── User submits a key on the activation screen ──
 function activateLicence() {
   var keyEl = document.getElementById('lic-key-input');
   var errEl = document.getElementById('lic-err');
   var btn   = document.getElementById('lic-btn');
-  var key   = (keyEl?.value || '').trim().toUpperCase();
+  var key   = (keyEl?.value || '').trim().toUpperCase().replace(/\s/g,'');
+
+  // Auto-format: insert dashes
+  if (key.indexOf('-') === -1 && key.length === 16) {
+    key = key.slice(0,4)+'-'+key.slice(4,8)+'-'+key.slice(8,12)+'-'+key.slice(12,16);
+  }
 
   if (!key) {
     errEl.textContent = '⚠️ Please enter your licence key.';
@@ -14120,34 +14297,44 @@ function activateLicence() {
     return;
   }
 
-  // Validate format: XXXX-XXXX-XXXX-XXXX
   if (!/^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(key)) {
-    errEl.textContent = '⚠️ Invalid key format. Should be: XXXX-XXXX-XXXX-XXXX';
+    errEl.textContent = '⚠️ Invalid format. Key must be XXXX-XXXX-XXXX-XXXX';
     errEl.style.display = 'block';
     return;
   }
+
+  errEl.style.display = 'none';
+  btn.textContent = '⏳ Verifying...';
+  btn.disabled = true;
+
+  // ── Master key ──
   if (key === _MASTER_KEY) {
-    saveLicenceToStorage({ valid: true, key: key, holder: 'RS Pearl Admin', expires: null, activatedAt: new Date().toISOString() });
-    showActivationSuccess('RS Pearl Admin');
+    saveLicenceToStorage({
+      key: key, holder: 'RS Pearl Admin',
+      expires: null, activatedAt: new Date().toISOString()
+    });
+    _showActivationSuccess('RS Pearl Admin');
     return;
   }
 
-  btn.textContent = '⏳ Verifying...';
-  btn.disabled = true;
-  errEl.style.display = 'none';
-
-  // Check Firebase for this key
-  if (window._fbDB) {
-    window._fbDB.ref('pearl/licences/' + key.replace(/-/g,'')).once('value').then(function(snap) {
+  // ── Firebase key lookup ──
+  function _doFirebaseLookup() {
+    if (!window._fbDB) {
+      setTimeout(_doFirebaseLookup, 1500);
+      return;
+    }
+    var keyClean = key.replace(/-/g,'');
+    window._fbDB.ref('pearl/licences/' + keyClean).once('value').then(function(snap) {
       var data = snap.val();
-      if (!data || !data.active) {
+
+      if (!data || data.active === false) {
         btn.textContent = '🔓 ACTIVATE SYSTEM';
         btn.disabled = false;
-        errEl.textContent = '❌ Invalid or inactive licence key. Contact Reda Salah.';
+        errEl.textContent = '❌ Invalid or revoked licence key. Contact Reda Salah.';
         errEl.style.display = 'block';
         return;
       }
-      // Check expiry
+
       if (data.expires && new Date(data.expires) < new Date()) {
         btn.textContent = '🔓 ACTIVATE SYSTEM';
         btn.disabled = false;
@@ -14155,216 +14342,93 @@ function activateLicence() {
         errEl.style.display = 'block';
         return;
       }
-      // Success
+
+      // Valid — save and proceed
       saveLicenceToStorage({
-        valid: true,
-        key: key,
-        holder: data.holder || '',
+        key: key, holder: data.holder || '',
         expires: data.expires || null,
         activatedAt: new Date().toISOString()
       });
-      // Log activation
-      window._fbDB.ref('pearl/licences/' + key.replace(/-/g,'') + '/lastUsed').set(new Date().toISOString());
-      showActivationSuccess(data.holder);
+      // Log activation in Firebase
+      window._fbDB.ref('pearl/licences/' + keyClean).update({
+        lastUsed: new Date().toISOString(),
+        activationCount: (data.activationCount || 0) + 1
+      }).catch(function(){});
+
+      _showActivationSuccess(data.holder);
+
     }).catch(function(e) {
-      // Firebase error — try offline fallback
-      var stored = getLicenceFromStorage();
-      if (stored && stored.key === key && stored.valid) {
-        proceedToLogin();
-      } else {
-        btn.textContent = '🔓 ACTIVATE SYSTEM';
-        btn.disabled = false;
-        errEl.textContent = '⚠️ Could not verify key. Check your internet connection.';
-        errEl.style.display = 'block';
-      }
-    });
-  } else {
-    // Firebase not ready yet — retry in 2 seconds
-    setTimeout(function() {
       btn.textContent = '🔓 ACTIVATE SYSTEM';
       btn.disabled = false;
-      errEl.textContent = '⚠️ System not ready yet. Please wait and try again.';
+      errEl.textContent = '⚠️ Could not verify key — check your internet. (' + (e.message||'') + ')';
       errEl.style.display = 'block';
-    }, 2000);
-  }
-}
-
-function showActivationSuccess(holder) {
-  document.getElementById('lic-activate-section').style.display = 'none';
-  document.getElementById('lic-success-section').style.display = 'block';
-  setTimeout(function() {
-    proceedToLogin();
-  }, 1500);
-}
-
-// ── Admin: Generate a licence key ──
-function generateLicenceKey() {
-  var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no ambiguous chars
-  var key = '';
-  for (var i = 0; i < 4; i++) {
-    if (i > 0) key += '-';
-    for (var j = 0; j < 4; j++) {
-      key += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-  }
-  return key;
-}
-
-// ── Admin: Save a licence key to Firebase ──
-function createLicenceKey(holder, expiryDate) {
-  var key = generateLicenceKey();
-  var keyClean = key.replace(/-/g,'');
-  if (window._fbDB) {
-    window._fbDB.ref('pearl/licences/' + keyClean).set({
-      active: true,
-      holder: holder || 'Unknown',
-      expires: expiryDate || null,
-      created: new Date().toISOString()
     });
   }
-  return key;
+
+  _doFirebaseLookup();
 }
 
-// ── Admin: Revoke a licence key ──
-function revokeLicenceKey(key) {
-  var keyClean = key.replace(/-/g,'');
-  if (window._fbDB) {
-    window._fbDB.ref('pearl/licences/' + keyClean + '/active').set(false);
-  }
+function _showActivationSuccess(holder) {
+  var actSection = document.getElementById('lic-activate-section');
+  var sucSection = document.getElementById('lic-success-section');
+  var holderEl   = document.getElementById('lic-success-holder');
+  if (actSection) actSection.style.display = 'none';
+  if (sucSection) sucSection.style.display = 'block';
+  if (holderEl && holder) holderEl.textContent = 'Licensed to: ' + holder;
+  setTimeout(function() { proceedToLogin(); }, 1800);
 }
 
-// ── Admin: Manage licences from settings ──
-function toggleLicPassVis() {
-  var inp = document.getElementById('lic-admin-pass');
-  var icon = document.getElementById('lic-eye-icon');
-  if (!inp) return;
-  if (inp.type === 'password') { inp.type = 'text'; if (icon) icon.textContent = '🙈'; }
-  else { inp.type = 'password'; if (icon) icon.textContent = '👁'; }
+function proceedToLogin() {
+  document.getElementById('pg-licence').style.display = 'none';
+  document.getElementById('pg-login').style.display   = 'flex';
 }
 
-function verifyLicenceAdmin() {
-  var pass = document.getElementById('lic-admin-pass')?.value?.trim();
-  var creds = getCredentials();
-  var errEl = document.getElementById('lic-auth-err');
-  if (pass === creds.pass) {
-    document.getElementById('lic-auth-wrap').style.display = 'none';
-    document.getElementById('lic-locked-content').style.display = 'block';
-    loadLicencePanel();
-  } else {
-    if (errEl) { errEl.style.display = 'block'; }
-    var inp = document.getElementById('lic-admin-pass');
-    if (inp) { inp.style.borderColor = '#dc2626'; setTimeout(function(){ inp.style.borderColor='#fed7aa'; }, 1500); }
-  }
-}
+// ── Deprecated stubs (keep for compatibility) ──
+function checkDomainAllowed() { return true; }
+function showLockedPage()     { _showLicenceScreen(); }
+function showLicencePage(m)   { _showLicenceScreen(m); }
+function getLicenceFromStorageLegacy() { return getLicenceFromStorage(); }
 
-function loadLicencePanel() {
-  var listEl = document.getElementById('lic-keys-list');
-  if (!listEl) return;
-  if (!window._fbDB) {
-    listEl.innerHTML = '<div style="color:#dc2626;font-size:12px;padding:12px">Firebase not connected. Please wait and try again.</div>';
+
+function loadDeviceLicenceStatus() {
+  var el = document.getElementById('lic-device-status');
+  if (!el) return;
+  var cached = getLicenceFromStorage();
+  if (!cached) {
+    el.innerHTML = '<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#dc2626;font-weight:600">' +
+      '<span style="font-size:16px">❌</span> No licence activated on this device — ' +
+      '<a href="#" onclick="openSettings();switchStab('licence');return false" style="color:#0284c7">activate one</a>' +
+    '</div>';
     return;
   }
-  listEl.innerHTML = '<div style="text-align:center;padding:16px;color:#94a3b8;font-size:12px">Loading...</div>';
-  window._fbDB.ref('pearl/licences').once('value').then(function(snap) {
-    var data = snap.val() || {};
-    var keys = Object.keys(data);
-    if (keys.length === 0) {
-      listEl.innerHTML = '<div style="text-align:center;padding:20px;color:#94a3b8;font-size:13px">No keys generated yet. Create your first key above.</div>';
-      return;
-    }
-    var html = '';
-    keys.forEach(function(k) {
-      var d = data[k];
-      var formattedKey = k.match(/.{1,4}/g)?.join('-') || k;
-      var isActive  = d.active !== false;
-      var isExpired = d.expires && new Date(d.expires) < new Date();
-      var statusCol = isExpired ? '#dc2626' : isActive ? '#16a34a' : '#94a3b8';
-      var statusBg  = isExpired ? '#fee2e2' : isActive ? '#f0fdf4' : '#f8fafc';
-      var statusLbl = isExpired ? '⏰ Expired' : isActive ? '✅ Active' : '❌ Revoked';
-      html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:#fff;border:1.5px solid #e2e8f0;border-radius:10px;margin-bottom:8px;gap:10px;flex-wrap:wrap">' +
+  var isExpired = cached.expires && new Date(cached.expires) < new Date();
+  var isMaster  = cached.key === _MASTER_KEY;
+  var daysSince = cached.lastChecked ? Math.floor((Date.now()-new Date(cached.lastChecked))/86400000) : '?';
+  var col = isExpired ? '#dc2626' : '#16a34a';
+  var bg  = isExpired ? '#fee2e2' : '#f0fdf4';
+  var bdr = isExpired ? '#fca5a5' : '#86efac';
+  el.innerHTML =
+    '<div style="padding:10px 14px;background:' + bg + ';border:1.5px solid ' + bdr + ';border-radius:8px">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">' +
         '<div>' +
-          '<div style="font-family:monospace;font-size:14px;font-weight:800;color:#0d1b2e;letter-spacing:1.5px">' + formattedKey + '</div>' +
+          '<div style="font-size:13px;font-weight:700;color:' + col + '">' +
+            (isExpired ? '⏰ EXPIRED' : isMaster ? '🛡️ MASTER KEY' : '✅ ACTIVE') +
+          '</div>' +
           '<div style="font-size:11px;color:#64748b;margin-top:3px">' +
-            '👤 ' + (d.holder||'Unknown') +
-            (d.expires ? ' · 📅 Expires: ' + d.expires : ' · No expiry') +
-            (d.lastUsed ? ' · Last used: ' + new Date(d.lastUsed).toLocaleDateString() : '') +
+            (cached.holder ? 'Licensed to: <strong>' + cached.holder + '</strong>' : '') +
+            (cached.expires ? ' · Expires: ' + cached.expires : isMaster ? ' · Never expires' : ' · No expiry') +
+          '</div>' +
+          '<div style="font-size:10px;color:#94a3b8;margin-top:2px">' +
+            'Key: <span style="font-family:monospace">' + cached.key + '</span> · ' +
+            'Last verified: ' + daysSince + ' day(s) ago' +
           '</div>' +
         '</div>' +
-        '<div style="display:flex;align-items:center;gap:8px">' +
-          '<span style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;background:' + statusBg + ';color:' + statusCol + '">' + statusLbl + '</span>' +
-          (isActive && !isExpired ?
-            '<button onclick="adminRevokeKey(\''+k+'\')" style="padding:5px 12px;background:#fee2e2;border:1.5px solid #fca5a5;color:#dc2626;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer">Revoke</button>' : '') +
-        '</div>' +
-      '</div>';
-    });
-    listEl.innerHTML = html;
-  }).catch(function(e) {
-    listEl.innerHTML = '<div style="color:#dc2626;font-size:12px;padding:12px">Error loading keys: ' + e.message + '</div>';
-  });
-}
-
-function openLicenceManager() {
-  if (!window._fbDB) { toast('Firebase not connected', 'err'); return; }
-  window._fbDB.ref('pearl/licences').once('value').then(function(snap) {
-    var data = snap.val() || {};
-    var keys = Object.keys(data);
-    var modal = document.getElementById('lic-mgr-modal');
-    if (!modal) {
-      modal = document.createElement('div');
-      modal.id = 'lic-mgr-modal';
-      modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)';
-      document.body.appendChild(modal);
-    }
-    var html = '<div style="background:#fff;border-radius:20px;width:640px;max-width:96vw;max-height:80vh;overflow:hidden;display:flex;flex-direction:column">' +
-      '<div style="background:#0d1b2e;padding:18px 24px;display:flex;align-items:center;justify-content:space-between">' +
-        '<div style="font-size:15px;font-weight:800;color:#c9a84c">🔑 Licence Manager</div>' +
-        '<button onclick="document.getElementById(\'lic-mgr-modal\').remove()" style="background:rgba(255,255,255,.1);border:none;color:#fff;border-radius:8px;padding:6px 12px;cursor:pointer;font-size:13px">✕ Close</button>' +
+        '<button onclick="if(confirm('Clear this device licence? You will need to re-enter a key.')){clearLicenceCache();loadDeviceLicenceStatus();toast('Licence cleared','ok')}" ' +
+          'style="padding:6px 12px;background:#fff5f5;border:1.5px solid #fca5a5;color:#dc2626;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer">' +
+          '🗑 Clear Device Licence' +
+        '</button>' +
       '</div>' +
-      '<div style="padding:20px;overflow-y:auto;flex:1">' +
-      // Generate new key section
-      '<div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:12px;padding:16px;margin-bottom:20px">' +
-        '<div style="font-size:12px;font-weight:800;color:#0d1b2e;margin-bottom:10px">➕ Generate New Key</div>' +
-        '<div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end">' +
-          '<div><div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px">HOLDER NAME</div>' +
-            '<input id="new-lic-holder" placeholder="e.g. Hotel Name" style="width:100%;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;outline:none;box-sizing:border-box"></div>' +
-          '<div><div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px">EXPIRY DATE</div>' +
-            '<input id="new-lic-expiry" type="date" style="width:100%;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;outline:none;box-sizing:border-box"></div>' +
-          '<button onclick="adminGenerateKey()" style="padding:8px 16px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">Generate Key</button>' +
-        '</div>' +
-        '<div id="new-lic-result" style="margin-top:10px;display:none;padding:10px 14px;background:#f0fdf4;border:1.5px solid #86efac;border-radius:8px;font-family:monospace;font-size:15px;font-weight:800;color:#15803d;letter-spacing:2px;text-align:center"></div>' +
-      '</div>' +
-      // Existing keys
-      '<div style="font-size:12px;font-weight:800;color:#0d1b2e;margin-bottom:10px">🗝️ Active Licences (' + keys.length + ')</div>';
-
-    if (keys.length === 0) {
-      html += '<div style="text-align:center;padding:20px;color:#94a3b8;font-size:13px">No licence keys found. Generate one above.</div>';
-    } else {
-      keys.forEach(function(k) {
-        var d = data[k];
-        var formattedKey = k.match(/.{1,4}/g)?.join('-') || k;
-        var isActive = d.active !== false;
-        var isExpired = d.expires && new Date(d.expires) < new Date();
-        var statusCol = isExpired ? '#dc2626' : isActive ? '#16a34a' : '#94a3b8';
-        var statusLabel = isExpired ? '⏰ Expired' : isActive ? '✅ Active' : '❌ Revoked';
-        html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#fff;border:1.5px solid #e2e8f0;border-radius:10px;margin-bottom:8px;gap:10px;flex-wrap:wrap">' +
-          '<div>' +
-            '<div style="font-family:monospace;font-size:14px;font-weight:800;color:#0d1b2e;letter-spacing:1px">' + formattedKey + '</div>' +
-            '<div style="font-size:11px;color:#64748b;margin-top:2px">' +
-              (d.holder||'Unknown') + ' · ' +
-              (d.expires ? 'Expires: ' + d.expires : 'No expiry') +
-              (d.lastUsed ? ' · Last used: ' + new Date(d.lastUsed).toLocaleDateString() : '') +
-            '</div>' +
-          '</div>' +
-          '<div style="display:flex;align-items:center;gap:8px">' +
-            '<span style="font-size:11px;font-weight:700;color:' + statusCol + '">' + statusLabel + '</span>' +
-            (isActive && !isExpired ? '<button onclick="adminRevokeKey(\''+k+'\')" style="padding:4px 10px;background:#fee2e2;border:1px solid #fca5a5;color:#dc2626;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">Revoke</button>' : '') +
-          '</div>' +
-        '</div>';
-      });
-    }
-    html += '</div></div>';
-    modal.innerHTML = html;
-  });
+    '</div>';
 }
 
 function adminGenerateKey() {
@@ -15196,8 +15260,11 @@ function renderBackupHistory() {
             'style="padding:6px 12px;background:#eff6ff;border:1.5px solid #bfdbfe;color:#1d4ed8;' +
             'border-radius:7px;font-size:11px;font-weight:700;cursor:pointer">🔄 Restore</button>' +
           (!isLatest ? '<button onclick="deleteBackupVersion(\"' + v.id + '\")" ' +
-            'style="padding:6px 8px;background:#fff;border:1.5px solid #e2e8f0;color:#94a3b8;' +
-            'border-radius:7px;font-size:11px;cursor:pointer" title="Delete">🗑</button>' : '') +
+            'style="padding:6px 12px;background:#fff5f5;border:1.5px solid #fca5a5;color:#dc2626;' +
+            'border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;transition:all .15s" ' +
+            'onmouseover="this.style.background=\'#fee2e2\'" ' +
+            'onmouseout="this.style.background=\'#fff5f5\'" ' +
+            'title="Delete this backup version">🗑 Delete</button>' : '') +
         '</div>' +
       '</div>';
     });
@@ -15712,20 +15779,63 @@ function autoCloudBackup() {
 //  SYSTEM DIAGNOSTICS — Read-only health check
 // ════════════════════════════════════════════════════════════════
 function runDiagnostics() {
-  var btn = document.getElementById('diag-run-btn');
+  var btn       = document.getElementById('diag-run-btn');
   var resultsEl = document.getElementById('diag-results');
   var bannerEl  = document.getElementById('diag-banner');
   var tsEl      = document.getElementById('diag-timestamp');
   if (!resultsEl) return;
 
-  // Loading state
+  // ── Show progress bar, hide old results ──
   btn.innerHTML = '⏳ Running...';
   btn.disabled  = true;
-  resultsEl.innerHTML = '<div style="text-align:center;padding:30px;color:#94a3b8;font-size:13px">⏳ Running checks...</div>';
   bannerEl.style.display = 'none';
 
-  var checks  = [];  // { label, status:'ok'|'warn'|'fail', detail }
+  // Show the persistent progress bar
+  var progressWrap = document.getElementById('diag-progress-wrap');
+  if (progressWrap) progressWrap.style.display = 'block';
+
+  // Reset progress bar
+  var _diagTotal = 18;
+  var _checkCount = 0;
+  updateProgress(0, 'Starting diagnostics...');
+
+  // Clear previous results and show running indicator
+  resultsEl.innerHTML =
+    '<div style="display:flex;align-items:center;justify-content:center;gap:14px;padding:28px;color:#94a3b8">' +
+      '<div style="display:flex;gap:5px">' +
+        '<div style="width:7px;height:7px;border-radius:50%;background:#0d1b2e;animation:diagPulse 1.2s ease-in-out infinite"></div>' +
+        '<div style="width:7px;height:7px;border-radius:50%;background:#c9a84c;animation:diagPulse 1.2s ease-in-out .4s infinite"></div>' +
+        '<div style="width:7px;height:7px;border-radius:50%;background:#0d1b2e;animation:diagPulse 1.2s ease-in-out .8s infinite"></div>' +
+      '</div>' +
+      '<span style="font-size:13px;font-weight:600">Running all checks...</span>' +
+    '</div>';
+
+  // Inject animation keyframes once
+  if (!document.getElementById('diag-style')) {
+    var s = document.createElement('style');
+    s.id = 'diag-style';
+    s.textContent = '@keyframes diagPulse{0%,100%{opacity:.2;transform:scale(.8)}50%{opacity:1;transform:scale(1.15)}}';
+    document.head.appendChild(s);
+  }
+
+  function updateProgress(step, label) {
+    var pct = Math.min(95, Math.round((step / _diagTotal) * 100));
+    var fill = document.getElementById('diag-progress-fill');
+    var pctEl = document.getElementById('diag-progress-pct');
+    var lblEl = document.getElementById('diag-step-label');
+    if (fill) fill.style.width = pct + '%';
+    if (pctEl) pctEl.textContent = pct + '%';
+    if (lblEl && label) lblEl.textContent = label;
+  }
+
+  var checks  = [];
   var pending = 0;
+
+  function addCheck(label, status, detail, group) {
+    checks.push({ label: label, status: status, detail: detail, group: group || 'General' });
+    _checkCount++;
+    updateProgress(_checkCount, null);
+  }
 
   function addCheck(label, status, detail, group) {
     checks.push({ label: label, status: status, detail: detail, group: group || 'General' });
@@ -15735,6 +15845,13 @@ function runDiagnostics() {
     var fails  = checks.filter(function(c){ return c.status === 'fail'; }).length;
     var warns  = checks.filter(function(c){ return c.status === 'warn'; }).length;
     var passes = checks.filter(function(c){ return c.status === 'ok';   }).length;
+
+    // Complete progress bar to 100%
+    updateProgress(18, 'All checks complete ✓');
+    var fill = document.getElementById('diag-progress-fill');
+    var pctEl = document.getElementById('diag-progress-pct');
+    if (fill) fill.style.width = '100%';
+    if (pctEl) pctEl.textContent = '100%';
 
     // Banner
     bannerEl.style.display = 'flex';
@@ -15785,9 +15902,17 @@ function runDiagnostics() {
     tsEl.textContent = 'Last run: ' + new Date().toLocaleString('en-GB');
     btn.innerHTML = '▶ Run Diagnostics';
     btn.disabled  = false;
+    // Hide progress bar after completion
+    setTimeout(function() {
+      var pw = document.getElementById('diag-progress-wrap');
+      if (pw) pw.style.display = 'none';
+    }, 1200); // leave visible briefly so user sees 100%
+    // Refresh the error log section below results
+    if (typeof renderDiagErrorLog === 'function') renderDiagErrorLog();
   }
 
   // ── GROUP 1: Connectivity ──────────────────────────────────────
+  updateProgress(1, 'Checking Firebase connection...');
   if (window._fbDB) {
     addCheck('Firebase Connection', 'ok', 'Connected to pearl-management-system database', 'Connectivity');
   } else {
@@ -15801,6 +15926,7 @@ function runDiagnostics() {
   }
 
   // ── GROUP 2: Local Storage ─────────────────────────────────────
+  updateProgress(3, 'Checking local storage...');
   var storeOk = true;
   try {
     _STORE.setItem('__diag_test__', '1');
@@ -15842,6 +15968,7 @@ function runDiagnostics() {
     'Local Storage');
 
   // ── GROUP 3: Backup ────────────────────────────────────────────
+  updateProgress(6, 'Checking backup status...');
   var backupIndex = null;
   try { backupIndex = JSON.parse(_STORE.getItem('pearl_backup_index') || 'null'); } catch(e) {}
   if (backupIndex && Array.isArray(backupIndex) && backupIndex.length > 0) {
@@ -15864,6 +15991,7 @@ function runDiagnostics() {
     'Backup');
 
   // ── GROUP 4: Occupancy ─────────────────────────────────────────
+  updateProgress(9, 'Counting occupancy data...');
   var occCount = 0;
   var curM = new Date().getMonth() + 1;
   for (var dd = 1; dd <= 31; dd++) {
@@ -15878,6 +16006,7 @@ function runDiagnostics() {
     'Occupancy');
 
   // ── GROUP 5: Settings ──────────────────────────────────────────
+  updateProgress(11, 'Verifying system settings...');
   try {
     var curr = JSON.parse(_STORE.getItem('pearl_currency') || 'null');
     addCheck('Currency Settings', curr ? 'ok' : 'warn',
@@ -15898,6 +16027,7 @@ function runDiagnostics() {
     'Settings');
 
   // ── GROUP 6: System Functions ──────────────────────────────────
+  updateProgress(13, 'Validating 18 critical functions...');
   var criticalFns = [
     ['doLogin',        'Login'],
     ['saveDB',         'Save Data'],
@@ -15929,6 +16059,7 @@ function runDiagnostics() {
   }
 
   // ── GROUP 7: Firebase live check (async) ───────────────────────
+  updateProgress(15, 'Running live Firebase read test...');
   if (window._fbLoadKey) {
     pending++;
     var fbCheckTimeout = setTimeout(function() {
@@ -15950,6 +16081,7 @@ function runDiagnostics() {
     });
 
     // Check backup index integrity vs Firebase
+    updateProgress(16, 'Comparing backup indexes...');
     pending++;
     window._fbLoadKey('pearl/backup/index').then(function(fbIdx) {
       var localIdx = null;
@@ -15973,8 +16105,13 @@ function runDiagnostics() {
     addCheck('Firebase Read Test', 'fail', 'Firebase not available — cannot perform live read test', 'Connectivity');
   }
 
-  // Finalise sync checks (async ones handled separately above)
-  if (pending === 0) finalise();
+  // Finalise sync checks — only if no async tasks are pending
+  // (If Firebase is available, finalise() is called inside the .then() handlers)
+  if (pending === 0) {
+    // No async tasks — finalise immediately
+    finalise();
+  }
+  // else: finalise() will be triggered when last pending-- reaches 0
 }
 
 
