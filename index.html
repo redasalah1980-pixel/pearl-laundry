@@ -2459,7 +2459,7 @@ var _fbDB = null;
 
 <!-- SETTINGS MODAL -->
 <div class="modal-overlay hidden" id="settings-modal">
-  <div class="modal-box" style="width:900px;max-width:calc(100vw - 32px);padding:0;overflow:hidden;border-radius:18px;box-shadow:0 32px 80px rgba(0,0,0,.32);display:flex;flex-direction:column;max-height:92vh;box-sizing:border-box">
+  <div class="modal-box" style="width:860px;max-width:calc(100vw - 32px);padding:0;overflow:hidden;border-radius:18px;box-shadow:0 32px 80px rgba(0,0,0,.32);display:flex;flex-direction:column;max-height:90vh;box-sizing:border-box;position:relative">
 
     <!-- Header -->
     <div style="background:linear-gradient(135deg,#0d1b2e 0%,#1e3a5f 60%,#16305a 100%);padding:22px 28px;display:flex;align-items:center;justify-content:space-between;position:relative;overflow:hidden;flex-shrink:0">
@@ -2511,7 +2511,7 @@ var _fbDB = null;
       </div>
 
       <!-- RIGHT CONTENT PANEL -->
-      <div style="flex:1;overflow-y:auto;overflow-x:hidden;padding:28px 32px 28px;min-width:0;overscroll-behavior:contain">
+      <div style="flex:1;overflow-y:scroll;overflow-x:hidden;padding:24px 24px 32px;min-width:0;overscroll-behavior:contain;-webkit-overflow-scrolling:touch">
 
       <!-- ── PANEL: Admin Account ─────────────────────── -->
       <div id="spanel-admin">
@@ -2869,25 +2869,23 @@ var _fbDB = null;
       <div id="spanel-diag" style="display:none">
 
         <!-- Header -->
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-          <div>
-            <div style="display:flex;align-items:center;gap:10px">
-              <div style="width:40px;height:40px;background:#0d1b2e;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px">🩺</div>
-              <div>
-                <div style="font-size:16px;font-weight:800;color:#0d1b2e">System Diagnostics</div>
-                <div style="font-size:12px;color:#64748b;margin-top:1px">Read-only health check — no data is modified</div>
-              </div>
+        <div style="margin-bottom:20px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+            <div style="width:40px;height:40px;background:#0d1b2e;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🩺</div>
+            <div>
+              <div style="font-size:16px;font-weight:800;color:#0d1b2e">System Diagnostics</div>
+              <div style="font-size:12px;color:#64748b;margin-top:1px">Read-only health check — no data is modified</div>
             </div>
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
             <button onclick="runDiagnostics()" id="diag-run-btn"
-              style="padding:11px 20px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s"
+              style="padding:10px 18px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit"
               onmouseover="this.style.background='#1e3a5f'" onmouseout="this.style.background='#0d1b2e'">▶ Run Diagnostics</button>
             <button onclick="forceReSyncFromFirebase()" id="diag-resync-btn"
-              style="padding:11px 20px;background:#0284c7;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s"
+              style="padding:10px 18px;background:#0284c7;color:#fff;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit"
               onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">🔃 Force Re-Sync</button>
             <button onclick="reportIssue()"
-              style="padding:11px 20px;background:#f8fafc;color:#64748b;border:1.5px solid #e2e8f0;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s"
+              style="padding:10px 18px;background:#f8fafc;color:#64748b;border:1.5px solid #e2e8f0;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit"
               onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#f8fafc'">📋 Copy Issue Report</button>
           </div>
         </div>
@@ -2896,7 +2894,7 @@ var _fbDB = null;
         <div id="diag-banner" style="display:none;padding:14px 18px;border-radius:12px;margin-bottom:20px;font-size:13px;font-weight:700;align-items:center;gap:10px;flex-wrap:wrap;word-break:break-word"></div>
 
         <!-- Results grid -->
-        <div id="diag-results" style="display:flex;flex-direction:column;gap:10px;overflow:hidden;min-width:0">
+        <div id="diag-results" style="display:flex;flex-direction:column;gap:8px;width:100%;box-sizing:border-box;overflow:hidden">
           <div style="text-align:center;padding:40px;color:#94a3b8;font-size:13px">
             Click <strong>▶ Run Diagnostics</strong> to check your system health
           </div>
@@ -2929,9 +2927,7 @@ var _fbDB = null;
 
       </div><!-- end right content panel -->
     </div><!-- end sidebar+content flex -->
-    <div style="text-align:center;padding:12px 0 10px;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;letter-spacing:0.3px;background:#f8fafc;flex-shrink:0">
-      © Reda Salah · All Rights Reserved
-    </div>
+
   </div>
 </div>
 
@@ -15981,11 +15977,11 @@ function runDiagnostics() {
         var bdr   = c.status==='ok'   ? '#86efac' : c.status==='warn' ? '#fde68a' : '#fecaca';
         var col   = c.status==='ok'   ? '#15803d' : c.status==='warn' ? '#92400e' : '#dc2626';
         var icon  = c.status==='ok'   ? '✅' : c.status==='warn' ? '⚠️' : '❌';
-        html += '<div class="diag-check" style="display:flex;align-items:flex-start;gap:12px;padding:12px 14px;background:' + bg + ';border:1.5px solid ' + bdr + ';border-radius:10px;min-width:0;overflow:hidden">' +
-          '<span style="font-size:16px;flex-shrink:0;margin-top:1px">' + icon + '</span>' +
-          '<div style="flex:1;min-width:0;overflow:hidden">' +
-            '<div style="font-size:13px;font-weight:700;color:#0d1b2e;word-break:break-word">' + c.label + '</div>' +
-            '<div style="font-size:12px;color:' + col + ';margin-top:3px;word-break:break-word;line-height:1.5">' + c.detail + '</div>' +
+        html += '<div class="diag-check" style="display:flex;align-items:flex-start;gap:10px;padding:11px 13px;background:' + bg + ';border:1.5px solid ' + bdr + ';border-radius:10px;box-sizing:border-box;width:100%;overflow:hidden">' +
+          '<span style="font-size:15px;flex-shrink:0;margin-top:1px">' + icon + '</span>' +
+          '<div style="flex:1;min-width:0">' +
+            '<div style="font-size:12.5px;font-weight:700;color:#0d1b2e;word-break:break-word;overflow-wrap:break-word">' + c.label + '</div>' +
+            '<div style="font-size:11.5px;color:' + col + ';margin-top:2px;word-break:break-word;overflow-wrap:break-word;line-height:1.5">' + c.detail + '</div>' +
           '</div>' +
         '</div>';
       });
