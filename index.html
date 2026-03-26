@@ -447,13 +447,12 @@ body.modal-open{overflow:hidden}
 .bar3d-mini .bar3d-lbl{font-size:8.5px}
 .bar3d-mini .bar3d-val{display:none}
 /* ── SETTINGS MODAL ─────────────────────────────────── */
-.stab{display:flex;align-items:center;gap:9px;width:100%;padding:10px 12px;
-  font-size:12.5px;font-weight:600;color:#64748b;border:none;background:transparent;
+.stab{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;
+  font-size:13px;font-weight:600;color:#64748b;border:none;background:transparent;
   cursor:pointer;border-radius:9px;text-align:left;font-family:inherit;
-  transition:all .15s;white-space:nowrap}
-.stab:hover{color:var(--navy);background:#e8f0fc}
-.stab.on{color:var(--navy);background:#dbeafe;font-weight:700;
-  box-shadow:inset 3px 0 0 var(--navy3)}
+  transition:all .15s;border-left:3px solid transparent}
+.stab:hover:not(.on){color:var(--navy);background:#f1f5f9}
+.stab.on{color:#1e40af;background:#dbeafe;font-weight:700;border-left-color:#2563eb}
 .set-section-lbl{font-size:11.5px;font-weight:700;color:var(--navy);text-transform:uppercase;
   letter-spacing:.7px;margin-bottom:12px}
 .tab-chk-item{display:flex;align-items:center;gap:10px;padding:10px 14px;
@@ -2457,64 +2456,70 @@ var _fbDB = null;
   </div>
 </div>
 
-<!-- SETTINGS MODAL -->
-<div class="modal-overlay hidden" id="settings-modal">
-  <div class="modal-box" style="width:860px;max-width:calc(100vw - 32px);padding:0;overflow:hidden;border-radius:18px;box-shadow:0 32px 80px rgba(0,0,0,.32);display:flex;flex-direction:column;max-height:90vh;box-sizing:border-box;position:relative">
+<!-- SETTINGS FULL SCREEN -->
+<div id="settings-modal" style="display:none;position:fixed;inset:0;z-index:9500;background:#f0f4f8;flex-direction:column">
 
-    <!-- Header -->
-    <div style="background:linear-gradient(135deg,#0d1b2e 0%,#1e3a5f 60%,#16305a 100%);padding:22px 28px;display:flex;align-items:center;justify-content:space-between;position:relative;overflow:hidden;flex-shrink:0">
-      <div style="position:absolute;top:-30px;right:-30px;width:160px;height:160px;border-radius:50%;background:rgba(201,168,76,.07);pointer-events:none"></div>
-      <div style="display:flex;align-items:center;gap:14px;z-index:1">
-        <div style="width:44px;height:44px;background:rgba(201,168,76,.18);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;border:1px solid rgba(201,168,76,.3)">⚙️</div>
-        <div>
-          <div style="font-size:18px;font-weight:800;color:#fff;letter-spacing:-.3px">Settings</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.45);margin-top:1px;letter-spacing:.5px">SYSTEM CONFIGURATION</div>
-        </div>
+  <!-- Top bar -->
+  <div style="background:linear-gradient(135deg,#0d1b2e 0%,#1e3a5f 100%);padding:0 32px;height:58px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;box-shadow:0 2px 16px rgba(0,0,0,.3)">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="width:36px;height:36px;background:rgba(201,168,76,.18);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;border:1px solid rgba(201,168,76,.3)">⚙️</div>
+      <div>
+        <div style="font-size:15px;font-weight:800;color:#fff;letter-spacing:-.2px">Settings</div>
+        <div style="font-size:10px;color:rgba(255,255,255,.4);letter-spacing:1px">SYSTEM CONFIGURATION</div>
       </div>
-      <button onclick="closeSettings()" style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;z-index:1" onmouseover="this.style.background='rgba(255,255,255,.15)'" onmouseout="this.style.background='rgba(255,255,255,.08)'">✕ Close</button>
+    </div>
+    <button onclick="closeSettings()" style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:8px 20px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit" onmouseover="this.style.background='rgba(255,255,255,.15)'" onmouseout="this.style.background='rgba(255,255,255,.08)'">✕ Close</button>
+  </div>
+
+  <!-- Body: sidebar + content -->
+  <div style="display:flex;flex:1;overflow:hidden;min-height:0">
+
+    <!-- LEFT SIDEBAR -->
+    <div style="width:220px;flex-shrink:0;background:#fff;border-right:1.5px solid #e2e8f0;display:flex;flex-direction:column;overflow-y:auto">
+      <div style="padding:16px 12px;flex:1">
+
+        <div style="font-size:9px;font-weight:800;color:#94a3b8;letter-spacing:2px;text-transform:uppercase;padding:8px 10px 6px">Account</div>
+        <button class="stab on" id="stab-admin" onclick="switchStab('admin')" style="display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:9px;text-align:left;font-size:13px;font-weight:600;border:none;cursor:pointer;background:transparent;transition:all .15s;color:#374151">
+          <span style="font-size:16px;width:20px;text-align:center">👤</span><span>Admin Account</span>
+        </button>
+        <button class="stab" id="stab-team" onclick="switchStab('team')" style="display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:9px;text-align:left;font-size:13px;font-weight:600;border:none;cursor:pointer;background:transparent;transition:all .15s;color:#374151">
+          <span style="font-size:16px;width:20px;text-align:center">👥</span><span>Team Accounts</span>
+        </button>
+
+        <div style="font-size:9px;font-weight:800;color:#94a3b8;letter-spacing:2px;text-transform:uppercase;padding:14px 10px 6px">System</div>
+        <button class="stab" id="stab-access" onclick="switchStab('access')" style="display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:9px;text-align:left;font-size:13px;font-weight:600;border:none;cursor:pointer;background:transparent;transition:all .15s;color:#374151">
+          <span style="font-size:16px;width:20px;text-align:center">🔒</span><span>Tab Access</span>
+        </button>
+        <button class="stab" id="stab-audit" onclick="switchStab('audit')" style="display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:9px;text-align:left;font-size:13px;font-weight:600;border:none;cursor:pointer;background:transparent;transition:all .15s;color:#374151">
+          <span style="font-size:16px;width:20px;text-align:center">📋</span><span>Audit Log</span>
+        </button>
+
+        <div style="font-size:9px;font-weight:800;color:#94a3b8;letter-spacing:2px;text-transform:uppercase;padding:14px 10px 6px">Property</div>
+        <button class="stab" id="stab-currency" onclick="switchStab('currency')" style="display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:9px;text-align:left;font-size:13px;font-weight:600;border:none;cursor:pointer;background:transparent;transition:all .15s;color:#374151">
+          <span style="font-size:16px;width:20px;text-align:center">💱</span><span>Currency</span>
+        </button>
+        <button class="stab" id="stab-hotel" onclick="switchStab('hotel')" style="display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:9px;text-align:left;font-size:13px;font-weight:600;border:none;cursor:pointer;background:transparent;transition:all .15s;color:#374151">
+          <span style="font-size:16px;width:20px;text-align:center">🏨</span><span>Hotel</span>
+        </button>
+
+        <div style="font-size:9px;font-weight:800;color:#94a3b8;letter-spacing:2px;text-transform:uppercase;padding:14px 10px 6px">Licence</div>
+        <button class="stab" id="stab-licence" onclick="switchStab('licence')" style="display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:9px;text-align:left;font-size:13px;font-weight:600;border:none;cursor:pointer;background:transparent;transition:all .15s;color:#374151">
+          <span style="font-size:16px;width:20px;text-align:center">🔑</span><span>Licences</span>
+        </button>
+
+        <div style="font-size:9px;font-weight:800;color:#94a3b8;letter-spacing:2px;text-transform:uppercase;padding:14px 10px 6px">Tools</div>
+        <button class="stab" id="stab-diag" onclick="switchStab('diag')" style="display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:9px;text-align:left;font-size:13px;font-weight:600;border:none;cursor:pointer;background:transparent;transition:all .15s;color:#374151">
+          <span style="font-size:16px;width:20px;text-align:center">🩺</span><span>Diagnostics</span>
+        </button>
+
+      </div>
     </div>
 
-    <!-- Body: sidebar + content -->
-    <div style="display:flex;flex:1;overflow:hidden;min-height:0">
+    <!-- RIGHT CONTENT AREA — full height scrollable -->
+    <div id="settings-content-area" style="flex:1;overflow-y:auto;overflow-x:hidden;background:#f8fafc;-webkit-overflow-scrolling:touch;overscroll-behavior:contain">
+      <div style="max-width:780px;margin:0 auto;padding:32px 36px 60px">
 
-      <!-- LEFT SIDEBAR NAV -->
-      <div style="width:200px;flex-shrink:0;background:#f8fafc;border-right:1.5px solid #e2e8f0;padding:12px 10px;display:flex;flex-direction:column;gap:4px;overflow-y:auto">
-        <div style="font-size:9.5px;font-weight:800;color:#94a3b8;letter-spacing:2px;text-transform:uppercase;padding:6px 10px 4px">Account</div>
-        <button class="stab on" id="stab-admin"   onclick="switchStab('admin')"   style="display:flex;align-items:center;gap:9px;width:100%;padding:10px 12px;border-radius:9px;text-align:left;font-size:12.5px;font-weight:600;border:none;cursor:pointer;transition:all .15s">
-          <span style="font-size:15px">👤</span><span>Admin Account</span>
-        </button>
-        <button class="stab"    id="stab-team"    onclick="switchStab('team')"    style="display:flex;align-items:center;gap:9px;width:100%;padding:10px 12px;border-radius:9px;text-align:left;font-size:12.5px;font-weight:600;border:none;cursor:pointer;transition:all .15s">
-          <span style="font-size:15px">👥</span><span>Team Accounts</span>
-        </button>
-        <div style="font-size:9.5px;font-weight:800;color:#94a3b8;letter-spacing:2px;text-transform:uppercase;padding:10px 10px 4px;margin-top:4px">System</div>
-        <button class="stab"    id="stab-access"  onclick="switchStab('access')"  style="display:flex;align-items:center;gap:9px;width:100%;padding:10px 12px;border-radius:9px;text-align:left;font-size:12.5px;font-weight:600;border:none;cursor:pointer;transition:all .15s">
-          <span style="font-size:15px">🔒</span><span>Tab Access</span>
-        </button>
-        <button class="stab"    id="stab-audit"   onclick="switchStab('audit')"   style="display:flex;align-items:center;gap:9px;width:100%;padding:10px 12px;border-radius:9px;text-align:left;font-size:12.5px;font-weight:600;border:none;cursor:pointer;transition:all .15s">
-          <span style="font-size:15px">📋</span><span>Audit Log</span>
-        </button>
-        <div style="font-size:9.5px;font-weight:800;color:#94a3b8;letter-spacing:2px;text-transform:uppercase;padding:10px 10px 4px;margin-top:4px">Property</div>
-        <button class="stab"    id="stab-currency" onclick="switchStab('currency')" style="display:flex;align-items:center;gap:9px;width:100%;padding:10px 12px;border-radius:9px;text-align:left;font-size:12.5px;font-weight:600;border:none;cursor:pointer;transition:all .15s">
-          <span style="font-size:15px">💱</span><span>Currency</span>
-        </button>
-        <button class="stab"    id="stab-hotel"   onclick="switchStab('hotel')"   style="display:flex;align-items:center;gap:9px;width:100%;padding:10px 12px;border-radius:9px;text-align:left;font-size:12.5px;font-weight:600;border:none;cursor:pointer;transition:all .15s">
-          <span style="font-size:15px">🏨</span><span>Hotel</span>
-        </button>
-        <div style="font-size:9.5px;font-weight:800;color:#94a3b8;letter-spacing:2px;text-transform:uppercase;padding:10px 10px 4px;margin-top:4px">Licence</div>
-        <button class="stab"    id="stab-licence" onclick="switchStab('licence')" style="display:flex;align-items:center;gap:9px;width:100%;padding:10px 12px;border-radius:9px;text-align:left;font-size:12.5px;font-weight:600;border:none;cursor:pointer;transition:all .15s">
-          <span style="font-size:15px">🔑</span><span>Licences</span>
-        </button>
-        <div style="font-size:9.5px;font-weight:800;color:#94a3b8;letter-spacing:2px;text-transform:uppercase;padding:10px 10px 4px;margin-top:4px">Tools</div>
-        <button class="stab"    id="stab-diag" onclick="switchStab('diag')" style="display:flex;align-items:center;gap:9px;width:100%;padding:10px 12px;border-radius:9px;text-align:left;font-size:12.5px;font-weight:600;border:none;cursor:pointer;transition:all .15s">
-          <span style="font-size:15px">🩺</span><span>Diagnostics</span>
-        </button>
-      </div>
-
-      <!-- RIGHT CONTENT PANEL -->
-      <div style="flex:1;overflow-y:scroll;overflow-x:hidden;padding:24px 24px 32px;min-width:0;overscroll-behavior:contain;-webkit-overflow-scrolling:touch">
-
-      <!-- ── PANEL: Admin Account ─────────────────────── -->
-      <div id="spanel-admin">
+            <div id="spanel-admin">
         <!-- Info card -->
         <div style="background:linear-gradient(135deg,#0f172a,#1e293b);border-radius:12px;padding:16px 20px;margin-bottom:24px;display:flex;align-items:center;gap:14px">
           <div style="width:40px;height:40px;min-width:40px;background:rgba(201,168,76,.2);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px">👤</div>
@@ -2574,8 +2579,7 @@ var _fbDB = null;
         </div>
       </div>
 
-      <!-- ── PANEL: Team Accounts (multi) ──────────────── -->
-      <div id="spanel-team" style="display:none">
+            <div id="spanel-team" style="display:none">
         <!-- Info card -->
         <div style="background:linear-gradient(135deg,#1e3a8a,#1d4ed8);border-radius:12px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;gap:14px">
           <div style="width:40px;height:40px;min-width:40px;background:rgba(255,255,255,.15);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px">👥</div>
@@ -2637,8 +2641,7 @@ var _fbDB = null;
         <div id="team-list-msg" class="settings-msg"></div>
       </div>
 
-      <!-- ── PANEL: Tab Access ────────────────────────── -->
-      <div id="spanel-access" style="display:none">
+            <div id="spanel-access" style="display:none">
         <!-- Info card -->
         <div style="background:linear-gradient(135deg,#14532d,#166534);border-radius:12px;padding:16px 20px;margin-bottom:24px;display:flex;align-items:center;gap:14px">
           <div style="width:40px;height:40px;min-width:40px;background:rgba(255,255,255,.15);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px">🔒</div>
@@ -2674,8 +2677,7 @@ var _fbDB = null;
         </div>
       </div>
 
-      <!-- ── PANEL: Audit Log ─────────────────────── -->
-      <div id="spanel-audit" style="display:none">
+            <div id="spanel-audit" style="display:none">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
           <div>
             <div style="font-size:15px;font-weight:800;color:#0d1b2e">📋 Audit Log</div>
@@ -2686,8 +2688,7 @@ var _fbDB = null;
         <div id="audit-log-wrap" style="max-height:52vh;overflow-y:auto;border:1.5px solid #e2e8f0;border-radius:12px"></div>
       </div>
 
-      <!-- ── PANEL: Currency ─────────────────────── -->
-      <div id="spanel-currency" style="display:none">
+            <div id="spanel-currency" style="display:none">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
           <div style="width:40px;height:40px;background:#f0fdf4;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px">💱</div>
           <div>
@@ -2746,8 +2747,7 @@ var _fbDB = null;
         <button onclick="applyCurrencySettings()" style="width:100%;padding:14px;background:linear-gradient(135deg,#0d1b2e,#1e3a5f);color:#c9a84c;border:none;border-radius:11px;font-size:14px;font-weight:700;cursor:pointer">💾 Save Currency Settings</button>
       </div>
 
-      <!-- ── PANEL: Hotel ───────────────────────── -->
-      <div id="spanel-hotel" style="display:none">
+            <div id="spanel-hotel" style="display:none">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
           <div style="width:40px;height:40px;background:#dbeafe;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px">🏨</div>
           <div>
@@ -2791,8 +2791,7 @@ var _fbDB = null;
         </div>
       </div>
 
-      <!-- ── PANEL: Licences ─────────────────────── -->
-      <div id="spanel-licence" style="display:none">
+            <div id="spanel-licence" style="display:none">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
           <div style="width:40px;height:40px;background:#fef9c3;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px">🔑</div>
           <div>
@@ -2862,11 +2861,8 @@ var _fbDB = null;
           </div>
         </div>
         </div>
-      </div>
 
-
-      <!-- ── PANEL: Diagnostics ─────────────────────── -->
-      <div id="spanel-diag" style="display:none">
+            <div id="spanel-diag" style="display:none">
 
         <!-- Header -->
         <div style="margin-bottom:20px">
@@ -2925,11 +2921,13 @@ var _fbDB = null;
         </div>
       </div>
 
-      </div><!-- end right content panel -->
-    </div><!-- end sidebar+content flex -->
+      </div>
+    </div>
 
-  </div>
+  </div><!-- end body flex -->
 </div>
+
+
 
 <!-- FULL MONTH IMPORT MODAL -->
 <div class="modal-overlay hidden" id="fmi-modal">
@@ -4595,6 +4593,9 @@ function switchStab(name) {
     if (btn) btn.classList.toggle('on', t===name);
     if (pan) pan.style.display = t===name ? '' : 'none';
   });
+  // Scroll content to top on every tab change
+  var _ca = document.getElementById('settings-content-area');
+  if (_ca) _ca.scrollTop = 0;
   if (name === 'access') buildAccessCheckboxes();
   if (name === 'team') prefillTeam();
   if (name === 'audit') renderAuditLog();
@@ -4637,16 +4638,25 @@ function openSettings() {
     if (el) { el.className='settings-msg'; el.textContent=''; }
   });
   var creds = getCredentials();
-  document.getElementById('set-new-user').placeholder = 'Current: ' + creds.user;
+  var nuEl = document.getElementById('set-new-user');
+  if (nuEl) nuEl.placeholder = 'Current: ' + creds.user;
+  // Show full-screen settings
+  var modal = document.getElementById('settings-modal');
+  modal.style.display = 'flex';
+  // Scroll content area to top
+  var ca = document.getElementById('settings-content-area');
+  if (ca) ca.scrollTop = 0;
   switchStab('admin');
-  document.getElementById('settings-modal').classList.remove('hidden');
-  setTimeout(function(){ document.getElementById('set-cur-pass').focus(); }, 100);
+  setTimeout(function(){
+    var el = document.getElementById('set-cur-pass');
+    if (el) el.focus();
+  }, 100);
   populateSettingsLabels();
 }
 
 function closeSettings() {
   document.body.classList.remove('modal-open');
-  document.getElementById('settings-modal').classList.add('hidden');
+  document.getElementById('settings-modal').style.display = 'none';
 }
 
 function prefillTeam() {
