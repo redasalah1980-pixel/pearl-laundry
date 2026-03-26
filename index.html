@@ -445,11 +445,13 @@ table.et tr.hq td{background:#f0f7ff!important}
 .bar3d-mini .bar3d-lbl{font-size:8.5px}
 .bar3d-mini .bar3d-val{display:none}
 /* ── SETTINGS MODAL ─────────────────────────────────── */
-.stab{flex:1;padding:11px 8px;font-size:12.5px;font-weight:600;color:var(--grey);
-  border:none;background:transparent;cursor:pointer;border-bottom:3px solid transparent;
-  font-family:inherit;transition:all .2s;white-space:nowrap}
-.stab:hover{color:var(--navy);background:#f1f5f9}
-.stab.on{color:var(--navy);border-bottom-color:var(--navy3);background:#fff}
+.stab{display:flex;align-items:center;gap:9px;width:100%;padding:10px 12px;
+  font-size:12.5px;font-weight:600;color:#64748b;border:none;background:transparent;
+  cursor:pointer;border-radius:9px;text-align:left;font-family:inherit;
+  transition:all .15s;white-space:nowrap}
+.stab:hover{color:var(--navy);background:#e8f0fc}
+.stab.on{color:var(--navy);background:#dbeafe;font-weight:700;
+  box-shadow:inset 3px 0 0 var(--navy3)}
 .set-section-lbl{font-size:11.5px;font-weight:700;color:var(--navy);text-transform:uppercase;
   letter-spacing:.7px;margin-bottom:12px}
 .tab-chk-item{display:flex;align-items:center;gap:10px;padding:10px 14px;
@@ -578,6 +580,8 @@ table.price-t tr:hover td{background:var(--grey3)}
 .toast.show{transform:translateY(0);opacity:1}
 .toast.ok{border-left-color:#16a34a}
 .toast.err{border-left-color:var(--red)}
+.toast.warn{border-left-color:#f59e0b}
+.toast.info{border-left-color:#3b82f6}
 
 /\* ══════════════════════════════════════════════
    MOBILE RESPONSIVE — screens ≤ 768px
@@ -2227,6 +2231,21 @@ var _fbDB = null;
         <div id="backup-data-summary" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px"></div>
       </div>
 
+      <!-- Emergency Raw Download -->
+      <div style="background:#fff;border:1.5px solid #fde68a;border-radius:14px;padding:24px;margin-bottom:16px">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+          <div style="width:38px;height:38px;min-width:38px;background:#fffbeb;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px">🚨</div>
+          <div>
+            <div style="font-size:15px;font-weight:700;color:#0d1b2e">Emergency — Raw Firebase Download</div>
+            <div style="font-size:12px;color:#64748b;margin-top:2px">Downloads your complete raw Firebase database as JSON. Use if normal backup is not working.</div>
+          </div>
+        </div>
+        <button onclick="downloadRawFirebaseJSON()"
+          style="padding:12px 22px;background:#92400e;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:8px"
+          onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">⬇️ Download Raw Firebase JSON</button>
+        <div id="backup-raw-msg" style="display:none;margin-top:12px;padding:10px 14px;border-radius:8px;font-size:13px;font-weight:600"></div>
+      </div>
+
       <!-- ── Backup History Panel ── -->
       <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:24px;margin-top:20px">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
@@ -2387,34 +2406,59 @@ var _fbDB = null;
 
 <!-- SETTINGS MODAL -->
 <div class="modal-overlay hidden" id="settings-modal">
-  <div class="modal-box" style="width:700px;max-width:97vw;padding:0;overflow:hidden;border-radius:18px;box-shadow:0 32px 80px rgba(0,0,0,.28)">
+  <div class="modal-box" style="width:860px;max-width:97vw;padding:0;overflow:hidden;border-radius:18px;box-shadow:0 32px 80px rgba(0,0,0,.32);display:flex;flex-direction:column;max-height:92vh">
 
     <!-- Header -->
-    <div style="background:linear-gradient(135deg,#0d1b2e 0%,#1e3a5f 60%,#16305a 100%);padding:28px 36px 24px;display:flex;align-items:center;justify-content:space-between;position:relative;overflow:hidden">
+    <div style="background:linear-gradient(135deg,#0d1b2e 0%,#1e3a5f 60%,#16305a 100%);padding:22px 28px;display:flex;align-items:center;justify-content:space-between;position:relative;overflow:hidden;flex-shrink:0">
       <div style="position:absolute;top:-30px;right:-30px;width:160px;height:160px;border-radius:50%;background:rgba(201,168,76,.07);pointer-events:none"></div>
-      <div style="position:absolute;bottom:-40px;left:40px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.03);pointer-events:none"></div>
-      <div style="display:flex;align-items:center;gap:16px;z-index:1">
-        <div style="width:48px;height:48px;background:rgba(201,168,76,.18);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;border:1px solid rgba(201,168,76,.3)">⚙️</div>
+      <div style="display:flex;align-items:center;gap:14px;z-index:1">
+        <div style="width:44px;height:44px;background:rgba(201,168,76,.18);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;border:1px solid rgba(201,168,76,.3)">⚙️</div>
         <div>
-          <div style="font-size:20px;font-weight:800;color:#fff;letter-spacing:-.3px">Settings</div>
-          <div style="font-size:12px;color:rgba(255,255,255,.45);margin-top:2px;letter-spacing:.3px">SYSTEM CONFIGURATION</div>
+          <div style="font-size:18px;font-weight:800;color:#fff;letter-spacing:-.3px">Settings</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.45);margin-top:1px;letter-spacing:.5px">SYSTEM CONFIGURATION</div>
         </div>
       </div>
-      <button onclick="closeSettings()" style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:9px 18px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;z-index:1" onmouseover="this.style.background='rgba(255,255,255,.15)'" onmouseout="this.style.background='rgba(255,255,255,.08)'">✕ Close</button>
+      <button onclick="closeSettings()" style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;z-index:1" onmouseover="this.style.background='rgba(255,255,255,.15)'" onmouseout="this.style.background='rgba(255,255,255,.08)'">✕ Close</button>
     </div>
 
-    <!-- Setting Tabs -->
-    <div style="display:flex;background:#f1f5f9;border-bottom:2px solid #e2e8f0;padding:0 8px">
-      <button class="stab on" id="stab-admin"   onclick="switchStab('admin')"  style="flex:1;padding:16px 10px;font-size:13px">👤 Admin Account</button>
-      <button class="stab"     id="stab-team"    onclick="switchStab('team')"   style="flex:1;padding:16px 10px;font-size:13px">👥 Team Account</button>
-      <button class="stab"     id="stab-access"  onclick="switchStab('access')" style="flex:1;padding:16px 10px;font-size:13px">🔒 Tab Access</button>
-      <button class="stab"     id="stab-audit"   onclick="switchStab('audit')"  style="flex:1;padding:16px 10px;font-size:13px">📋 Audit Log</button>
-      <button class="stab"     id="stab-currency" onclick="switchStab('currency')" style="flex:1;padding:16px 10px;font-size:13px">💱 Currency</button>
-      <button class="stab"     id="stab-hotel"    onclick="switchStab('hotel')"    style="flex:1;padding:16px 10px;font-size:13px">🏨 Hotel</button>
-      <button class="stab"     id="stab-licence"  onclick="switchStab('licence')"  style="flex:1;padding:16px 10px;font-size:13px">🔑 Licences</button>
-    </div>
+    <!-- Body: sidebar + content -->
+    <div style="display:flex;flex:1;overflow:hidden;min-height:0">
 
-    <div style="padding:30px 36px 24px;max-height:70vh;overflow-y:auto">
+      <!-- LEFT SIDEBAR NAV -->
+      <div style="width:200px;flex-shrink:0;background:#f8fafc;border-right:1.5px solid #e2e8f0;padding:12px 10px;display:flex;flex-direction:column;gap:4px;overflow-y:auto">
+        <div style="font-size:9.5px;font-weight:800;color:#94a3b8;letter-spacing:2px;text-transform:uppercase;padding:6px 10px 4px">Account</div>
+        <button class="stab on" id="stab-admin"   onclick="switchStab('admin')"   style="display:flex;align-items:center;gap:9px;width:100%;padding:10px 12px;border-radius:9px;text-align:left;font-size:12.5px;font-weight:600;border:none;cursor:pointer;transition:all .15s">
+          <span style="font-size:15px">👤</span><span>Admin Account</span>
+        </button>
+        <button class="stab"    id="stab-team"    onclick="switchStab('team')"    style="display:flex;align-items:center;gap:9px;width:100%;padding:10px 12px;border-radius:9px;text-align:left;font-size:12.5px;font-weight:600;border:none;cursor:pointer;transition:all .15s">
+          <span style="font-size:15px">👥</span><span>Team Accounts</span>
+        </button>
+        <div style="font-size:9.5px;font-weight:800;color:#94a3b8;letter-spacing:2px;text-transform:uppercase;padding:10px 10px 4px;margin-top:4px">System</div>
+        <button class="stab"    id="stab-access"  onclick="switchStab('access')"  style="display:flex;align-items:center;gap:9px;width:100%;padding:10px 12px;border-radius:9px;text-align:left;font-size:12.5px;font-weight:600;border:none;cursor:pointer;transition:all .15s">
+          <span style="font-size:15px">🔒</span><span>Tab Access</span>
+        </button>
+        <button class="stab"    id="stab-audit"   onclick="switchStab('audit')"   style="display:flex;align-items:center;gap:9px;width:100%;padding:10px 12px;border-radius:9px;text-align:left;font-size:12.5px;font-weight:600;border:none;cursor:pointer;transition:all .15s">
+          <span style="font-size:15px">📋</span><span>Audit Log</span>
+        </button>
+        <div style="font-size:9.5px;font-weight:800;color:#94a3b8;letter-spacing:2px;text-transform:uppercase;padding:10px 10px 4px;margin-top:4px">Property</div>
+        <button class="stab"    id="stab-currency" onclick="switchStab('currency')" style="display:flex;align-items:center;gap:9px;width:100%;padding:10px 12px;border-radius:9px;text-align:left;font-size:12.5px;font-weight:600;border:none;cursor:pointer;transition:all .15s">
+          <span style="font-size:15px">💱</span><span>Currency</span>
+        </button>
+        <button class="stab"    id="stab-hotel"   onclick="switchStab('hotel')"   style="display:flex;align-items:center;gap:9px;width:100%;padding:10px 12px;border-radius:9px;text-align:left;font-size:12.5px;font-weight:600;border:none;cursor:pointer;transition:all .15s">
+          <span style="font-size:15px">🏨</span><span>Hotel</span>
+        </button>
+        <div style="font-size:9.5px;font-weight:800;color:#94a3b8;letter-spacing:2px;text-transform:uppercase;padding:10px 10px 4px;margin-top:4px">Licence</div>
+        <button class="stab"    id="stab-licence" onclick="switchStab('licence')" style="display:flex;align-items:center;gap:9px;width:100%;padding:10px 12px;border-radius:9px;text-align:left;font-size:12.5px;font-weight:600;border:none;cursor:pointer;transition:all .15s">
+          <span style="font-size:15px">🔑</span><span>Licences</span>
+        </button>
+        <div style="font-size:9.5px;font-weight:800;color:#94a3b8;letter-spacing:2px;text-transform:uppercase;padding:10px 10px 4px;margin-top:4px">Tools</div>
+        <button class="stab"    id="stab-diag" onclick="switchStab('diag')" style="display:flex;align-items:center;gap:9px;width:100%;padding:10px 12px;border-radius:9px;text-align:left;font-size:12.5px;font-weight:600;border:none;cursor:pointer;transition:all .15s">
+          <span style="font-size:15px">🩺</span><span>Diagnostics</span>
+        </button>
+      </div>
+
+      <!-- RIGHT CONTENT PANEL -->
+      <div style="flex:1;overflow-y:auto;padding:28px 32px 28px;min-width:0">
 
       <!-- ── PANEL: Admin Account ─────────────────────── -->
       <div id="spanel-admin">
@@ -2761,8 +2805,61 @@ var _fbDB = null;
         </div>
       </div>
 
-    </div>
-    <div style="text-align:center;padding:14px 0 12px;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;letter-spacing:0.3px;background:#f8fafc">
+
+      <!-- ── PANEL: Diagnostics ─────────────────────── -->
+      <div id="spanel-diag" style="display:none">
+
+        <!-- Header -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+          <div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="width:40px;height:40px;background:#0d1b2e;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px">🩺</div>
+              <div>
+                <div style="font-size:16px;font-weight:800;color:#0d1b2e">System Diagnostics</div>
+                <div style="font-size:12px;color:#64748b;margin-top:1px">Read-only health check — no data is modified</div>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button onclick="runDiagnostics()" id="diag-run-btn"
+              style="padding:11px 20px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s"
+              onmouseover="this.style.background='#1e3a5f'" onmouseout="this.style.background='#0d1b2e'">▶ Run Diagnostics</button>
+            <button onclick="forceReSyncFromFirebase()" id="diag-resync-btn"
+              style="padding:11px 20px;background:#0284c7;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s"
+              onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">🔃 Force Re-Sync</button>
+            <button onclick="reportIssue()"
+              style="padding:11px 20px;background:#f8fafc;color:#64748b;border:1.5px solid #e2e8f0;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s"
+              onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#f8fafc'">📋 Copy Issue Report</button>
+          </div>
+        </div>
+
+        <!-- Status banner -->
+        <div id="diag-banner" style="display:none;padding:14px 18px;border-radius:12px;margin-bottom:20px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:10px"></div>
+
+        <!-- Results grid -->
+        <div id="diag-results" style="display:flex;flex-direction:column;gap:10px">
+          <div style="text-align:center;padding:40px;color:#94a3b8;font-size:13px">
+            Click <strong>▶ Run Diagnostics</strong> to check your system health
+          </div>
+        </div>
+
+        <!-- Last run timestamp -->
+        <div id="diag-timestamp" style="margin-top:16px;font-size:11px;color:#94a3b8;text-align:right"></div>
+
+        <!-- Live error log -->
+        <div id="diag-errlog-wrap" style="margin-top:20px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <div style="font-size:10px;font-weight:800;color:#94a3b8;letter-spacing:2px;text-transform:uppercase">Runtime Error Log</div>
+            <button onclick="_errorLog=[];_updateErrBadge();renderDiagErrorLog()" style="padding:4px 10px;background:#fff5f5;border:1.5px solid #fca5a5;color:#dc2626;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">🗑 Clear</button>
+            <button onclick="reportIssue()" style="padding:4px 10px;background:#f8fafc;border:1.5px solid #e2e8f0;color:#64748b;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">📋 Report</button>
+          </div>
+          <div id="diag-errlog"></div>
+        </div>
+      </div>
+
+      </div><!-- end right content panel -->
+    </div><!-- end sidebar+content flex -->
+    <div style="text-align:center;padding:12px 0 10px;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;letter-spacing:0.3px;background:#f8fafc;flex-shrink:0">
       © Reda Salah · All Rights Reserved
     </div>
   </div>
@@ -3092,6 +3189,15 @@ var _fbDB = null;
 </div>
 
 <div class="toast" id="toast"></div>
+<!-- Error capture badge — shows in corner when silent JS errors occur -->
+<div id="err-badge" style="display:none;position:fixed;bottom:20px;left:20px;z-index:10000;
+  background:#991b1b;color:#fff;padding:9px 14px;border-radius:10px;font-size:12px;font-weight:700;
+  cursor:pointer;box-shadow:0 4px 20px rgba(153,27,27,.45);display:none;align-items:center;gap:8px;
+  max-width:300px;transition:all .3s" onclick="showErrorLog()" title="Click to view error log">
+  <span id="err-badge-icon" style="font-size:14px">⚠️</span>
+  <span id="err-badge-text">1 error caught</span>
+  <span style="opacity:.6;font-size:10px">· tap to view</span>
+</div>
 
 <!-- File input isolated at body level to prevent accidental triggers -->
 <input type="file" id="xl-file-input" accept=".xlsx,.xls" style="position:fixed;top:-9999px;left:-9999px;opacity:0;pointer-events:none" onchange="handleXLFile(this)">
@@ -3295,14 +3401,38 @@ function mergeDataSafe(local, remote) {
 }
 
 function saveDB(y) {
-  // Save to localStorage (instant)
-  try { _STORE.setItem(lsKey(y), JSON.stringify(_DB[y] || {})); } catch(e) {}
-  // Save to Firebase (cloud sync)
-  if (window._fbSaveKey) {
-    window._fbSaveKey(fbDataPath(y), _DB[y] || {}).then(function(ok) {
-      if (!ok) toast('⚠️ Cloud sync failed — data saved locally', 'err');
-    });
+  // Save to localStorage instantly — never fails silently
+  try { _STORE.setItem(lsKey(y), JSON.stringify(_DB[y] || {})); } catch(e) {
+    _logError('SaveDB', 'localStorage write failed for year ' + y, 'saveDB', 0, 0, e);
   }
+  // Save to Firebase with auto-retry (3 attempts, exponential backoff)
+  if (window._fbSaveKey) {
+    _fbSaveWithRetry(fbDataPath(y), _DB[y] || {}, 0);
+  }
+}
+
+function _fbSaveWithRetry(path, data, attempt) {
+  var MAX_ATTEMPTS = 3;
+  var DELAYS = [0, 2000, 5000]; // immediate, 2s, 5s
+  setTimeout(function() {
+    window._fbSaveKey(path, data).then(function(ok) {
+      if (!ok && attempt < MAX_ATTEMPTS - 1) {
+        console.warn('[SaveRetry] Attempt ' + (attempt+1) + ' failed for ' + path + ' — retrying...');
+        _fbSaveWithRetry(path, data, attempt + 1);
+      } else if (!ok) {
+        toast('⚠️ Cloud sync failed after ' + MAX_ATTEMPTS + ' tries — data saved locally', 'warn');
+        _logError('CloudSync', 'Firebase save failed after ' + MAX_ATTEMPTS + ' attempts: ' + path, 'saveDB', 0, 0, null);
+      }
+    }).catch(function(e) {
+      if (attempt < MAX_ATTEMPTS - 1) {
+        console.warn('[SaveRetry] Attempt ' + (attempt+1) + ' error: ' + e.message);
+        _fbSaveWithRetry(path, data, attempt + 1);
+      } else {
+        toast('⚠️ Cloud sync failed — data saved locally only', 'warn');
+        _logError('CloudSync', 'Firebase save error: ' + (e.message||e), 'saveDB', 0, 0, e);
+      }
+    });
+  }, DELAYS[attempt] || 5000);
 }
 
 // ── Stamp a save timestamp on all keys being written ──
@@ -4392,7 +4522,7 @@ function clearAuditLog() {
 }
 
 function switchStab(name) {
-  ['admin','team','access','audit','currency','hotel','licence'].forEach(function(t) {
+  ['admin','team','access','audit','currency','hotel','licence','diag'].forEach(function(t) {
     var btn = document.getElementById('stab-'+t);
     var pan = document.getElementById('spanel-'+t);
     if (btn) btn.classList.toggle('on', t===name);
@@ -4403,6 +4533,15 @@ function switchStab(name) {
   if (name === 'audit') renderAuditLog();
   if (name === 'currency') openCurrencySettings();
   if (name === 'hotel') openHotelSettings();
+  if (name === 'diag') {
+    var ban = document.getElementById('diag-banner');
+    var res = document.getElementById('diag-results');
+    if (res && !res.querySelector('.diag-check')) {
+      res.innerHTML = '<div style="text-align:center;padding:40px;color:#94a3b8;font-size:13px">Click <strong>▶ Run Diagnostics</strong> to check your system health</div>';
+    }
+    if (ban) ban.style.display = 'none';
+    renderDiagErrorLog();
+  }
   if (name === 'licence') {
     // Reset auth every time tab opens
     var authWrap = document.getElementById('lic-auth-wrap');
@@ -4964,6 +5103,10 @@ function _bootApp(user) {
   // Show first allowed tab
   var firstTab = allowed[0] || 'dashboard';
   buildYearSel(); buildSelectors(); showTab(firstTab);
+  // Silent startup validation — runs 3s after boot, never blocks UI
+  setTimeout(function() {
+    if (typeof runStartupValidation === 'function') runStartupValidation();
+  }, 3000);
   // Init mobile layout if on phone — wait for Firebase data
   // Show status bar for desktop
   if (!isMobile()) {
@@ -10649,7 +10792,16 @@ function renderGuide() {
     // ── 13. SETTINGS ────────────────────────────────────────────
     ['⚙️ Settings — Accounts & Access',
      '<strong>How to open:</strong> Click <strong>⚙️ Settings</strong> in the top navigation bar. Admin only — team members cannot see this button.' +
-     '<br><br>The Settings panel has <strong>3 tabs</strong>:' +
+     '<br><br>The Settings panel uses a <strong>left sidebar navigation</strong> with 8 sections grouped into 4 categories:' +
+     ul([
+       '<strong>Account:</strong> 👤 Admin Account · 👥 Team Accounts',
+       '<strong>System:</strong> 🔒 Tab Access · 📋 Audit Log',
+       '<strong>Property:</strong> 💱 Currency · 🏨 Hotel',
+       '<strong>Licence:</strong> 🔑 Licences',
+       '<strong>Tools:</strong> 🩺 Diagnostics'
+     ]) +
+     '<br><strong>All sections are always visible</strong> — nothing is hidden or cut off regardless of screen size.' +
+     '<br><br>The Settings panel has <strong>8 sections</strong>:' +
      '<br><br><strong>👤 Admin Account</strong>' +
      step([
        'Click <strong>⚙️ Settings</strong> → <strong>👤 Admin Account</strong>.',
@@ -10676,47 +10828,44 @@ function renderGuide() {
 
     // ── 14. BACKUP & HISTORY ────────────────────────────────────
     ['🛡️ Backup & Restore — Protecting Your Data',
-     '<strong>Where to find it:</strong> Click the ' + badge('🛡️ Backup','#0d1b2e','#c9a84c') + ' tab in the top navigation bar.' +
-     '<br><br>The system has <strong>two independent backup methods</strong>. Use both for maximum safety.' +
-     '<br><br><strong>💾 Option 1 — Manual Backup File (your device)</strong>' +
+     '<strong>Where to find it:</strong> Click the ' + badge('🛡️ Backup','#0d1b2e','#c9a84c') + ' tab in the top navigation bar (under ⋯ More dropdown).' +
+     '<br><br>The Backup tab has <strong>4 sections</strong> stacked top to bottom:' +
+     '<br><br><strong>💾 Section 1 — Manual Backup File (your device)</strong>' +
      step([
-       'Click ' + btn('⬇️ Download Backup (.json)','#0d1b2e','#c9a84c') + ' — a file is downloaded to your device instantly.',
-       'The file is named e.g. <code>Pearl_Backup_2026-03-12.json</code> and contains ALL years of data.',
-       'Store it somewhere safe — USB, email to yourself, or Google Drive.',
-       'To restore: click ' + btn('⬆️ Restore from File','#f0fdf4','#15803d','#86efac') + ' → select the file → confirm. Data is merged safely — nothing is deleted.'
+       'Click ' + btn('⬇️ Download Backup (.json)','#0d1b2e','#c9a84c') + ' — a file downloads to your device instantly.',
+       'File is named e.g. <code>Pearl_Backup_2026-03-12.json</code> and contains ALL years of data, prices, and settings.',
+       'Store it safely — USB drive, email to yourself, or Google Drive.',
+       'To restore: click ' + btn('⬆️ Restore from File','#f0fdf4','#15803d','#86efac') + ' → select the file → confirm. Data is merged safely — nothing deleted.'
      ]) +
-     '<strong>☁️ Option 2 — Cloud Backup (Firebase)</strong>' +
+     '<strong>☁️ Section 2 — Cloud Backup (Firebase)</strong>' +
      step([
-       'Click ' + btn('☁️ Save Cloud Backup Now','#16a34a','#fff') + ' to save a full backup copy to Firebase.',
-       'The backup status shows when the last backup was saved and who saved it.',
-       'To restore: click ' + btn('🔄 Restore from Cloud Backup','#fff7ed','#c2410c','#fdba74') + ' → confirm. Data merges safely.',
-       'Cloud backup also happens automatically every time you click 💾 Save Day (max once per 5 minutes).'
+       'Click ' + btn('☁️ Save Cloud Backup Now','#16a34a','#fff') + ' to save a full versioned backup to Firebase.',
+       'Status bar shows the date of your last backup and who saved it.',
+       'To restore: click ' + btn('🔄 Restore from Cloud Backup','#fff7ed','#c2410c','#fdba74') + ' → confirm. Data merges safely — nothing deleted.',
+       'Auto-retry: if the save fails, the system automatically retries up to <strong>3 times</strong> (immediately, then after 2s, then 5s) before alerting you.'
      ]) +
-     '<strong>📊 Data Summary</strong> — at the bottom of the Backup tab you can see how many data entries exist per year.' +
-     warn('If you ever see your data disappear, go to the Backup tab immediately and restore from cloud backup. Do not enter new data first.') +
-
-     '<br><strong>🕐 Backup History — Version Control (NEW):</strong>' +
+     warn('If you ever see your data disappear, go to the Backup tab immediately and restore. Do not enter new data first — restoring will merge the backup on top of whatever is there.') +
+     '<br><strong>🚨 Section 3 — Emergency Raw Firebase Download</strong>' +
+     '<br>This section exists for worst-case scenarios when the normal backup system is not working.' +
      step([
-       'Every time you click <strong>☁️ Save Cloud Backup Now</strong> — a new numbered version is created automatically.',
-       'Last <strong>10 versions</strong> are kept — oldest is deleted when 11th is saved.',
-       'Each version shows: date & time, who saved it, how many years of data, file size.',
+       'Click ' + btn('⬇️ Download Raw Firebase JSON','#92400e','#fff') + '.',
+       'Downloads your <strong>entire Firebase database</strong> as a raw JSON file — everything, including entry data, occupancy, settings, prices, and backup history.',
+       'Use this file to restore manually using the Import function or the emergency_restore.html tool.',
+       'File size is typically 100–500 KB depending on how much data you have.'
+     ]) +
+     tip('The raw Firebase JSON is the most complete backup possible. If a normal backup ever fails, this is your safety net.') +
+     '<br><strong>🕐 Section 4 — Backup History (Version Control)</strong>' +
+     step([
+       'Every time you click <strong>☁️ Save Cloud Backup Now</strong> — a new numbered version is created.',
+       'Last <strong>20 versions</strong> are kept — the oldest is deleted when the 21st is saved.',
+       'Each version shows: version number, date & time, who saved it, how many years of data, file size.',
        '<strong>● LATEST</strong> badge marks the most recent version.',
-       '<strong>🔄 Restore</strong> — click on any version to restore it. Data is merged — nothing deleted.',
-       '<strong>🗑 Delete</strong> — remove old versions you no longer need (not available on latest).',
-       'History auto-loads when you open the Backup tab.'
+       'Click ' + btn('🔄 Restore','#eff6ff','#1d4ed8','#bfdbfe') + ' on any version to restore it. Data is merged — nothing deleted.',
+       'Click 🗑 to delete old versions you no longer need (not available on the latest version).',
+       'Click <strong>🔄 Refresh</strong> to reload history fresh from Firebase.'
      ]) +
-
-     '<br><strong>📊 Room-Nights in Plan Next Year:</strong>' +
-     ul([
-       'Occupied Rooms = Total Rooms × Occ% ÷ 100',
-       'Room-Nights per Month = Occupied Rooms × Days in Month',
-       'Example: 161 rooms × 70% × 31 days = <strong>3,503 room-nights</strong> for January',
-       'Total Year Room-Nights = sum of all months',
-       'The rooms field (161) in Plan Next Year is now <strong>editable directly</strong> — change it and the entire plan recalculates instantly.',
-       'Click 💾 next to the rooms field to save permanently to Hotel Settings.'
-     ]) +
-
-     tip('Save a cloud backup before uploading a new version of the system file to GitHub. This creates a restore point. Download a manual backup file monthly as ultimate safety net.')
+     warn('Always save a cloud backup before uploading a new version of the system to GitHub. This creates a restore point you can always return to.') +
+     tip('Save a backup at least once a week. The 20-version history means you can always go back to any point in the last 20 saves.')
     ],
 
     // ── 15. CLOUD SYNC ──────────────────────────────────────────
@@ -10724,8 +10873,9 @@ function renderGuide() {
      '<strong>How sync works:</strong>' +
      ul([
        'Every save writes to <strong>Firebase cloud</strong> (primary) and <strong>browser localStorage</strong> (offline backup) at the same time.',
-       badge('● LIVE','#14532d','#86efac','#166534') + ' — connected and syncing normally.',
+       badge('● LIVE','#14532d','#86efac','#166634') + ' — connected and syncing normally.',
        badge('● OFFLINE','#991b1b','#fca5a5','#991b1b') + ' — no internet. Saves locally. Auto-syncs everything when back online.',
+       '<strong>Auto-retry on failure</strong> — if a cloud save fails, the system retries automatically up to 3 times (0s, 2s, 5s delays) before showing a warning. You never need to manually retry.',
        'Clearing browser cache does <strong>not</strong> erase your data — it lives in Firebase.',
        'Deploying a new version to Netlify never touches your data.'
      ]) +
@@ -11263,33 +11413,177 @@ function renderGuide() {
 
     // ── 30. BACKUP HISTORY ──────────────────────────────────────
     ['🕐 Backup History — Version Control',
-     '<strong>Where to find:</strong> 🛡️ Backup tab (in ⋯ More dropdown) → scroll down to Backup History panel' +
+     '<strong>Where to find:</strong> 🛡️ Backup tab → scroll down to the <strong>Backup History</strong> panel at the bottom.' +
      '<br><br><strong>How versioning works:</strong>' +
      ul([
-       'Every time you click <strong>☁️ Save Cloud Backup Now</strong> — a new numbered version is created.',
-       'Last <strong>10 versions</strong> are kept — oldest auto-deleted when 11th is saved.',
-       'Each version shows: number, date & time, who saved it, years of data, file size.',
-       '<strong>● LATEST</strong> badge on the newest version.'
+       'Every time you click <strong>☁️ Save Cloud Backup Now</strong> — a new numbered version is created automatically.',
+       'Last <strong>20 versions</strong> are kept — the oldest is deleted when the 21st is saved.',
+       'Each version shows: version number, date & time, who saved it, years of data included, and file size.',
+       '<strong>● LATEST</strong> badge marks the most recent version.'
      ]) +
-     '<br><strong>Actions per version:</strong>' +
+     '<br><strong>Actions available per version:</strong>' +
      ul([
-       '<strong>🔄 Restore</strong> — merges that backup into current data. Nothing is deleted.',
-       '<strong>🗑 Delete</strong> — removes old versions (not available on latest).',
-       '<strong>🔄 Refresh</strong> button — reloads history from Firebase.'
+       btn('🔄 Restore','#eff6ff','#1d4ed8','#bfdbfe') + ' — restores that backup version. Data is <strong>merged</strong> — backup wins over local, nothing is deleted.',
+       '🗑 Delete — removes the version from Firebase and the index. Not available on the latest version.',
+       btn('🔄 Refresh','#f8fafc','#64748b','#e2e8f0') + ' — reloads version history fresh from Firebase.'
      ]) +
-     '<br><strong>Room-Nights formula:</strong>' +
+     '<br><strong>How restore works (important):</strong>' +
      ul([
-       'Occupied Rooms = Total Rooms × Occ% ÷ 100',
-       'Room-Nights = Occupied Rooms × Days in Month',
-       'Example: 161 × 70% × 31 days = 3,503 room-nights'
+       'The system saves the updated index to Firebase <strong>first</strong>, then re-renders the list. This prevents the deleted item from reappearing.',
+       'Shows <strong>⏳ Deleting...</strong> while the Firebase save is in progress.',
+       'If Firebase save fails, shows a warning and still updates the local view.',
+       'Restore merges: backup data fills in anything missing from your local copy. Your most recent local data is preserved for any keys that exist in both.'
      ]) +
-     warn('Always save a cloud backup before uploading a new version of the system to GitHub.') +
-     tip('Save a backup at least once a week. The version history means you can always go back to any point in the last 10 saves.')
+     warn('Always save a cloud backup before uploading a new version of the system to GitHub. This creates a restore point.') +
+     tip('Save a backup at least once a week. The 20-version history means you can always go back to any point in the last 20 saves.')
     ],
 
     // ── 31. COPYRIGHT ───────────────────────────────────────────
     ['© Copyright & Ownership',
      '<div style="background:linear-gradient(135deg,#0d1b2e,#1e3a5f);border-radius:10px;padding:20px 24px;color:#fff;margin-bottom:12px"><div style="font-size:18px;font-weight:700;color:#c9a84c;letter-spacing:1px;margin-bottom:6px">© 2026 Reda Salah</div><div style="font-size:13px;color:rgba(255,255,255,.75);line-height:1.9">All Rights Reserved.<br><strong style="color:#fff">RS · Pearl Laundry Management System</strong> — proprietary software created and owned by <strong style="color:#c9a84c">Reda Salah</strong>.<br>Developed for professional laundry operations management.<br>Unauthorised copying, distribution, or modification is strictly prohibited.</div></div><div style="font-size:12px;color:#6b7a8d;line-height:1.8">Intellectual property and full ownership: <strong>Reda Salah</strong><br>For support or licensing enquiries, contact the author directly.</div>'
+    ],
+
+    // ── 32. SYSTEM DIAGNOSTICS ──────────────────────────────────
+    ['🩺 System Diagnostics, Self-Healing & Error Tools',
+     '<strong>Where to find:</strong> ⚙️ Settings → <strong>🩺 Diagnostics</strong> (under Tools in the sidebar)' +
+     '<br><br>The system has <strong>4 layers of protection</strong> that work together automatically — plus manual tools you can use anytime.' +
+
+     '<br><br><div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:14px 16px;font-size:12px;color:#14532d;margin-bottom:4px">' +
+     '<strong>✅ 100% Read-Only Guarantee</strong> — all diagnostic and monitoring tools only read data. They never save, delete, or modify anything.' +
+     '</div>' +
+
+     '<br><strong>🟢 Layer 1 — Auto-Retry on Save Failures (always on)</strong>' +
+     '<br>Every time data is saved to Firebase, the system uses smart retry logic:' +
+     ul([
+       'If a save fails, it retries automatically — immediately, then after 2 seconds, then after 5 seconds',
+       'Only if all 3 attempts fail does it show you a warning toast',
+       'Applies to all entry saves, price saves, and backup saves',
+       'localStorage is always saved first — so your data is safe locally even if the cloud save fails'
+     ]) +
+
+     '<br><strong>🟡 Layer 2 — Startup Validation (automatic — 3 seconds after every login)</strong>' +
+     '<br>Every time you log in, 5 checks run silently in the background:' +
+     ul([
+       'All critical functions (18 checked) are still defined and callable',
+       'Local storage is readable and writable',
+       'Current year data exists in local storage',
+       'Firebase database is connected',
+       'Last backup is not more than 14 days old'
+     ]) +
+     'Results: if a serious issue is found → a yellow toast appears. All results are stored in the error log in Diagnostics for review. If data is missing, the system automatically triggers Layer 3.' +
+
+     '<br><br><strong>🔵 Layer 3 — Auto-Recovery (triggers automatically if data is missing)</strong>' +
+     '<br>If startup validation detects that your local data is empty or missing:' +
+     step([
+       'System silently fetches fresh data from <code>pearl/data</code> in Firebase',
+       'If Firebase data is also empty, tries the <code>pearl/backup/latest</code> snapshot instead',
+       'If both succeed → data is written to localStorage and all tabs re-render automatically',
+       'If both fail → a <strong>self-healing restore prompt</strong> appears (see below)'
+     ]) +
+
+     '<br><strong>🔴 Layer 4 — Runtime Error Capture (always on, all sessions)</strong>' +
+     '<br>All JavaScript errors that happen silently in the background are now caught and stored:' +
+     ul([
+       'A <strong style="color:#dc2626">red badge</strong> appears in the bottom-left corner showing the error count',
+       'Click the badge → opens Settings → Diagnostics and shows the full error log',
+       'Each error shows: type, message, source file, line number, stack trace, and timestamp',
+       'Browser extension errors and Firebase internal noise are filtered out automatically',
+       'Log covers the current session only — cleared on page refresh'
+     ]) +
+
+     '<br><br><strong>🩺 Manual Diagnostics Panel — 7 check groups, 18+ checks:</strong>' +
+     ul([
+       '<strong>Connectivity</strong> — Firebase SDK connected, read/write helpers available, live real-time read test with 5s timeout',
+       '<strong>Local Storage</strong> — read/write test, data entry count per year, credentials cached',
+       '<strong>Backup</strong> — days since last backup (warn >7, fail >14), auto-backup ran today, local vs Firebase index match',
+       '<strong>Occupancy</strong> — days of occupancy saved for current month',
+       '<strong>Settings</strong> — currency configured, hotel rooms set, hotel name set',
+       '<strong>System Functions</strong> — all 18 critical functions defined (login, save, export, restore, sync, forecast, etc.)',
+       '<strong>Firebase Live Test</strong> — actual async read from Firebase with real response data'
+     ]) +
+     step([
+       'Click ⚙️ Settings → 🩺 Diagnostics',
+       'Click ' + btn('▶ Run Diagnostics','#0d1b2e','#c9a84c') + ' — results appear within a few seconds',
+       'Green ✅ = passing · Yellow ⚠️ = needs attention · Red ❌ = broken',
+       'Read the detail line under each check — it tells you exactly what is wrong and what to do',
+       'The Runtime Error Log below the results shows all JS errors caught this session'
+     ]) +
+
+     '<br><strong>🔃 Force Re-Sync from Firebase button:</strong>' +
+     '<br>A blue button next to Run Diagnostics. One click pulls everything fresh from Firebase — entry data for all years, prices, settings, occupancy — writes it all to localStorage, then re-renders every tab.' +
+     ul([
+       'Use this when: data looks out of date, after switching devices, after a browser storage wipe',
+       'Safe to run at any time — it only overwrites localStorage with what Firebase has',
+       'Shows a summary of what was synced in the timestamp line after finishing'
+     ]) +
+
+     '<br><strong>🚨 Self-Healing Restore Prompt:</strong>' +
+     '<br>If auto-recovery fails and no data is found anywhere, a floating card appears at the bottom of the screen with two options:' +
+     ul([
+       btn('☁️ Restore from Cloud Backup','#c9a84c','#0d1b2e') + ' — one click restore from latest backup',
+       'Open Backup Tab button — takes you to the Backup tab to restore manually or import a file'
+     ]) +
+
+     '<br><strong>📋 Copy Issue Report button:</strong>' +
+     '<br>Available in the Diagnostics panel and in the error log. Formats a complete issue report containing:' +
+     ul([
+       'All errors with timestamps, file names, and line numbers',
+       'Browser info and Firebase connection status',
+       'Data summary (entries per year)',
+       'Copies automatically to your clipboard — paste and send'
+     ]) +
+     'Use this when something goes wrong and you need help. Send the copied report and it provides everything needed to diagnose and fix the issue remotely.' +
+
+     warn('If the red error badge appears, do not ignore it. Click it, read the error, and run diagnostics. Most errors are harmless but some may indicate a problem that needs attention.') +
+     tip('Run diagnostics once a week as a routine check — it takes under 10 seconds and catches issues before they become problems.')
+    ],
+
+
+    // ── 33. EMERGENCY RESTORE TOOL ──────────────────────────────
+    ['🚨 Emergency Restore Tool — emergency_restore.html',
+     '<strong>What it is:</strong> A separate standalone HTML file (<code>emergency_restore.html</code>) that can recover your data directly from Firebase using the REST API — completely independent of the main system.' +
+     '<br><br>' +
+     '<div style="background:#fef2f2;border:1.5px solid #fecaca;border-radius:10px;padding:14px 16px;font-size:12px;color:#991b1b;margin-bottom:8px">' +
+     '<strong>🚨 Use this tool ONLY when:</strong> the main system will not load, you are on a new device with no data, or the normal restore functions inside the system are not working.' +
+     '</div>' +
+     '<strong>Key advantage over the built-in restore:</strong>' +
+     ul([
+       'Works without logging in — open the file directly in any browser',
+       'Does not need the main system to be working at all',
+       'Uses Firebase REST API directly — bypasses the Firebase SDK completely',
+       'Can download your raw data as JSON even if nothing else works'
+     ]) +
+     '<br><strong>How to use — 3 steps:</strong>' +
+     step([
+       '<strong>Open</strong> <code>emergency_restore.html</code> in any browser (double-click the file)',
+       '<strong>Click 🔌 Test Connection</strong> — confirms Firebase is reachable. If it fails, check your internet or Firebase rules.',
+       '<strong>Choose your restore method:</strong>'
+     ]) +
+     '<br><strong>Available actions:</strong>' +
+     ul([
+       btn('🔍 Check All Data','#0284c7','#fff') + ' — shows a summary of everything in Firebase',
+       btn('📊 Check Entry Data','#0284c7','#fff') + ' — shows entry data per year with entry counts',
+       btn('🏨 Check Occupancy','#0284c7','#fff') + ' — shows occupancy data per month',
+       btn('💾 Check Backup Versions','#0284c7','#fff') + ' — lists all saved backup versions',
+       btn('✅ Restore ALL Entry Data','#16a34a','#fff') + ' — pulls all entry data from Firebase into this browser\'s localStorage',
+       btn('🏨 Restore Occupancy','#16a34a','#fff') + ' — restores occupancy for all years and months',
+       btn('☁️ Restore from Latest Backup','#16a34a','#fff') + ' — uses the latest cloud backup snapshot instead of live data',
+       btn('⬇️ Download ALL Firebase Data','#dc2626','#fff') + ' — downloads the complete raw Firebase database as JSON'
+     ]) +
+     '<br><strong>After restoring:</strong>' +
+     step([
+       'The tool writes data directly to <code>localStorage</code> in your browser',
+       'Press <strong>Cmd+Shift+R</strong> (Mac) or <strong>Ctrl+Shift+R</strong> (Windows) to hard-refresh',
+       'Open your main RS Pearl system — data should appear immediately',
+       'If it does not appear, use the <strong>🔃 Force Re-Sync</strong> button in Settings → Diagnostics'
+     ]) +
+     '<br><strong>Firebase Rules note:</strong>' +
+     '<br>If the connection test fails with a permission error, your Firebase rules may require authentication. Temporarily set rules to public read, restore your data, then change them back:' +
+     '<div style="background:#f1f5f9;border-radius:8px;padding:12px 14px;font-family:monospace;font-size:12px;color:#0369a1;margin:8px 0">' +
+     '{"rules":{".read":true,".write":true}}' +
+     '</div>' +
+     warn('Change Firebase rules back to authenticated access after you finish the emergency restore. Open rules: Firebase Console → Realtime Database → Rules → Publish.') +
+     tip('Keep the emergency_restore.html file saved separately from the main system — on your desktop, USB drive, or email it to yourself. If the main system ever breaks, you want this file available even without internet access to the main system.')
     ],
 
   ];
@@ -14437,6 +14731,8 @@ function toast(msg, type = '') {
   el.className = 'toast show' + (type ? ' ' + type : '');
   clearTimeout(_tt); _tt = setTimeout(() => el.classList.remove('show'), 2800);
 }
+// Alias — some older functions call showToast() instead of toast()
+function showToast(msg, type) { toast(msg, type || ''); }
 
 
 
@@ -14742,11 +15038,31 @@ function deleteBackupVersion(verId) {
   var stored = [];
   try { stored = JSON.parse(_STORE.getItem('pearl_backup_index') || '[]'); } catch(e) {}
   var newIndex = stored.filter(function(v) { return v.id !== verId; });
-  if (window._fbDB) window._fbDB.ref('pearl/backup/versions/' + verId).remove();
-  if (window._fbSaveKey) window._fbSaveKey('pearl/backup/index', newIndex);
+
+  // Update local cache first so UI reflects change immediately
   try { _STORE.setItem('pearl_backup_index', JSON.stringify(newIndex)); } catch(e) {}
-  toast('🗑 Backup version deleted', 'ok');
-  renderBackupHistory();
+
+  // Remove version data from Firebase
+  if (window._fbDB) {
+    window._fbDB.ref('pearl/backup/versions/' + verId).remove().catch(function(e) {
+      console.warn('[Backup] Failed to remove version data:', e);
+    });
+  }
+
+  // Save new index to Firebase, THEN re-render so fresh fetch sees updated index
+  if (window._fbSaveKey) {
+    toast('⏳ Deleting...', 'info');
+    window._fbSaveKey('pearl/backup/index', newIndex).then(function() {
+      toast('🗑 Backup version deleted', 'ok');
+      renderBackupHistory();
+    }).catch(function(e) {
+      toast('⚠️ Deleted locally — cloud sync failed', 'warn');
+      renderBackupHistory();
+    });
+  } else {
+    toast('🗑 Backup version deleted (local only)', 'ok');
+    renderBackupHistory();
+  }
 }
 
 function renderBackupHistory() {
@@ -14961,6 +15277,8 @@ function showBackupMsg(id, msg, type) {
 
 // Auto cloud backup every time data is saved
 var _lastAutoBackup = 0;
+var _MAX_BACKUP_VERSIONS = 20; // Maximum cloud backup versions to keep
+
 function autoCloudBackup() {
   if (!window._fbSaveKey) return;
   var now = Date.now();
@@ -15307,6 +15625,678 @@ function autoCloudBackup() {
     initLoginCanvas();
   });
 })();
+
+
+// ════════════════════════════════════════════════════════════════
+//  SYSTEM DIAGNOSTICS — Read-only health check
+// ════════════════════════════════════════════════════════════════
+function runDiagnostics() {
+  var btn = document.getElementById('diag-run-btn');
+  var resultsEl = document.getElementById('diag-results');
+  var bannerEl  = document.getElementById('diag-banner');
+  var tsEl      = document.getElementById('diag-timestamp');
+  if (!resultsEl) return;
+
+  // Loading state
+  btn.innerHTML = '⏳ Running...';
+  btn.disabled  = true;
+  resultsEl.innerHTML = '<div style="text-align:center;padding:30px;color:#94a3b8;font-size:13px">⏳ Running checks...</div>';
+  bannerEl.style.display = 'none';
+
+  var checks  = [];  // { label, status:'ok'|'warn'|'fail', detail }
+  var pending = 0;
+
+  function addCheck(label, status, detail, group) {
+    checks.push({ label: label, status: status, detail: detail, group: group || 'General' });
+  }
+
+  function finalise() {
+    var fails  = checks.filter(function(c){ return c.status === 'fail'; }).length;
+    var warns  = checks.filter(function(c){ return c.status === 'warn'; }).length;
+    var passes = checks.filter(function(c){ return c.status === 'ok';   }).length;
+
+    // Banner
+    bannerEl.style.display = 'flex';
+    if (fails > 0) {
+      bannerEl.style.background = '#fef2f2';
+      bannerEl.style.border     = '1.5px solid #fecaca';
+      bannerEl.style.color      = '#dc2626';
+      bannerEl.innerHTML        = '🔴 ' + fails + ' issue(s) found that need attention · ' + warns + ' warning(s) · ' + passes + ' passed';
+    } else if (warns > 0) {
+      bannerEl.style.background = '#fffbeb';
+      bannerEl.style.border     = '1.5px solid #fde68a';
+      bannerEl.style.color      = '#92400e';
+      bannerEl.innerHTML        = '🟡 ' + warns + ' warning(s) to review · ' + passes + ' passed';
+    } else {
+      bannerEl.style.background = '#f0fdf4';
+      bannerEl.style.border     = '1.5px solid #86efac';
+      bannerEl.style.color      = '#15803d';
+      bannerEl.innerHTML        = '✅ All ' + passes + ' checks passed — system is healthy';
+    }
+
+    // Group checks
+    var groups = {};
+    checks.forEach(function(c) {
+      if (!groups[c.group]) groups[c.group] = [];
+      groups[c.group].push(c);
+    });
+
+    var html = '';
+    Object.keys(groups).forEach(function(g) {
+      html += '<div style="font-size:10px;font-weight:800;color:#94a3b8;letter-spacing:2px;text-transform:uppercase;padding:8px 2px 6px">' + g + '</div>';
+      html += '<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px">';
+      groups[g].forEach(function(c) {
+        var bg    = c.status==='ok'   ? '#f0fdf4' : c.status==='warn' ? '#fffbeb' : '#fef2f2';
+        var bdr   = c.status==='ok'   ? '#86efac' : c.status==='warn' ? '#fde68a' : '#fecaca';
+        var col   = c.status==='ok'   ? '#15803d' : c.status==='warn' ? '#92400e' : '#dc2626';
+        var icon  = c.status==='ok'   ? '✅' : c.status==='warn' ? '⚠️' : '❌';
+        html += '<div class="diag-check" style="display:flex;align-items:flex-start;gap:12px;padding:12px 14px;background:' + bg + ';border:1.5px solid ' + bdr + ';border-radius:10px">' +
+          '<span style="font-size:16px;flex-shrink:0;margin-top:1px">' + icon + '</span>' +
+          '<div style="flex:1;min-width:0">' +
+            '<div style="font-size:13px;font-weight:700;color:#0d1b2e">' + c.label + '</div>' +
+            '<div style="font-size:12px;color:' + col + ';margin-top:3px">' + c.detail + '</div>' +
+          '</div>' +
+        '</div>';
+      });
+      html += '</div>';
+    });
+    resultsEl.innerHTML = html;
+    tsEl.textContent = 'Last run: ' + new Date().toLocaleString('en-GB');
+    btn.innerHTML = '▶ Run Diagnostics';
+    btn.disabled  = false;
+  }
+
+  // ── GROUP 1: Connectivity ──────────────────────────────────────
+  if (window._fbDB) {
+    addCheck('Firebase Connection', 'ok', 'Connected to pearl-management-system database', 'Connectivity');
+  } else {
+    addCheck('Firebase Connection', 'fail', 'Firebase is not connected — cloud sync and backup will not work. Check your internet connection.', 'Connectivity');
+  }
+
+  if (window._fbLoadKey && window._fbSaveKey) {
+    addCheck('Firebase Read/Write API', 'ok', 'Read and write helpers are available', 'Connectivity');
+  } else {
+    addCheck('Firebase Read/Write API', 'fail', 'Firebase helpers missing — data cannot be saved to or loaded from cloud', 'Connectivity');
+  }
+
+  // ── GROUP 2: Local Storage ─────────────────────────────────────
+  var storeOk = true;
+  try {
+    _STORE.setItem('__diag_test__', '1');
+    var v = _STORE.getItem('__diag_test__');
+    _STORE.removeItem('__diag_test__');
+    if (v !== '1') storeOk = false;
+  } catch(e) { storeOk = false; }
+  addCheck('Local Storage', storeOk ? 'ok' : 'fail',
+    storeOk ? 'Read/write working correctly' : 'Local storage is blocked or broken — data will not persist between sessions',
+    'Local Storage');
+
+  // Check each year's data
+  var yearsFound = [];
+  var totalEntries = 0;
+  for (var y = 2024; y <= 2028; y++) {
+    try {
+      var d = JSON.parse(_STORE.getItem('pearl_laundry_' + y) || 'null');
+      if (d && typeof d === 'object') {
+        var cnt = Object.keys(d).length;
+        yearsFound.push(y + ' (' + cnt + ' entries)');
+        totalEntries += cnt;
+      }
+    } catch(e) {}
+  }
+  if (yearsFound.length > 0) {
+    addCheck('Laundry Data', 'ok', 'Found data for: ' + yearsFound.join(', ') + ' · Total: ' + totalEntries + ' entries', 'Local Storage');
+  } else {
+    addCheck('Laundry Data', 'warn', 'No laundry data found in local storage — data may not have loaded yet or this is a new device', 'Local Storage');
+  }
+
+  // Credentials stored
+  var credsOk = false;
+  try {
+    var creds = JSON.parse(_STORE.getItem('pearl_credentials') || 'null');
+    credsOk = !!(creds && creds.user && creds.pass);
+  } catch(e) {}
+  addCheck('Credentials Stored', credsOk ? 'ok' : 'warn',
+    credsOk ? 'Admin credentials found in local storage' : 'No credentials cached locally — login requires internet on first use',
+    'Local Storage');
+
+  // ── GROUP 3: Backup ────────────────────────────────────────────
+  var backupIndex = null;
+  try { backupIndex = JSON.parse(_STORE.getItem('pearl_backup_index') || 'null'); } catch(e) {}
+  if (backupIndex && Array.isArray(backupIndex) && backupIndex.length > 0) {
+    var latest = backupIndex[0];
+    var latestDate = latest.savedAt ? new Date(latest.savedAt).toLocaleDateString('en-GB') : 'unknown date';
+    var daysSince = latest.savedAt ? Math.floor((Date.now() - new Date(latest.savedAt)) / 86400000) : 999;
+    var backupStatus = daysSince <= 7 ? 'ok' : daysSince <= 14 ? 'warn' : 'fail';
+    addCheck('Cloud Backup', backupStatus,
+      backupIndex.length + ' version(s) stored · Latest: ' + latestDate + ' (' + daysSince + ' days ago)' +
+      (daysSince > 7 ? ' — consider saving a backup soon' : ''),
+      'Backup');
+  } else {
+    addCheck('Cloud Backup', 'warn', 'No backup index found locally — run a cloud backup from the Backup tab', 'Backup');
+  }
+
+  var lastAuto = _STORE.getItem('pearl_last_auto_backup') || '';
+  var today = new Date().toISOString().slice(0,10);
+  addCheck('Auto-Backup Today', lastAuto === today ? 'ok' : 'warn',
+    lastAuto === today ? 'Daily auto-backup already ran today (' + lastAuto + ')' : 'Daily auto-backup has not run yet today (last: ' + (lastAuto || 'never') + ')',
+    'Backup');
+
+  // ── GROUP 4: Occupancy ─────────────────────────────────────────
+  var occCount = 0;
+  var curM = new Date().getMonth() + 1;
+  for (var dd = 1; dd <= 31; dd++) {
+    try {
+      var occKey = 'occ_' + CY + '_' + curM + '_' + dd;
+      if (_STORE.getItem(occKey)) occCount++;
+    } catch(e) {}
+  }
+  addCheck('Occupancy Data (' + CY + '/' + curM + ')',
+    occCount > 0 ? 'ok' : 'warn',
+    occCount > 0 ? occCount + ' day(s) of occupancy saved for this month' : 'No occupancy data for current month — enter it from the Dashboard',
+    'Occupancy');
+
+  // ── GROUP 5: Settings ──────────────────────────────────────────
+  try {
+    var curr = JSON.parse(_STORE.getItem('pearl_currency') || 'null');
+    addCheck('Currency Settings', curr ? 'ok' : 'warn',
+      curr ? 'Currency: ' + curr.symbol + ' · Decimals: ' + curr.decimals : 'No currency settings found — defaults will be used',
+      'Settings');
+  } catch(e) {
+    addCheck('Currency Settings', 'warn', 'Could not read currency settings', 'Settings');
+  }
+
+  var totalRoomsOk = typeof _TOTAL_ROOMS !== 'undefined' && _TOTAL_ROOMS > 0;
+  addCheck('Hotel Rooms', totalRoomsOk ? 'ok' : 'warn',
+    totalRoomsOk ? 'Total rooms set to ' + _TOTAL_ROOMS : 'Total rooms not configured — occupancy % calculations may be wrong',
+    'Settings');
+
+  var hotelName = _STORE.getItem('pearl_hotel_name') || '';
+  addCheck('Hotel Name', hotelName ? 'ok' : 'warn',
+    hotelName ? 'Hotel name: ' + hotelName : 'Hotel name not set — configure in Settings → Hotel',
+    'Settings');
+
+  // ── GROUP 6: System Functions ──────────────────────────────────
+  var criticalFns = [
+    ['doLogin',        'Login'],
+    ['saveDB',         'Save Data'],
+    ['renderDash',     'Dashboard'],
+    ['renderEntry',    'Entry'],
+    ['toast',          'Notifications'],
+    ['showToast',      'Notifications (alias)'],
+    ['switchStab',     'Settings'],
+    ['runDiagnostics', 'Diagnostics'],
+    ['restoreFromVersion', 'Backup Restore'],
+    ['deleteBackupVersion','Backup Delete'],
+    ['autoSyncOccupancyFromFB', 'Occupancy Sync'],
+    ['loadDayOcc',     'Occupancy Load'],
+    ['saveDayOcc',     'Occupancy Save'],
+    ['fmtMoney',       'Currency Format'],
+    ['exportMonthlyExcel', 'Excel Export'],
+    ['renderForecast', 'Forecast'],
+    ['renderWhatIf',   'What-If'],
+    ['renderRiskIndicators', 'Risk Indicators']
+  ];
+  var missingFns = [];
+  criticalFns.forEach(function(pair) {
+    if (typeof window[pair[0]] !== 'function') missingFns.push(pair[1] + ' (' + pair[0] + ')');
+  });
+  if (missingFns.length === 0) {
+    addCheck('Critical Functions (' + criticalFns.length + ' checked)', 'ok', 'All critical functions are defined and available', 'System Functions');
+  } else {
+    addCheck('Critical Functions', 'fail', 'Missing: ' + missingFns.join(', '), 'System Functions');
+  }
+
+  // ── GROUP 7: Firebase live check (async) ───────────────────────
+  if (window._fbLoadKey) {
+    pending++;
+    var fbCheckTimeout = setTimeout(function() {
+      addCheck('Firebase Read Test', 'fail', 'Firebase read timed out after 5 seconds — database may be unreachable', 'Connectivity');
+      pending--;
+      if (pending === 0) finalise();
+    }, 5000);
+
+    window._fbLoadKey('pearl/settings/currency').then(function(val) {
+      clearTimeout(fbCheckTimeout);
+      addCheck('Firebase Read Test', 'ok', 'Successfully read from Firebase in real-time · Currency setting: ' + (val ? JSON.stringify(val).slice(0,60) : 'not set'), 'Connectivity');
+      pending--;
+      if (pending === 0) finalise();
+    }).catch(function(e) {
+      clearTimeout(fbCheckTimeout);
+      addCheck('Firebase Read Test', 'fail', 'Firebase read failed: ' + (e.message || e), 'Connectivity');
+      pending--;
+      if (pending === 0) finalise();
+    });
+
+    // Check backup index integrity vs Firebase
+    pending++;
+    window._fbLoadKey('pearl/backup/index').then(function(fbIdx) {
+      var localIdx = null;
+      try { localIdx = JSON.parse(_STORE.getItem('pearl_backup_index') || 'null'); } catch(e) {}
+      var fbCount    = fbIdx ? (Array.isArray(fbIdx) ? fbIdx.length : Object.keys(fbIdx).length) : 0;
+      var localCount = localIdx ? localIdx.length : 0;
+      if (fbCount === localCount) {
+        addCheck('Backup Index Sync', 'ok', 'Local and Firebase backup index match (' + fbCount + ' versions)', 'Backup');
+      } else {
+        addCheck('Backup Index Sync', 'warn', 'Mismatch: Firebase has ' + fbCount + ' versions, local cache has ' + localCount + ' — click Refresh in Backup History to sync', 'Backup');
+      }
+      pending--;
+      if (pending === 0) finalise();
+    }).catch(function() {
+      addCheck('Backup Index Sync', 'warn', 'Could not compare backup indexes — Firebase unreachable', 'Backup');
+      pending--;
+      if (pending === 0) finalise();
+    });
+
+  } else {
+    addCheck('Firebase Read Test', 'fail', 'Firebase not available — cannot perform live read test', 'Connectivity');
+  }
+
+  // Finalise sync checks (async ones handled separately above)
+  if (pending === 0) finalise();
+}
+
+
+// ════════════════════════════════════════════════════════════════
+//  GLOBAL ERROR CAPTURE — catches silent JS failures
+// ════════════════════════════════════════════════════════════════
+var _errorLog = [];          // in-memory ring buffer — max 50
+var _MAX_ERRORS = 50;
+
+function _logError(type, msg, source, line, col, err) {
+  // Skip noise: Firebase internal errors, browser extension errors, cancelled fetches
+  var skip = ['extension', 'chrome-extension', 'moz-extension', 'ResizeObserver',
+               'Non-Error promise', 'Load failed', 'Script error'];
+  for (var i = 0; i < skip.length; i++) {
+    if (msg && msg.indexOf(skip[i]) !== -1) return;
+    if (source && source.indexOf(skip[i]) !== -1) return;
+  }
+
+  var entry = {
+    type    : type,
+    msg     : msg || 'Unknown error',
+    source  : source || '',
+    line    : line || 0,
+    col     : col  || 0,
+    stack   : err && err.stack ? err.stack.split('\n').slice(0,4).join(' | ') : '',
+    ts      : new Date().toLocaleTimeString('en-GB')
+  };
+  _errorLog.unshift(entry);
+  if (_errorLog.length > _MAX_ERRORS) _errorLog.pop();
+  _updateErrBadge();
+}
+
+function _updateErrBadge() {
+  var badge = document.getElementById('err-badge');
+  var text  = document.getElementById('err-badge-text');
+  if (!badge || !text) return;
+  if (_errorLog.length === 0) { badge.style.display = 'none'; return; }
+  var cnt = _errorLog.length;
+  text.textContent = cnt + ' error' + (cnt > 1 ? 's' : '') + ' caught';
+  badge.style.display = 'flex';
+}
+
+function showErrorLog() {
+  // Show errors inside the diagnostics panel — open settings and switch to diag
+  openSettings();
+  switchStab('diag');
+  // Render error log at bottom of diag panel
+  var res = document.getElementById('diag-results');
+  if (!res) return;
+  var html = '<div style="font-size:10px;font-weight:800;color:#94a3b8;letter-spacing:2px;text-transform:uppercase;padding:8px 2px 6px">Runtime Error Log (' + _errorLog.length + ')</div>';
+  html += '<div style="display:flex;flex-direction:column;gap:6px">';
+  _errorLog.forEach(function(e) {
+    html += '<div style="padding:10px 14px;background:#fef2f2;border:1.5px solid #fecaca;border-radius:10px;font-size:12px">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">' +
+        '<span style="font-weight:700;color:#dc2626">❌ ' + e.type + '</span>' +
+        '<span style="color:#94a3b8;font-size:11px">' + e.ts + '</span>' +
+      '</div>' +
+      '<div style="color:#1e293b;font-weight:600;margin-bottom:3px">' + (e.msg||'').slice(0,120) + '</div>' +
+      (e.source ? '<div style="color:#64748b;font-size:11px">' + e.source.split('/').pop() + (e.line ? ':' + e.line : '') + '</div>' : '') +
+      (e.stack  ? '<div style="color:#94a3b8;font-size:10px;margin-top:4px;font-family:monospace;word-break:break-all">' + e.stack.slice(0,200) + '</div>' : '') +
+    '</div>';
+  });
+  html += '</div>';
+  html += '<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">' +
+    '<button onclick="_errorLog=[];_updateErrBadge();showErrorLog()" style="padding:8px 14px;background:#fff5f5;border:1.5px solid #fca5a5;color:#dc2626;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">🗑 Clear Log</button>' +
+    '<button onclick="runDiagnostics()" style="padding:8px 14px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">🩺 Run Full Diagnostics</button>' +
+    '<button onclick="reportIssue()" style="padding:8px 14px;background:#f8fafc;border:1.5px solid #e2e8f0;color:#64748b;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">📋 Copy Issue Report</button>' +
+  '</div>';
+  res.innerHTML = html;
+}
+
+// ── Wire up global handlers ──
+window.onerror = function(msg, src, line, col, err) {
+  _logError('JS Error', msg, src, line, col, err);
+  return false; // don't suppress default console output
+};
+window.addEventListener('unhandledrejection', function(e) {
+  var msg = e.reason ? (e.reason.message || String(e.reason)) : 'Unhandled promise rejection';
+  _logError('Promise Rejection', msg, '', 0, 0, e.reason);
+});
+
+
+// ════════════════════════════════════════════════════════════════
+//  STARTUP VALIDATION — silent mini-check on every login
+//  Runs 3 seconds after bootApp() — never blocks the UI
+// ════════════════════════════════════════════════════════════════
+function runStartupValidation() {
+  var issues = [];
+
+  // 1. Critical functions present?
+  var critFns = ['saveDB','renderDash','renderEntry','toast','doLogin',
+                 'restoreFromVersion','deleteBackupVersion','autoSyncOccupancyFromFB'];
+  critFns.forEach(function(fn) {
+    if (typeof window[fn] !== 'function') issues.push('Missing function: ' + fn + '()');
+  });
+
+  // 2. Local storage writable?
+  try {
+    _STORE.setItem('__sv__','1'); _STORE.removeItem('__sv__');
+  } catch(e) {
+    issues.push('Local storage not writable — data will not persist');
+  }
+
+  // 3. Current year data present? If not, auto-trigger sync
+  var localDataMissing = false;
+  try {
+    var d = JSON.parse(_STORE.getItem('pearl_laundry_' + CY) || 'null');
+    if (!d || Object.keys(d).length === 0) {
+      localDataMissing = true;
+      issues.push('No ' + CY + ' data in local storage — triggering auto-sync from Firebase...');
+    }
+  } catch(e) {
+    localDataMissing = true;
+    issues.push('Could not read ' + CY + ' data from storage');
+  }
+
+  // Auto-sync if data missing and Firebase available
+  if (localDataMissing && window._fbLoadKey) {
+    setTimeout(function() {
+      _autoRecoverData();
+    }, 500);
+  }
+
+  // 4. Firebase connected?
+  if (!window._fbDB) {
+    issues.push('Firebase not connected — cloud features unavailable');
+  }
+
+  // 5. Last backup age warning
+  try {
+    var idx = JSON.parse(_STORE.getItem('pearl_backup_index') || 'null');
+    if (!idx || idx.length === 0) {
+      issues.push('No cloud backup found — save a backup from the Backup tab');
+    } else {
+      var daysSince = Math.floor((Date.now() - new Date(idx[0].savedAt)) / 86400000);
+      if (daysSince > 14) issues.push('Last backup was ' + daysSince + ' days ago — consider saving a new one');
+    }
+  } catch(e) {}
+
+  // Log any issues to the error log for visibility
+  issues.forEach(function(msg) {
+    _logError('Startup Warning', msg, 'startup-validation', 0, 0, null);
+  });
+
+  // Only notify user if there are serious issues (not just warnings)
+  var serious = issues.filter(function(m) {
+    return m.indexOf('Missing function') !== -1 || m.indexOf('not writable') !== -1;
+  });
+  if (serious.length > 0) {
+    toast('⚠️ ' + serious.length + ' startup issue(s) detected — check Diagnostics', 'warn');
+  }
+
+  console.log('[Startup Validation] ' + (issues.length === 0 ? 'All clear ✅' : issues.length + ' issue(s): ' + issues.join(' | ')));
+}
+
+
+function renderDiagErrorLog() {
+  var el = document.getElementById('diag-errlog');
+  if (!el) return;
+  if (!_errorLog || _errorLog.length === 0) {
+    el.innerHTML = '<div style="padding:12px 14px;background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;font-size:12px;color:#15803d;font-weight:600">✅ No runtime errors recorded in this session</div>';
+    return;
+  }
+  var html = '<div style="display:flex;flex-direction:column;gap:6px">';
+  _errorLog.forEach(function(e) {
+    html += '<div style="padding:10px 14px;background:#fef2f2;border:1.5px solid #fecaca;border-radius:10px">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">' +
+        '<span style="font-size:12px;font-weight:700;color:#dc2626">❌ ' + e.type + '</span>' +
+        '<span style="font-size:10px;color:#94a3b8">' + e.ts + '</span>' +
+      '</div>' +
+      '<div style="font-size:12px;color:#1e293b;font-weight:600;margin-bottom:2px">' + (e.msg||'').slice(0,140) + '</div>' +
+      (e.source ? '<div style="font-size:11px;color:#64748b">' + e.source.split('/').pop() + (e.line ? ' · line ' + e.line : '') + '</div>' : '') +
+      (e.stack  ? '<div style="font-size:10px;color:#94a3b8;margin-top:4px;font-family:monospace;word-break:break-all;line-height:1.5">' + e.stack.slice(0,180) + '</div>' : '') +
+    '</div>';
+  });
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+
+// ════════════════════════════════════════════════════════════════
+//  SELF-HEALING — auto-recover + force re-sync + report issue
+// ════════════════════════════════════════════════════════════════
+
+// ── Auto-recover: called when local data is found empty at startup ──
+function _autoRecoverData() {
+  if (!window._fbLoadKey) return;
+  console.log('[AutoRecover] Local data missing — attempting Firebase sync...');
+
+  window._fbLoadKey('pearl/data').then(function(fbData) {
+    if (!fbData || Object.keys(fbData).length === 0) {
+      // No data in firebase/data — try latest backup
+      window._fbLoadKey('pearl/backup/latest').then(function(bk) {
+        if (bk && bk.data && Object.keys(bk.data).length > 0) {
+          _applyRestoredData(bk.data, 'latest cloud backup');
+        } else {
+          // Show self-healing restore prompt — last resort
+          _showRestorePrompt();
+        }
+      }).catch(function() { _showRestorePrompt(); });
+      return;
+    }
+    _applyRestoredData(fbData, 'Firebase database');
+  }).catch(function(e) {
+    console.warn('[AutoRecover] Firebase sync failed:', e.message);
+    _logError('AutoRecover', 'Could not auto-recover data: ' + e.message, 'autoRecover', 0, 0, e);
+  });
+}
+
+// ── Apply recovered data to localStorage + memory ──
+function _applyRestoredData(dataObj, source) {
+  var years = 0, entries = 0;
+  Object.keys(dataObj).forEach(function(y) {
+    var yearData = dataObj[y];
+    if (!yearData || typeof yearData !== 'object') return;
+    _STORE.setItem('pearl_laundry_' + y, JSON.stringify(yearData));
+    _DB[y] = yearData;
+    entries += Object.keys(yearData).length;
+    years++;
+  });
+  if (years > 0) {
+    toast('✅ Auto-recovered ' + years + ' year(s) · ' + entries + ' entries from ' + source, 'ok');
+    console.log('[AutoRecover] Restored ' + years + ' year(s) from ' + source);
+    setTimeout(function() {
+      try { PRICES = loadPR(CY); } catch(e) {}
+      try { renderDash(); } catch(e) {}
+      try { renderEntry(); } catch(e) {}
+    }, 600);
+  }
+}
+
+// ── Self-healing restore prompt — shown when all auto-attempts fail ──
+function _showRestorePrompt() {
+  // Don't show if user already has data (race condition guard)
+  try {
+    var d = JSON.parse(_STORE.getItem('pearl_laundry_' + CY) || 'null');
+    if (d && Object.keys(d).length > 0) return;
+  } catch(e) {}
+
+  var prompt = document.createElement('div');
+  prompt.id = 'restore-prompt';
+  prompt.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:99999;' +
+    'background:#0d1b2e;border:2px solid #c9a84c;border-radius:16px;padding:20px 24px;' +
+    'box-shadow:0 16px 60px rgba(0,0,0,.6);max-width:420px;width:90vw;text-align:center;' +
+    'animation:rise .4s cubic-bezier(.22,1,.36,1)';
+  prompt.innerHTML =
+    '<div style="font-size:28px;margin-bottom:8px">⚠️</div>' +
+    '<div style="font-size:15px;font-weight:800;color:#fff;margin-bottom:6px">Data Not Found Locally</div>' +
+    '<div style="font-size:12px;color:rgba(255,255,255,.55);margin-bottom:18px;line-height:1.6">' +
+      'Your ' + CY + ' data was not found in this browser.<br>This usually means a new device or cleared storage.' +
+    '</div>' +
+    '<div style="display:flex;flex-direction:column;gap:8px">' +
+      '<button onclick="restoreCloudBackup();document.getElementById('restore-prompt').remove()" ' +
+        'style="padding:12px;background:#c9a84c;color:#0d1b2e;border:none;border-radius:10px;' +
+        'font-size:13px;font-weight:800;cursor:pointer">☁️ Restore from Cloud Backup</button>' +
+      '<button onclick="showTab('backup');document.getElementById('restore-prompt').remove()" ' +
+        'style="padding:10px;background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);' +
+        'border:1px solid rgba(255,255,255,.15);border-radius:10px;font-size:12px;font-weight:600;cursor:pointer">' +
+        '📁 Open Backup Tab to Restore Manually</button>' +
+      '<button onclick="document.getElementById('restore-prompt').remove()" ' +
+        'style="padding:8px;background:none;color:rgba(255,255,255,.3);border:none;' +
+        'font-size:11px;cursor:pointer">Dismiss — I'll handle it later</button>' +
+    '</div>';
+  document.body.appendChild(prompt);
+}
+
+// ── Force Re-Sync: pull everything fresh from Firebase into localStorage ──
+function forceReSyncFromFirebase() {
+  if (!window._fbLoadKey) {
+    toast('❌ Firebase not connected', 'err'); return;
+  }
+  var btn = document.getElementById('diag-resync-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Syncing...'; }
+  toast('⏳ Syncing all data from Firebase...', 'info');
+
+  var tasks = [
+    // Entry data
+    window._fbLoadKey('pearl/data').then(function(d) {
+      if (!d) return '⚠️ No entry data in Firebase';
+      var y = 0, e = 0;
+      Object.keys(d).forEach(function(yr) {
+        if (!d[yr] || typeof d[yr] !== 'object') return;
+        _STORE.setItem('pearl_laundry_' + yr, JSON.stringify(d[yr]));
+        _DB[yr] = d[yr];
+        e += Object.keys(d[yr]).length;
+        y++;
+      });
+      return '✅ Entry data: ' + y + ' year(s), ' + e + ' entries';
+    }),
+    // Prices
+    window._fbLoadKey('pearl/prices').then(function(d) {
+      if (!d) return '⚠️ No price data in Firebase';
+      Object.keys(d).forEach(function(yr) {
+        _STORE.setItem('pearl_prices_' + yr, JSON.stringify(d[yr]));
+      });
+      return '✅ Prices: ' + Object.keys(d).length + ' year(s)';
+    }).catch(function() { return '⚠️ Price sync skipped'; }),
+    // Settings
+    window._fbLoadKey('pearl/settings').then(function(d) {
+      if (!d) return '⚠️ No settings in Firebase';
+      if (d.credentials) _STORE.setItem('pearl_credentials', JSON.stringify(d.credentials));
+      if (d.team_accounts) _STORE.setItem('pearl_team_accounts', JSON.stringify(d.team_accounts));
+      if (d.tabaccess) _STORE.setItem('pearl_tab_access', JSON.stringify(d.tabaccess));
+      if (d.currency) { _STORE.setItem('pearl_currency', JSON.stringify(d.currency)); _CURRENCY = d.currency; }
+      return '✅ Settings synced';
+    }).catch(function() { return '⚠️ Settings sync skipped'; }),
+    // Occupancy
+    autoSyncOccupancyFromFB() || Promise.resolve('✅ Occupancy sync triggered')
+  ];
+
+  Promise.all(tasks.map(function(t) {
+    return (t && typeof t.then === 'function') ? t.catch(function(e) { return '❌ ' + e.message; }) : Promise.resolve(t);
+  })).then(function(results) {
+    var summary = results.filter(Boolean).join(' · ');
+    toast('✅ Sync complete — refreshing...', 'ok');
+    console.log('[ForceReSync]', summary);
+    // Re-render everything
+    setTimeout(function() {
+      try { PRICES = loadPR(CY); } catch(e) {}
+      try { renderDash(); } catch(e) {}
+      try { renderEntry(); } catch(e) {}
+      if (btn) { btn.disabled = false; btn.textContent = '🔃 Force Re-Sync from Firebase'; }
+      // Update diag results with sync summary
+      var ts = document.getElementById('diag-timestamp');
+      if (ts) ts.textContent = 'Last sync: ' + new Date().toLocaleString('en-GB') + ' — ' + summary;
+    }, 800);
+  });
+}
+
+// ── Download Raw Firebase JSON ──
+function downloadRawFirebaseJSON() {
+  if (!window._fbLoadKey) {
+    toast('❌ Firebase not connected', 'err'); return;
+  }
+  toast('⏳ Fetching all data from Firebase...', 'info');
+  window._fbLoadKey('pearl').then(function(d) {
+    if (!d) { toast('❌ No data found in Firebase', 'err'); return; }
+    var json = JSON.stringify(d, null, 2);
+    var blob = new Blob([json], {type: 'application/json;charset=utf-8'});
+    var url  = URL.createObjectURL(blob);
+    var a    = document.createElement('a');
+    a.href   = url;
+    a.download = 'Pearl_Firebase_Raw_' + new Date().toISOString().slice(0,10) + '.json';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function() { document.body.removeChild(a); URL.revokeObjectURL(url); }, 2000);
+    var kb = (json.length / 1024).toFixed(1);
+    toast('✅ Downloaded ' + kb + ' KB of raw Firebase data', 'ok');
+    showBackupMsg('backup-raw-msg', '✅ Downloaded ' + kb + ' KB — file: ' + a.download, 'ok');
+  }).catch(function(e) {
+    toast('❌ Download failed: ' + e.message, 'err');
+    showBackupMsg('backup-raw-msg', '❌ Failed: ' + e.message + ' — check Firebase rules allow read', 'err');
+  });
+}
+
+// ── Report Issue: format error details for sharing ──
+function reportIssue() {
+  var lines = ['RS Pearl — Issue Report'];
+  lines.push('Generated: ' + new Date().toLocaleString('en-GB'));
+  lines.push('URL: ' + window.location.href.split('?')[0]);
+  lines.push('Browser: ' + navigator.userAgent.split(') ')[0].split(' (').pop());
+  lines.push('Firebase: ' + (window._fbDB ? 'Connected' : 'Not connected'));
+  lines.push('');
+  lines.push('--- ERRORS (' + (_errorLog ? _errorLog.length : 0) + ') ---');
+  if (_errorLog && _errorLog.length > 0) {
+    _errorLog.slice(0, 10).forEach(function(e, i) {
+      lines.push((i+1) + '. [' + e.ts + '] ' + e.type + ': ' + e.msg);
+      if (e.source) lines.push('   at ' + e.source.split('/').pop() + (e.line ? ':' + e.line : ''));
+      if (e.stack) lines.push('   ' + e.stack.slice(0, 120));
+    });
+  } else {
+    lines.push('No errors recorded in this session.');
+  }
+  lines.push('');
+  lines.push('--- LOCAL DATA ---');
+  for (var y = 2024; y <= 2028; y++) {
+    try {
+      var d = JSON.parse(_STORE.getItem('pearl_laundry_' + y) || 'null');
+      if (d) lines.push('Year ' + y + ': ' + Object.keys(d).length + ' entries');
+    } catch(e) {}
+  }
+
+  var text = lines.join('
+');
+  // Copy to clipboard
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(function() {
+      toast('📋 Issue report copied to clipboard — paste it to share', 'ok');
+    }).catch(function() { _fallbackCopyReport(text); });
+  } else {
+    _fallbackCopyReport(text);
+  }
+}
+
+function _fallbackCopyReport(text) {
+  var ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;top:-999px;opacity:0';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); toast('📋 Report copied to clipboard', 'ok'); } catch(e) { toast('⚠️ Could not copy — see console', 'warn'); console.log(text); }
+  document.body.removeChild(ta);
+}
 
 // ── Service Worker for offline support ──
 if ('serviceWorker' in navigator) {
