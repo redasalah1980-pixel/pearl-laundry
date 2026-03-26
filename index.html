@@ -1328,16 +1328,38 @@ var _fbDB = null;
     <div class="ctrl" style="flex-wrap:wrap;gap:10px;align-items:flex-end">
       <div class="ctrl-group"><div class="ctrl-label">Month</div>
         <select id="dash-month" onchange="renderDash()"></select></div>
-      <div style="display:flex;align-items:flex-end;gap:8px">
-        <div>
-          <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">MONTHLY TARGET · <span id="dash-target-month-lbl" style="color:#c9a84c"></span></div>
-          <input type="text" id="dash-target" placeholder="e.g. 80,000" inputmode="numeric"
-            style="padding:7px 12px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;width:160px;outline:none"
-            onchange="saveDashTarget()"
-            onfocus="this.value=this.value.replace(/,/g,'')"
-            onblur="formatTargetInputDisplay(this)">
+      <!-- Monthly Target Widget -->
+      <div style="display:flex;align-items:flex-end;gap:0;background:#fff;border:1.5px solid #e2e8f0;border-radius:10px;padding:8px 12px;gap:10px">
+        <div style="display:flex;flex-direction:column;gap:3px">
+          <div style="font-size:9px;font-weight:800;color:#94a3b8;letter-spacing:1.5px;text-transform:uppercase">Monthly Target · <span id="dash-target-month-lbl" style="color:#c9a84c"></span></div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <!-- Step down buttons -->
+            <div style="display:flex;flex-direction:column;gap:2px">
+              <button onclick="stepTarget(-1000)" title="-1,000" style="width:22px;height:18px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;font-size:9px;cursor:pointer;color:#64748b;font-weight:700;line-height:1">-1k</button>
+              <button onclick="stepTarget(-5000)" title="-5,000" style="width:22px;height:18px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;font-size:9px;cursor:pointer;color:#64748b;font-weight:700;line-height:1">-5k</button>
+            </div>
+            <!-- Input -->
+            <input type="text" id="dash-target" placeholder="0" inputmode="numeric"
+              style="padding:6px 10px;border:1.5px solid #c9a84c;border-radius:8px;font-size:15px;font-weight:800;color:#0d1b2e;width:130px;outline:none;text-align:center;background:#fffbeb"
+              onchange="saveDashTarget()"
+              onfocus="this.select();this.value=this.value.replace(/,/g,'')"
+              onblur="formatTargetInputDisplay(this)">
+            <!-- Step up buttons -->
+            <div style="display:flex;flex-direction:column;gap:2px">
+              <button onclick="stepTarget(1000)" title="+1,000" style="width:22px;height:18px;background:#f0fdf4;border:1px solid #86efac;border-radius:4px;font-size:9px;cursor:pointer;color:#15803d;font-weight:700;line-height:1">+1k</button>
+              <button onclick="stepTarget(5000)" title="+5,000" style="width:22px;height:18px;background:#f0fdf4;border:1px solid #86efac;border-radius:4px;font-size:9px;cursor:pointer;color:#15803d;font-weight:700;line-height:1">+5k</button>
+            </div>
+          </div>
         </div>
-        <button onclick="saveDashTarget()" style="padding:7px 14px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer">Set Target</button>
+        <div style="display:flex;flex-direction:column;gap:3px">
+          <div style="font-size:9px;font-weight:800;color:#94a3b8;letter-spacing:1.5px;text-transform:uppercase">&nbsp;</div>
+          <div style="display:flex;gap:4px;align-items:center">
+            <button onclick="stepTarget(10000)" title="+10,000"
+              style="padding:5px 8px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;color:#1d4ed8">+10k</button>
+            <button onclick="saveDashTarget()"
+              style="padding:6px 14px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer">💾 Save</button>
+          </div>
+        </div>
       </div>
       <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
         <div id="dash-insight-badge"></div>
@@ -5103,6 +5125,8 @@ function _bootApp(user) {
   // Show first allowed tab
   var firstTab = allowed[0] || 'dashboard';
   buildYearSel(); buildSelectors(); showTab(firstTab);
+  // Sync targets for all 12 months from Firebase on login
+  for (var _tm = 1; _tm <= 12; _tm++) { loadTargetFB(CY, _tm); }
   // Silent startup validation — runs 3s after boot, never blocks UI
   setTimeout(function() {
     if (typeof runStartupValidation === 'function') runStartupValidation();
@@ -8449,17 +8473,24 @@ function benchKey(y, m) { return 'pearl_bench_' + y + '_' + m; }
 function benchSettingsKey() { return 'pearl_bench_settings'; }
 
 function loadBenchOcc(y, m) {
-  // Always try localStorage first (fast)
+  // Always return localStorage immediately (fast, no flicker)
   var local = {};
   try { local = JSON.parse(_STORE.getItem(benchKey(y, m)) || '{}'); } catch(e) {}
-  // Background sync from Firebase
+  // Background sync from Firebase — LOCAL WINS (most recent edit is always local)
   if (window._fbLoadKey) {
     window._fbLoadKey('pearl/benchmark/' + y + '/' + m).then(function(fb) {
       if (fb && Object.keys(fb).length > 0) {
-        // Merge Firebase into local (Firebase wins for existing keys)
-        var merged = Object.assign({}, local, fb);
-        try { _STORE.setItem(benchKey(y, m), JSON.stringify(merged)); } catch(e) {}
-      } else if (Object.keys(local).length > 0) {
+        // Re-read local (may have changed since async started)
+        var freshLocal = {};
+        try { freshLocal = JSON.parse(_STORE.getItem(benchKey(y, m)) || '{}'); } catch(e) {}
+        // Local wins — only fill in days that don't exist locally
+        var merged = Object.assign({}, fb, freshLocal);
+        var changed = JSON.stringify(merged) !== JSON.stringify(freshLocal);
+        if (changed) {
+          try { _STORE.setItem(benchKey(y, m), JSON.stringify(merged)); } catch(e) {}
+          // Do NOT re-render — silent update only, prevents flicker
+        }
+      } else if (Object.keys(local).length > 0 && window._fbSaveKey) {
         // Push local to Firebase if Firebase is empty
         window._fbSaveKey('pearl/benchmark/' + y + '/' + m, local);
       }
@@ -9642,9 +9673,26 @@ function saveDashTarget() {
   var rawVal = String(document.getElementById('dash-target')?.value || '').replace(/,/g,'');
   var val = parseFloat(rawVal) || 0;
   saveTarget(CY, m, { revenue: val });
-  if (window._fbSaveKey) window._fbSaveKey('pearl/targets/' + CY + '/' + m, { revenue: val });
+  // Re-format display immediately
+  var inp = document.getElementById('dash-target');
+  if (inp) inp.value = val > 0 ? f2(val) : '';
   toast('✅ Target saved — ' + fmtMoney(val) + ' for ' + MONTH_NAMES[m-1], 'ok');
   renderDash();
+}
+
+function stepTarget(delta) {
+  var m   = parseInt(document.getElementById('dash-month')?.value || new Date().getMonth()+1);
+  var inp = document.getElementById('dash-target');
+  if (!inp) return;
+  var raw = parseFloat(String(inp.value).replace(/,/g,'')) || 0;
+  var newVal = Math.max(0, raw + delta);
+  inp.value = f2(newVal);
+  // Auto-save immediately
+  saveTarget(CY, m, { revenue: newVal });
+  renderDash();
+  // Visual feedback on the input briefly
+  inp.style.borderColor = '#16a34a';
+  setTimeout(function(){ inp.style.borderColor = '#c9a84c'; }, 600);
 }
 
 function renderDashOccQuick(m) {
@@ -9869,10 +9917,12 @@ function dqSave(day, m) {
     toast('⚠️ Enter a valid occupancy % (0-100)', 'err'); return;
   }
 
-  // Save to benchmark store
+  // Save to benchmark store (pearl/benchmark)
   var occ = loadBenchOcc(CY, m);
   occ[day] = pct;
   saveBenchOccData(CY, m, occ);
+  // ALSO save to pearl/occupancy path so autoSync and diagnostics find it
+  saveDayOcc(CY, m, day, isNaN(rooms) ? Math.round((_TOTAL_ROOMS||161)*pct/100) : rooms, pct);
 
   // Sync benchmark grid if visible
   var bInp   = document.getElementById('bocc_' + day);
@@ -10001,24 +10051,55 @@ function renderTargetBar(totalRev, m) {
   var target = loadTarget(CY, m);
   var bar = document.getElementById('dash-target-bar');
   if (!bar) return;
-  if (!target || !target.revenue) { bar.innerHTML = ''; return; }
+  if (!target || !target.revenue) {
+    bar.innerHTML = '<div style="background:#fffbeb;border:1.5px dashed #fde68a;border-radius:12px;padding:12px 18px;display:flex;align-items:center;gap:10px">' +
+      '<span style="font-size:18px">🎯</span>' +
+      '<span style="font-size:12px;color:#92400e;font-weight:600">No monthly target set — use the target input above to set one for ' + MONTH_NAMES[m-1] + '</span>' +
+    '</div>';
+    return;
+  }
   var tgt = target.revenue;
   var pct = Math.min(100, (totalRev / tgt * 100));
-  var col = pct >= 100 ? '#16a34a' : pct >= 75 ? '#d97706' : '#dc2626';
-  var label = pct >= 100 ? '✅ Target reached!' : pct >= 75 ? '⚡ On track' : '⚠️ Below target';
+  var col   = pct >= 100 ? '#16a34a' : pct >= 75 ? '#d97706' : '#dc2626';
+  var bg    = pct >= 100 ? '#f0fdf4' : pct >= 75 ? '#fffbeb' : '#fff5f5';
+  var bdr   = pct >= 100 ? '#86efac' : pct >= 75 ? '#fde68a' : '#fecaca';
+  var label = pct >= 100 ? '🎉 Target reached!' : pct >= 75 ? '⚡ On track' : '⚠️ Below target';
   bar.innerHTML =
-    '<div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;padding:14px 18px">' +
-    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">' +
-      '<div style="font-size:12px;font-weight:700;color:#0d1b2e">Monthly Revenue Target</div>' +
-      '<div style="font-size:12px;font-weight:800;color:' + col + '">' + label + '</div>' +
+    '<div style="background:#fff;border:1.5px solid ' + bdr + ';border-radius:12px;padding:16px 20px">' +
+
+    // Header row — title + status badge + numbers
+    '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px">' +
+      '<div style="display:flex;align-items:center;gap:10px">' +
+        '<div style="width:36px;height:36px;background:' + bg + ';border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px">🎯</div>' +
+        '<div>' +
+          '<div style="font-size:13px;font-weight:800;color:#0d1b2e">Revenue Target — ' + MONTH_NAMES[m-1] + ' ' + CY + '</div>' +
+          '<div style="font-size:11px;color:#64748b;margin-top:1px">Monthly budget progress</div>' +
+        '</div>' +
+      '</div>' +
+      '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">' +
+        // Actual
+        '<div style="text-align:right">' +
+          '<div style="font-size:18px;font-weight:900;color:#0d1b2e">' + fmtMoney(totalRev) + '</div>' +
+          '<div style="font-size:9px;color:#64748b;font-weight:700;letter-spacing:.8px">ACTUAL</div>' +
+        '</div>' +
+        '<div style="font-size:18px;color:#e2e8f0;font-weight:300">/</div>' +
+        // Target
+        '<div style="text-align:right">' +
+          '<div style="font-size:18px;font-weight:900;color:#94a3b8">' + fmtMoney(tgt) + '</div>' +
+          '<div style="font-size:9px;color:#94a3b8;font-weight:700;letter-spacing:.8px">TARGET</div>' +
+        '</div>' +
+        // % badge
+        '<div style="padding:6px 14px;background:' + bg + ';border:1.5px solid ' + bdr + ';border-radius:10px;text-align:center">' +
+          '<div style="font-size:20px;font-weight:900;color:' + col + '">' + pct.toFixed(1) + '%</div>' +
+          '<div style="font-size:9px;color:' + col + ';font-weight:700">' + label + '</div>' +
+        '</div>' +
+      '</div>' +
     '</div>' +
-    '<div style="background:#f1f5f9;border-radius:20px;height:10px;overflow:hidden;margin-bottom:6px">' +
-      '<div style="background:' + col + ';height:100%;width:' + pct + '%;border-radius:20px;transition:width .5s ease"></div>' +
-    '</div>' +
-    '<div style="display:flex;justify-content:space-between;font-size:11px;color:#64748b">' +
-      '<span>Actual: <strong style="color:#0d1b2e">' + f2(totalRev) + ' QR</strong></span>' +
-      '<span><strong style="color:' + col + '">' + pct.toFixed(1) + '%</strong> of target</span>' +
-      '<span>Target: <strong style="color:#0d1b2e">' + f2(tgt) + ' QR</strong></span>' +
+
+    // Progress bar
+    '<div style="background:#f1f5f9;border-radius:20px;height:12px;overflow:hidden;margin-bottom:8px;position:relative">' +
+      '<div style="background:linear-gradient(90deg,' + col + ',' + (pct>=100?'#22c55e':pct>=75?'#f59e0b':'#ef4444') + ');height:100%;width:' + pct + '%;border-radius:20px;transition:width .6s cubic-bezier(.22,1,.36,1)"></div>' +
+      (pct < 100 ? '<div style="position:absolute;right:4px;top:50%;transform:translateY(-50%);font-size:9px;color:#94a3b8;font-weight:700">' + (100-pct).toFixed(1) + '% to go</div>' : '') +
     '</div>' +
     // Remaining / exceeded section
     (function(){
