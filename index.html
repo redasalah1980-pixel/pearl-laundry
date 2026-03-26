@@ -78,7 +78,7 @@ input,select,textarea{font-family:inherit;outline:none;border:none}
 }
 
 /* ── LOGIN PAGE — Full Immersive Dark Background ─────────────── */
-#pg-login{min-height:100vh;display:flex;align-items:center;justify-content:center;
+#pg-login{min-height:100vh;display:none;align-items:center;justify-content:center;
   background:#020810;position:relative;overflow:hidden;}
 #pg-login::before{display:none}
 #login-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:0;}
@@ -994,6 +994,22 @@ var _fbDB = null;
     <div id="caps-login" class="caps-warn hidden" style="background:rgba(254,243,199,.12);border-color:rgba(253,230,138,.25);color:#fde68a;margin-top:5px">⚠️ Caps Lock is ON</div>
     <button class="lbtn" onclick="doLogin()">▶ &nbsp;ENTER SYSTEM</button>
     <div class="lerr" id="l-err"></div>
+    <div style="text-align:center;margin-top:6px">
+      <span onclick="showForgotForm()" style="font-size:11px;color:rgba(255,255,255,.2);cursor:pointer;text-decoration:underline;text-underline-offset:3px">Forgot password?</span>
+    </div>
+    <div id="l-forgot-form" style="display:none;margin-top:14px;padding:14px 16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px">
+      <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:10px;line-height:1.6">Enter your master key and a new password to reset access:</div>
+      <input id="l-master-inp" type="text" placeholder="Master key: XXXX-XXXX-XXXX-XXXX"
+        style="width:100%;padding:9px 12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:8px;color:#fff;font-size:12px;font-family:monospace;outline:none;box-sizing:border-box;margin-bottom:8px;letter-spacing:1px;text-transform:uppercase"
+        oninput="this.value=this.value.toUpperCase()">
+      <input id="l-newpass-inp" type="password" placeholder="New password"
+        style="width:100%;padding:9px 12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:8px;color:#fff;font-size:12px;outline:none;box-sizing:border-box;margin-bottom:8px">
+      <div style="display:flex;gap:8px">
+        <button onclick="doEmergencyReset()" style="flex:1;padding:9px;background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.3);color:#c9a84c;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">Reset Password</button>
+        <button onclick="document.getElementById('l-forgot-form').style.display='none'" style="padding:9px 14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.4);border-radius:8px;font-size:12px;cursor:pointer">Cancel</button>
+      </div>
+      <div id="l-reset-msg" style="display:none;margin-top:8px;font-size:12px;text-align:center;font-weight:600"></div>
+    </div>
     <div class="l-copy">© Reda Salah · Laundry Management System · All Rights Reserved</div>
   </div>
 </div>
@@ -3977,8 +3993,9 @@ document.addEventListener('click', function(e) {
 });
 
 window.addEventListener('DOMContentLoaded', function() {
-  document.getElementById('pg-login').style.display = 'none';
-  setTimeout(bootWithLicenceCheck, 800);
+  // All pages start hidden in CSS — bootWithLicenceCheck decides which to show
+  // Small delay lets Firebase SDK initialise first
+  setTimeout(bootWithLicenceCheck, 900);
 });
 
 // ── Monthly export menu toggle ────────────────────────────────
@@ -4912,7 +4929,7 @@ function doLogin() {
     var _creds = getCredentials();
     var _team  = getTeamCredentials();
     // Admin login — RS@2026 always works as master fallback
-    var isAdmin = (u === _creds.user || u.toLowerCase() === 'reda' || u.toLowerCase() === 'admin') && (p === _creds.pass || p === 'RS@2026');
+    var isAdmin = (u === _creds.user) && (p === _creds.pass);
     if (isAdmin) {
       resetBtn();
       e.classList.remove('show'); e.innerHTML = '';
@@ -4960,6 +4977,64 @@ function doLogin() {
   }
   tryLogin(false);
 }
+
+function showForgotForm() {
+  var form = document.getElementById('l-forgot-form');
+  if (form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+
+function doEmergencyReset() {
+  var masterInp = document.getElementById('l-master-inp');
+  var newPassInp = document.getElementById('l-newpass-inp');
+  var msgEl = document.getElementById('l-reset-msg');
+  var master = (masterInp?.value || '').trim().toUpperCase();
+  var newPass = (newPassInp?.value || '').trim();
+
+  if (master !== _MASTER_KEY) {
+    msgEl.style.color = '#fca5a5';
+    msgEl.textContent = '❌ Invalid master key.';
+    msgEl.style.display = 'block';
+    return;
+  }
+  if (!newPass || newPass.length < 4) {
+    msgEl.style.color = '#fca5a5';
+    msgEl.textContent = '⚠️ New password must be at least 4 characters.';
+    msgEl.style.display = 'block';
+    return;
+  }
+
+  // Keep same username, reset password
+  var current = getCredentials();
+  var newCreds = { user: current.user || 'Reda Salah', pass: newPass };
+
+  // Save locally
+  try { _STORE.setItem('pearl_credentials', JSON.stringify(newCreds)); } catch(e) {}
+
+  // Save to Firebase
+  if (window._fbSaveKey) {
+    window._fbSaveKey('pearl/settings/credentials', newCreds).then(function() {
+      msgEl.style.color = '#86efac';
+      msgEl.textContent = '✅ Password reset! Logging you in...';
+      msgEl.style.display = 'block';
+      setTimeout(function() {
+        document.getElementById('l-pass').value = newPass;
+        document.getElementById('l-user').value = newCreds.user;
+        document.getElementById('l-forgot-form').style.display = 'none';
+        doLogin();
+      }, 1200);
+    }).catch(function(e) {
+      // Saved locally at least
+      msgEl.style.color = '#86efac';
+      msgEl.textContent = '✅ Password reset locally. Login now.';
+      msgEl.style.display = 'block';
+    });
+  } else {
+    msgEl.style.color = '#fca5a5';
+    msgEl.textContent = '⚠️ Firebase not ready. Try again in a moment.';
+    msgEl.style.display = 'block';
+  }
+}
+
 function doLogout() {
   if (window._unregisterPresence) window._unregisterPresence();
   _SESSION.removeItem('ph_user');
@@ -14380,7 +14455,19 @@ function _showActivationSuccess(holder) {
 
 function proceedToLogin() {
   document.getElementById('pg-licence').style.display = 'none';
-  document.getElementById('pg-login').style.display   = 'flex';
+  // Sync credentials from Firebase BEFORE showing login
+  // so user always logs in with the latest stored credentials
+  if (window._fbLoadKey) {
+    window._fbLoadKey('pearl/settings/credentials').then(function(v) {
+      if (v && v.user && v.pass) {
+        try { _STORE.setItem('pearl_credentials', JSON.stringify({user:v.user, pass:v.pass})); } catch(e) {}
+      }
+    }).catch(function(){}).finally(function() {
+      document.getElementById('pg-login').style.display = 'flex';
+    });
+  } else {
+    document.getElementById('pg-login').style.display = 'flex';
+  }
 }
 
 // ── Deprecated stubs (keep for compatibility) ──
