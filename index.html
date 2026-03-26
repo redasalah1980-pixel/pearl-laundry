@@ -14462,7 +14462,9 @@ function proceedToLogin() {
       if (v && v.user && v.pass) {
         try { _STORE.setItem('pearl_credentials', JSON.stringify({user:v.user, pass:v.pass})); } catch(e) {}
       }
-    }).catch(function(){}).finally(function() {
+    }).catch(function(){}).then(function() {
+      document.getElementById('pg-login').style.display = 'flex';
+    }, function() {
       document.getElementById('pg-login').style.display = 'flex';
     });
   } else {
