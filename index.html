@@ -2333,9 +2333,10 @@ var _fbDB = null;
 
     <!-- Tab buttons -->
     <div style="display:flex;border-bottom:2px solid #f1f5f9;background:#f8fafc">
-      <button id="ctab-pct" onclick="switchCalcTab('pct')" style="flex:1;padding:10px 6px;font-size:11px;font-weight:700;border:none;border-bottom:2px solid #0d1b2e;background:none;color:#0d1b2e;cursor:pointer">% Change</button>
-      <button id="ctab-rev" onclick="switchCalcTab('rev')" style="flex:1;padding:10px 6px;font-size:11px;font-weight:600;border:none;border-bottom:2px solid transparent;background:none;color:#64748b;cursor:pointer">% of Target</button>
-      <button id="ctab-rev2" onclick="switchCalcTab('rev2')" style="flex:1;padding:10px 6px;font-size:11px;font-weight:600;border:none;border-bottom:2px solid transparent;background:none;color:#64748b;cursor:pointer">Price Check</button>
+      <button id="ctab-calc" onclick="switchCalcTab('calc')" style="flex:1;padding:10px 6px;font-size:11px;font-weight:700;border:none;border-bottom:2px solid #0d1b2e;background:none;color:#0d1b2e;cursor:pointer">🔢 Calc</button>
+      <button id="ctab-pct" onclick="switchCalcTab('pct')" style="flex:1;padding:10px 6px;font-size:11px;font-weight:600;border:none;border-bottom:2px solid transparent;background:none;color:#64748b;cursor:pointer">% Change</button>
+      <button id="ctab-rev" onclick="switchCalcTab('rev')" style="flex:1;padding:10px 6px;font-size:11px;font-weight:600;border:none;border-bottom:2px solid transparent;background:none;color:#64748b;cursor:pointer">% Target</button>
+      <button id="ctab-rev2" onclick="switchCalcTab('rev2')" style="flex:1;padding:10px 6px;font-size:11px;font-weight:600;border:none;border-bottom:2px solid transparent;background:none;color:#64748b;cursor:pointer">Price ✓</button>
       <button id="ctab-gen" onclick="switchCalcTab('gen')" style="flex:1;padding:10px 6px;font-size:11px;font-weight:600;border:none;border-bottom:2px solid transparent;background:none;color:#64748b;cursor:pointer">General</button>
     </div>
 
@@ -2450,6 +2451,45 @@ var _fbDB = null;
           <div id="c-gen-val" style="font-size:28px;font-weight:900;color:#c9a84c"></div>
           <div id="c-gen-desc" style="font-size:11px;color:rgba(255,255,255,.5);margin-top:4px"></div>
         </div>
+      </div>
+
+      <!-- Tab: Full Calculator (NEW) -->
+      <div id="ctab-calc-panel">
+        <!-- Display -->
+        <div style="background:#0d1b2e;border-radius:12px;padding:12px 16px;margin-bottom:12px;min-height:70px;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden">
+          <div id="calc-expr" style="font-size:11px;color:rgba(255,255,255,.35);min-height:16px;text-align:right;word-break:break-all;margin-bottom:4px"></div>
+          <div id="calc-disp" style="font-size:30px;font-weight:900;color:#c9a84c;text-align:right;word-break:break-all;line-height:1.1">0</div>
+        </div>
+        <!-- Buttons grid -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+          <!-- Row 1 -->
+          <button onclick="calcBtn('C')"  style="grid-column:span 2;padding:14px;background:#fee2e2;border:none;border-radius:10px;font-size:14px;font-weight:800;color:#dc2626;cursor:pointer">C</button>
+          <button onclick="calcBtn('⌫')" style="padding:14px;background:#f1f5f9;border:none;border-radius:10px;font-size:16px;font-weight:700;color:#64748b;cursor:pointer">⌫</button>
+          <button onclick="calcBtn('%')"  style="padding:14px;background:#eff6ff;border:none;border-radius:10px;font-size:14px;font-weight:800;color:#2563eb;cursor:pointer">%</button>
+          <!-- Row 2 -->
+          <button onclick="calcBtn('7')" style="padding:14px;background:#f8fafc;border:none;border-radius:10px;font-size:16px;font-weight:700;color:#0d1b2e;cursor:pointer">7</button>
+          <button onclick="calcBtn('8')" style="padding:14px;background:#f8fafc;border:none;border-radius:10px;font-size:16px;font-weight:700;color:#0d1b2e;cursor:pointer">8</button>
+          <button onclick="calcBtn('9')" style="padding:14px;background:#f8fafc;border:none;border-radius:10px;font-size:16px;font-weight:700;color:#0d1b2e;cursor:pointer">9</button>
+          <button onclick="calcBtn('÷')" style="padding:14px;background:#1e3a5f;border:none;border-radius:10px;font-size:18px;font-weight:700;color:#c9a84c;cursor:pointer">÷</button>
+          <!-- Row 3 -->
+          <button onclick="calcBtn('4')" style="padding:14px;background:#f8fafc;border:none;border-radius:10px;font-size:16px;font-weight:700;color:#0d1b2e;cursor:pointer">4</button>
+          <button onclick="calcBtn('5')" style="padding:14px;background:#f8fafc;border:none;border-radius:10px;font-size:16px;font-weight:700;color:#0d1b2e;cursor:pointer">5</button>
+          <button onclick="calcBtn('6')" style="padding:14px;background:#f8fafc;border:none;border-radius:10px;font-size:16px;font-weight:700;color:#0d1b2e;cursor:pointer">6</button>
+          <button onclick="calcBtn('×')" style="padding:14px;background:#1e3a5f;border:none;border-radius:10px;font-size:18px;font-weight:700;color:#c9a84c;cursor:pointer">×</button>
+          <!-- Row 4 -->
+          <button onclick="calcBtn('1')" style="padding:14px;background:#f8fafc;border:none;border-radius:10px;font-size:16px;font-weight:700;color:#0d1b2e;cursor:pointer">1</button>
+          <button onclick="calcBtn('2')" style="padding:14px;background:#f8fafc;border:none;border-radius:10px;font-size:16px;font-weight:700;color:#0d1b2e;cursor:pointer">2</button>
+          <button onclick="calcBtn('3')" style="padding:14px;background:#f8fafc;border:none;border-radius:10px;font-size:16px;font-weight:700;color:#0d1b2e;cursor:pointer">3</button>
+          <button onclick="calcBtn('−')" style="padding:14px;background:#1e3a5f;border:none;border-radius:10px;font-size:18px;font-weight:700;color:#c9a84c;cursor:pointer">−</button>
+          <!-- Row 5 -->
+          <button onclick="calcBtn('0')" style="grid-column:span 2;padding:14px;background:#f8fafc;border:none;border-radius:10px;font-size:16px;font-weight:700;color:#0d1b2e;cursor:pointer;text-align:left;padding-left:22px">0</button>
+          <button onclick="calcBtn('.')" style="padding:14px;background:#f8fafc;border:none;border-radius:10px;font-size:20px;font-weight:900;color:#0d1b2e;cursor:pointer">.</button>
+          <button onclick="calcBtn('+')" style="padding:14px;background:#1e3a5f;border:none;border-radius:10px;font-size:18px;font-weight:700;color:#c9a84c;cursor:pointer">+</button>
+          <!-- Row 6: equals -->
+          <button onclick="calcBtn('=')" style="grid-column:span 4;padding:16px;background:linear-gradient(135deg,#c9a84c,#a8861e);border:none;border-radius:10px;font-size:18px;font-weight:900;color:#0d1b2e;cursor:pointer;letter-spacing:1px">= Calculate</button>
+        </div>
+        <!-- Result history line -->
+        <div id="calc-history" style="margin-top:10px;font-size:11px;color:#94a3b8;text-align:center;min-height:16px"></div>
       </div>
 
     </div>
@@ -2914,7 +2954,7 @@ var _fbDB = null;
         <div id="diag-errlog-wrap" style="margin-top:20px;min-width:0;overflow:hidden">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
             <div style="font-size:10px;font-weight:800;color:#94a3b8;letter-spacing:2px;text-transform:uppercase">Runtime Error Log</div>
-            <button onclick="_errorLog=[];_updateErrBadge();renderDiagErrorLog()" style="padding:4px 10px;background:#fff5f5;border:1.5px solid #fca5a5;color:#dc2626;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">🗑 Clear</button>
+            <button onclick="clearDiagErrorLog()" style="padding:4px 10px;background:#fff5f5;border:1.5px solid #fca5a5;color:#dc2626;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">🗑 Clear</button>
             <button onclick="reportIssue()" style="padding:4px 10px;background:#f8fafc;border:1.5px solid #e2e8f0;color:#64748b;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">📋 Report</button>
           </div>
           <div id="diag-errlog" style="min-width:0;overflow:hidden"></div>
@@ -3857,7 +3897,15 @@ function updateMoreBtnState(name) {
 
 function openCalc() {
   var m = document.getElementById('calc-modal');
-  if (m) { m.style.display = m.style.display === 'flex' ? 'none' : 'flex'; }
+  if (m) {
+    var isOpen = m.style.display === 'flex';
+    m.style.display = isOpen ? 'none' : 'flex';
+    if (!isOpen) {
+      switchCalcTab('calc');
+      // Focus keyboard support
+      setTimeout(function() { document.getElementById('calc-disp') && calcKeyboardInit(); }, 100);
+    }
+  }
 }
 function closeCalc() {
   var m = document.getElementById('calc-modal');
@@ -3865,7 +3913,7 @@ function closeCalc() {
 }
 
 function switchCalcTab(name) {
-  ['pct','rev','rev2','gen'].forEach(function(t) {
+  ['calc','pct','rev','rev2','gen'].forEach(function(t) {
     var panel = document.getElementById('ctab-' + t + '-panel');
     var btn   = document.getElementById('ctab-' + t);
     if (panel) panel.style.display = t === name ? 'block' : 'none';
@@ -5244,6 +5292,8 @@ function _bootApp(user) {
   buildYearSel(); buildSelectors(); showTab(firstTab);
   // Sync targets for all 12 months from Firebase on login
   for (var _tm = 1; _tm <= 12; _tm++) { loadTargetFB(CY, _tm); }
+  // Now show error badge if any errors were caught during boot
+  setTimeout(_updateErrBadge, 500);
   // Silent startup validation — runs 3s after boot, never blocks UI
   setTimeout(function() {
     if (typeof runStartupValidation === 'function') runStartupValidation();
@@ -11955,7 +12005,15 @@ function updateMoreBtnState(name) {
 
 function openCalc() {
   var m = document.getElementById('calc-modal');
-  if (m) { m.style.display = m.style.display === 'flex' ? 'none' : 'flex'; }
+  if (m) {
+    var isOpen = m.style.display === 'flex';
+    m.style.display = isOpen ? 'none' : 'flex';
+    if (!isOpen) {
+      switchCalcTab('calc');
+      // Focus keyboard support
+      setTimeout(function() { document.getElementById('calc-disp') && calcKeyboardInit(); }, 100);
+    }
+  }
 }
 function closeCalc() {
   var m = document.getElementById('calc-modal');
@@ -11963,7 +12021,7 @@ function closeCalc() {
 }
 
 function switchCalcTab(name) {
-  ['pct','rev','rev2','gen'].forEach(function(t) {
+  ['calc','pct','rev','rev2','gen'].forEach(function(t) {
     var panel = document.getElementById('ctab-' + t + '-panel');
     var btn   = document.getElementById('ctab-' + t);
     if (panel) panel.style.display = t === name ? 'block' : 'none';
@@ -14529,12 +14587,102 @@ function loadDeviceLicenceStatus() {
             'Last verified: ' + daysSince + ' day(s) ago' +
           '</div>' +
         '</div>' +
-        '<button onclick="if(confirm(\'Clear this device licence? You will need to re-enter a key.\')){clearLicenceCache();loadDeviceLicenceStatus();toast(\'Licence cleared\',\'ok\')}" ' +
+        '<button onclick="_confirmClearLicence()" ' +
           'style="padding:6px 12px;background:#fff5f5;border:1.5px solid #fca5a5;color:#dc2626;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer">' +
-          '🗑 Clear Device Licence' +
+          '🗑 Clear Licence' +
         '</button>' +
       '</div>' +
     '</div>';
+}
+
+
+function _confirmClearLicence() {
+  var existing = document.getElementById('_clr_lic');
+  if (existing) { existing.remove(); return; }
+  var box = document.createElement('div');
+  box.id = '_clr_lic';
+  box.style.cssText = 'position:fixed;bottom:80px;right:24px;z-index:99999;' +
+    'background:#fff;border:2px solid #fca5a5;border-radius:12px;' +
+    'padding:16px 20px;box-shadow:0 8px 32px rgba(0,0,0,.25);max-width:300px;font-family:inherit';
+  var t = document.createElement('div');
+  t.style.cssText = 'font-size:13px;font-weight:700;color:#0d1b2e;margin-bottom:4px';
+  t.textContent = 'Clear device licence?';
+  var s = document.createElement('div');
+  s.style.cssText = 'font-size:12px;color:#64748b;margin-bottom:12px';
+  s.textContent = 'You will need to enter a key again next time.';
+  var row = document.createElement('div');
+  row.style.cssText = 'display:flex;gap:8px';
+  var yes = document.createElement('button');
+  yes.style.cssText = 'flex:1;padding:8px;background:#dc2626;color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer';
+  yes.textContent = 'Clear';
+  yes.onclick = function() {
+    clearLicenceCache();
+    loadDeviceLicenceStatus();
+    toast('Licence cleared', 'ok');
+    box.remove();
+  };
+  var no = document.createElement('button');
+  no.style.cssText = 'flex:1;padding:8px;background:#f1f5f9;color:#64748b;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer';
+  no.textContent = 'Cancel';
+  no.onclick = function() { box.remove(); };
+  row.appendChild(yes);
+  row.appendChild(no);
+  box.appendChild(t);
+  box.appendChild(s);
+  box.appendChild(row);
+  document.body.appendChild(box);
+}
+
+
+function loadLicencePanel() {
+  var listEl = document.getElementById('lic-keys-list');
+  if (!listEl) return;
+  if (!window._fbDB) {
+    listEl.innerHTML = '<div style="color:#dc2626;font-size:12px;padding:12px">Firebase not connected.</div>';
+    return;
+  }
+  listEl.innerHTML = '<div style="text-align:center;padding:16px;color:#94a3b8;font-size:12px">Loading...</div>';
+  window._fbDB.ref('pearl/licences').once('value').then(function(snap) {
+    var data = snap.val() || {};
+    var keys = Object.keys(data);
+    if (keys.length === 0) {
+      listEl.innerHTML = '<div style="text-align:center;padding:20px;color:#94a3b8;font-size:13px">No keys yet. Generate one above.</div>';
+      return;
+    }
+    var html = '';
+    keys.forEach(function(k) {
+      var d = data[k];
+      var formattedKey = k.match(/.{1,4}/g) ? k.match(/.{1,4}/g).join('-') : k;
+      var isActive  = d.active !== false;
+      var isExpired = d.expires && new Date(d.expires) < new Date();
+      var statusCol = isExpired ? '#dc2626' : isActive ? '#16a34a' : '#94a3b8';
+      var statusBg  = isExpired ? '#fee2e2' : isActive ? '#f0fdf4' : '#f8fafc';
+      var statusLbl = isExpired ? '⏰ Expired' : isActive ? '✅ Active' : '❌ Revoked';
+      html += '<div style="display:flex;align-items:center;justify-content:space-between;' +
+        'padding:12px 14px;background:#fff;border:1.5px solid #e2e8f0;border-radius:10px;' +
+        'margin-bottom:8px;gap:10px;flex-wrap:wrap">' +
+        '<div>' +
+          '<div style="font-family:monospace;font-size:14px;font-weight:800;color:#0d1b2e;letter-spacing:1.5px">' + formattedKey + '</div>' +
+          '<div style="font-size:11px;color:#64748b;margin-top:3px">' +
+            '👤 ' + (d.holder||'Unknown') +
+            (d.expires ? ' · 📅 Expires: ' + d.expires : ' · No expiry') +
+            (d.lastUsed ? ' · Last used: ' + new Date(d.lastUsed).toLocaleDateString() : '') +
+          '</div>' +
+        '</div>' +
+        '<div style="display:flex;align-items:center;gap:8px">' +
+          '<span style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;' +
+            'background:' + statusBg + ';color:' + statusCol + '">' + statusLbl + '</span>' +
+          (isActive && !isExpired ?
+            '<button onclick="adminRevokeKey(' + JSON.stringify(k) + ')" ' +
+              'style="padding:5px 12px;background:#fee2e2;border:1.5px solid #fca5a5;' +
+              'color:#dc2626;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer">Revoke</button>' : '') +
+        '</div>' +
+      '</div>';
+    });
+    listEl.innerHTML = html;
+  }).catch(function(e) {
+    listEl.innerHTML = '<div style="color:#dc2626;font-size:12px;padding:12px">Error: ' + (e.message||e) + '</div>';
+  });
 }
 
 function adminGenerateKey() {
@@ -15285,13 +15433,46 @@ function restoreFromVersion(verId) {
 }
 
 function deleteBackupVersion(verId) {
-  if (!confirm('Delete this backup version? This cannot be undone.')) return;
+  // Use toast-style confirm instead of browser confirm() which can be blocked
+  _confirmDelete(verId);
+}
+
+function _confirmDelete(verId) {
+  // Remove any existing confirm
+  var existing = document.getElementById('_del_confirm');
+  if (existing) existing.remove();
+
+  var box = document.createElement('div');
+  box.id = '_del_confirm';
+  box.style.cssText = 'position:fixed;bottom:80px;right:24px;z-index:99999;' +
+    'background:#fff;border:2px solid #fca5a5;border-radius:12px;' +
+    'padding:16px 20px;box-shadow:0 8px 32px rgba(0,0,0,.2);max-width:300px';
+  box.innerHTML =
+    '<div style="font-size:13px;font-weight:700;color:#0d1b2e;margin-bottom:4px">Delete this backup?</div>' +
+    '<div style="font-size:12px;color:#64748b;margin-bottom:12px">This cannot be undone.</div>' +
+    '<div style="display:flex;gap:8px">' +
+      '<button id="_del_yes" style="flex:1;padding:8px;background:#dc2626;color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer">🗑 Delete</button>' +
+      '<button id="_del_no" style="flex:1;padding:8px;background:#f1f5f9;color:#64748b;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer">Cancel</button>' +
+    '</div>';
+  document.body.appendChild(box);
+
+  document.getElementById('_del_no').onclick = function() { box.remove(); };
+  document.getElementById('_del_yes').onclick = function() {
+    box.remove();
+    _doDeleteBackup(verId);
+  };
+}
+
+function _doDeleteBackup(verId) {
+  // Load latest index from localStorage
   var stored = [];
   try { stored = JSON.parse(_STORE.getItem('pearl_backup_index') || '[]'); } catch(e) {}
   var newIndex = stored.filter(function(v) { return v.id !== verId; });
 
-  // Update local cache first so UI reflects change immediately
+  // Save locally first
   try { _STORE.setItem('pearl_backup_index', JSON.stringify(newIndex)); } catch(e) {}
+
+  toast('⏳ Deleting...', 'info');
 
   // Remove version data from Firebase
   if (window._fbDB) {
@@ -15300,18 +15481,17 @@ function deleteBackupVersion(verId) {
     });
   }
 
-  // Save new index to Firebase, THEN re-render so fresh fetch sees updated index
+  // Save updated index to Firebase
   if (window._fbSaveKey) {
-    toast('⏳ Deleting...', 'info');
     window._fbSaveKey('pearl/backup/index', newIndex).then(function() {
-      toast('🗑 Backup version deleted', 'ok');
+      toast('✅ Backup version deleted', 'ok');
       renderBackupHistory();
     }).catch(function(e) {
-      toast('⚠️ Deleted locally — cloud sync failed', 'warn');
+      toast('⚠️ Deleted locally — cloud sync issue', 'warn');
       renderBackupHistory();
     });
   } else {
-    toast('🗑 Backup version deleted (local only)', 'ok');
+    toast('✅ Backup deleted (local only)', 'ok');
     renderBackupHistory();
   }
 }
@@ -16250,11 +16430,26 @@ function _logError(type, msg, source, line, col, err) {
   _updateErrBadge();
 }
 
+
+function clearDiagErrorLog() {
+  _errorLog = [];
+  _updateErrBadge();
+  // Render in whichever container exists
+  var el = document.getElementById('diag-errlog');
+  if (el) {
+    el.innerHTML = '<div style="padding:12px 14px;background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;font-size:12px;color:#15803d;font-weight:600">✅ Log cleared — no errors recorded</div>';
+  }
+  toast('🗑 Error log cleared', 'ok');
+}
 function _updateErrBadge() {
   var badge = document.getElementById('err-badge');
   var text  = document.getElementById('err-badge-text');
   if (!badge || !text) return;
   if (_errorLog.length === 0) { badge.style.display = 'none'; return; }
+  // Only show badge when user is logged into the app
+  var appEl = document.getElementById('pg-app');
+  var isLoggedIn = appEl && appEl.style.display !== 'none';
+  if (!isLoggedIn) { badge.style.display = 'none'; return; }
   var cnt = _errorLog.length;
   text.textContent = cnt + ' error' + (cnt > 1 ? 's' : '') + ' caught';
   badge.style.display = 'flex';
@@ -16285,7 +16480,7 @@ function showErrorLog() {
   });
   html += '</div>';
   html += '<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">' +
-    '<button onclick="_errorLog=[];_updateErrBadge();showErrorLog()" style="padding:8px 14px;background:#fff5f5;border:1.5px solid #fca5a5;color:#dc2626;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">🗑 Clear Log</button>' +
+    '<button onclick="clearDiagErrorLog()" style="padding:8px 14px;background:#fff5f5;border:1.5px solid #fca5a5;color:#dc2626;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">🗑 Clear Log</button>' +
     '<button onclick="runDiagnostics()" style="padding:8px 14px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">🩺 Run Full Diagnostics</button>' +
     '<button onclick="reportIssue()" style="padding:8px 14px;background:#f8fafc;border:1.5px solid #e2e8f0;color:#64748b;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">📋 Copy Issue Report</button>' +
   '</div>';
@@ -16622,6 +16817,128 @@ function _fallbackCopyReport(text) {
   ta.select();
   try { document.execCommand('copy'); toast('📋 Report copied to clipboard', 'ok'); } catch(e) { toast('⚠️ Could not copy — see console', 'warn'); console.log(text); }
   document.body.removeChild(ta);
+}
+
+
+// ════════════════════════════════════════════════════════════════
+//  GENERAL CALCULATOR ENGINE
+// ════════════════════════════════════════════════════════════════
+var _calcExpr  = '';   // full expression string e.g. "123 + 45 ×"
+var _calcVal   = '0';  // current display value
+var _calcOp    = '';   // pending operator
+var _calcPrev  = null; // previous operand
+var _calcFresh = true; // next digit starts fresh
+
+function _calcRound(n) {
+  // Round to max 10 significant digits to avoid floating point display noise
+  return parseFloat(n.toPrecision(10));
+}
+
+function calcBtn(key) {
+  var disp    = document.getElementById('calc-disp');
+  var exprEl  = document.getElementById('calc-expr');
+  var histEl  = document.getElementById('calc-history');
+  if (!disp) return;
+
+  if (key === 'C') {
+    _calcExpr = ''; _calcVal = '0'; _calcOp = ''; _calcPrev = null; _calcFresh = true;
+    if (histEl) histEl.textContent = '';
+
+  } else if (key === '⌫') {
+    if (_calcFresh) return;
+    _calcVal = _calcVal.length > 1 ? _calcVal.slice(0, -1) : '0';
+    if (_calcVal === '-') _calcVal = '0';
+
+  } else if (key === '%') {
+    var n = parseFloat(_calcVal);
+    if (!isNaN(n)) {
+      // If there's a pending operation, % means percent of previous operand
+      if (_calcPrev !== null && _calcOp) {
+        _calcVal = String(_calcRound((_calcPrev * n) / 100));
+      } else {
+        _calcVal = String(_calcRound(n / 100));
+      }
+      _calcFresh = true;
+    }
+
+  } else if (['+','−','×','÷'].indexOf(key) !== -1) {
+    var cur = parseFloat(_calcVal);
+    if (_calcPrev !== null && !_calcFresh && _calcOp) {
+      cur = _calcApplyOp(_calcPrev, parseFloat(_calcVal), _calcOp);
+      _calcVal = String(_calcRound(cur));
+    }
+    _calcPrev  = parseFloat(_calcVal);
+    _calcOp    = key;
+    _calcExpr  = _calcVal + ' ' + key;
+    _calcFresh = true;
+
+  } else if (key === '=') {
+    if (_calcPrev === null || !_calcOp) return;
+    var result = _calcApplyOp(_calcPrev, parseFloat(_calcVal), _calcOp);
+    if (result === null) {
+      disp.textContent = 'Error';
+      if (histEl) histEl.textContent = 'Cannot divide by zero';
+      _calcExpr = ''; _calcPrev = null; _calcOp = ''; _calcFresh = true;
+      if (exprEl) exprEl.textContent = '';
+      return;
+    }
+    var rounded = _calcRound(result);
+    if (histEl) histEl.textContent = (_calcExpr + ' ' + _calcVal + ' = ' + rounded).slice(-60);
+    _calcExpr  = '';
+    _calcVal   = String(rounded);
+    _calcPrev  = null;
+    _calcOp    = '';
+    _calcFresh = true;
+
+  } else if (key === '.') {
+    if (_calcFresh) { _calcVal = '0.'; _calcFresh = false; return; }
+    if (_calcVal.indexOf('.') === -1) _calcVal += '.';
+
+  } else {
+    // Digit 0-9
+    if (_calcFresh) { _calcVal = key; _calcFresh = false; }
+    else { _calcVal = _calcVal === '0' ? key : _calcVal + key; }
+    if (_calcExpr && _calcOp) _calcExpr = _calcExpr; // keep expr
+  }
+
+  // Update display
+  disp.textContent = _calcVal;
+  if (exprEl) exprEl.textContent = _calcExpr;
+}
+
+function _calcApplyOp(a, b, op) {
+  if (isNaN(a) || isNaN(b)) return null;
+  if (op === '+') return a + b;
+  if (op === '−') return a - b;
+  if (op === '×') return a * b;
+  if (op === '÷') { if (b === 0) return null; return a / b; }
+  return null;
+}
+
+// Keyboard support for the calculator
+var _calcKbdBound = false;
+function calcKeyboardInit() {
+  if (_calcKbdBound) return;
+  _calcKbdBound = true;
+  document.addEventListener('keydown', function(e) {
+    // Only active when calc modal is open and on calc tab
+    var modal = document.getElementById('calc-modal');
+    var panel = document.getElementById('ctab-calc-panel');
+    if (!modal || modal.style.display !== 'flex') return;
+    if (!panel || panel.style.display === 'none') return;
+
+    var key = e.key;
+    if (key >= '0' && key <= '9') { calcBtn(key); e.preventDefault(); }
+    else if (key === '+') { calcBtn('+'); e.preventDefault(); }
+    else if (key === '-') { calcBtn('−'); e.preventDefault(); }
+    else if (key === '*') { calcBtn('×'); e.preventDefault(); }
+    else if (key === '/') { calcBtn('÷'); e.preventDefault(); }
+    else if (key === '%') { calcBtn('%'); e.preventDefault(); }
+    else if (key === '.') { calcBtn('.'); e.preventDefault(); }
+    else if (key === 'Enter' || key === '=') { calcBtn('='); e.preventDefault(); }
+    else if (key === 'Backspace') { calcBtn('⌫'); e.preventDefault(); }
+    else if (key === 'Escape') { calcBtn('C'); e.preventDefault(); }
+  });
 }
 
 // ── Service Worker for offline support ──
