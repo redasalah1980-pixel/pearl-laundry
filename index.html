@@ -15431,6 +15431,8 @@ function getFullBackupObject() {
     try { p = JSON.parse(_STORE.getItem('pearl_prices_' + y) || 'null'); } catch(e) {}
     if (p) backup.prices[y] = p;
   }
+  // Price schedule
+  backup.priceSchedule = _PRICE_SCHEDULE || [];
   // Settings
   ['pearl_credentials','pearl_team_accounts','pearl_tab_access'].forEach(function(k) {
     try {
@@ -15665,6 +15667,89 @@ function restoreFromVersion(verId) {
   }).catch(function(err) { toast('❌ Restore failed: ' + (err.message || err), 'err'); });
 }
 
+
+// ── Restore ONLY prices from a backup version (entry data untouched) ──
+function restorePricesFromVersion(verId) {
+  var box = document.createElement('div');
+  box.id = '_restore_prices_confirm';
+  box.style.cssText = 'position:fixed;bottom:80px;right:24px;z-index:99999;' +
+    'background:#fff;border:2px solid #fde68a;border-radius:12px;' +
+    'padding:16px 20px;box-shadow:0 8px 32px rgba(0,0,0,.2);max-width:320px;font-family:inherit';
+  var t = document.createElement('div');
+  t.style.cssText = 'font-size:13px;font-weight:700;color:#0d1b2e;margin-bottom:4px';
+  t.textContent = '💰 Restore prices from this backup?';
+  var s = document.createElement('div');
+  s.style.cssText = 'font-size:12px;color:#64748b;margin-bottom:12px;line-height:1.5';
+  s.textContent = 'This will restore the prices and price schedule saved in this backup. Your entry data will NOT be changed.';
+  var row = document.createElement('div');
+  row.style.cssText = 'display:flex;gap:8px';
+  var yes = document.createElement('button');
+  yes.style.cssText = 'flex:1;padding:8px;background:#92400e;color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer';
+  yes.textContent = 'Yes — Restore Prices';
+  yes.onclick = function() {
+    box.remove();
+    _doRestorePricesFromVersion(verId);
+  };
+  var no = document.createElement('button');
+  no.style.cssText = 'flex:1;padding:8px;background:#f1f5f9;color:#64748b;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer';
+  no.textContent = 'Cancel';
+  no.onclick = function() { box.remove(); };
+  row.appendChild(yes); row.appendChild(no);
+  box.appendChild(t); box.appendChild(s); box.appendChild(row);
+  document.body.appendChild(box);
+}
+
+function _doRestorePricesFromVersion(verId) {
+  if (!window._fbLoadKey) { toast('❌ Firebase not connected', 'err'); return; }
+  toast('⏳ Loading backup...', 'info');
+
+  window._fbLoadKey('pearl/backup/versions/' + verId).then(function(backup) {
+    if (!backup) { toast('❌ Backup version not found', 'err'); return; }
+
+    var restoredYears = 0;
+    var tasks = [];
+
+    // ── Restore prices for each year ──
+    if (backup.prices) {
+      Object.keys(backup.prices).forEach(function(y) {
+        var yr = parseInt(y);
+        var prices = backup.prices[y];
+        if (!prices || typeof prices !== 'object') return;
+        try { _STORE.setItem(prKey(yr), JSON.stringify(prices)); } catch(e) {}
+        if (yr === CY) PRICES = prices;
+        if (window._fbSaveKey) tasks.push(window._fbSaveKey(fbPricePath(yr), prices));
+        restoredYears++;
+      });
+    } else {
+      // Try to find prices in backup structure
+      toast('⚠️ No price data found in this backup version', 'warn');
+      return;
+    }
+
+    // ── Restore price schedule ──
+    if (backup.priceSchedule !== undefined) {
+      _PRICE_SCHEDULE = Array.isArray(backup.priceSchedule) ? backup.priceSchedule : [];
+    } else {
+      // No schedule in backup — clear the current one (safer than keeping bad one)
+      _PRICE_SCHEDULE = [];
+    }
+    savePriceSchedule();
+
+    Promise.all(tasks).then(function() {
+      toast('✅ Prices restored from backup (' + restoredYears + ' year(s)) — schedule reset', 'ok');
+      setTimeout(function() {
+        try { renderDash(); } catch(e) {}
+        try { renderEntry(); } catch(e) {}
+        try { renderFinance(); } catch(e) {}
+        try { renderPriceScheduleList(); } catch(e) {}
+      }, 500);
+    }).catch(function() {
+      toast('⚠️ Prices restored locally — cloud sync issue', 'warn');
+    });
+
+  }).catch(function(e) { toast('❌ Failed: ' + (e.message||e), 'err'); });
+}
+
 function deleteBackupVersion(verId) {
   // Use toast-style confirm instead of browser confirm() which can be blocked
   _confirmDelete(verId);
@@ -15775,9 +15860,16 @@ function renderBackupHistory() {
 
         // Action buttons
         '<div style="display:flex;gap:6px;flex-shrink:0">' +
-          '<button onclick="restoreFromVersion(\"' + v.id + '\")" ' +
-            'style="padding:6px 12px;background:#eff6ff;border:1.5px solid #bfdbfe;color:#1d4ed8;' +
-            'border-radius:7px;font-size:11px;font-weight:700;cursor:pointer">🔄 Restore</button>' +
+          '<div style="display:flex;gap:6px">' +
+            '<button onclick="restoreFromVersion(\"' + v.id + '\")" ' +
+              'style="padding:6px 10px;background:#eff6ff;border:1.5px solid #bfdbfe;color:#1d4ed8;' +
+              'border-radius:7px;font-size:11px;font-weight:700;cursor:pointer" ' +
+              'title="Restore all entry data from this backup">🔄 Data</button>' +
+            '<button onclick="restorePricesFromVersion(\"' + v.id + '\")" ' +
+              'style="padding:6px 10px;background:#fefce8;border:1.5px solid #fde68a;color:#92400e;' +
+              'border-radius:7px;font-size:11px;font-weight:700;cursor:pointer" ' +
+              'title="Restore ONLY prices from this backup — entry data untouched">💰 Prices</button>' +
+          '</div>' +
           (!isLatest ? '<button onclick="deleteBackupVersion(\"' + v.id + '\")" ' +
             'style="padding:6px 12px;background:#fff5f5;border:1.5px solid #fca5a5;color:#dc2626;' +
             'border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;transition:all .15s" ' +
@@ -16777,20 +16869,43 @@ function runStartupValidation() {
     issues.push('Firebase not connected — cloud features unavailable');
   }
 
-  // 5. Last backup age warning
+  // 5. Last backup age warning — check local index, then Firebase
   try {
-    var idx = JSON.parse(_STORE.getItem('pearl_backup_index') || 'null');
+    var idx = null;
+    try { idx = JSON.parse(_STORE.getItem('pearl_backup_index') || 'null'); } catch(e) {}
     if (!idx || idx.length === 0) {
-      issues.push('No cloud backup found — save a backup from the Backup tab');
+      // Local index missing — check Firebase before warning
+      if (window._fbLoadKey) {
+        window._fbLoadKey('pearl/backup/index').then(function(fbIdx) {
+          if (fbIdx && Array.isArray(fbIdx) && fbIdx.length > 0) {
+            // Firebase has backups — restore local index silently, no warning
+            try { _STORE.setItem('pearl_backup_index', JSON.stringify(fbIdx)); } catch(e) {}
+          } else {
+            // Genuinely no backups anywhere
+            _logError('Startup Warning', 'No cloud backup found — save a backup from the Backup tab', 'startup-validation', 0, 0, null);
+          }
+        }).catch(function() {
+          _logError('Startup Warning', 'No cloud backup found — save a backup from the Backup tab', 'startup-validation', 0, 0, null);
+        });
+        // Don't add to issues[] since we're checking async
+      } else {
+        issues.push('No cloud backup found — save a backup from the Backup tab');
+      }
     } else {
       var daysSince = Math.floor((Date.now() - new Date(idx[0].savedAt)) / 86400000);
       if (daysSince > 14) issues.push('Last backup was ' + daysSince + ' days ago — consider saving a new one');
     }
   } catch(e) {}
 
-  // Log any issues to the error log for visibility
+  // Log any issues to the error log for visibility — deduplicate
   issues.forEach(function(msg) {
-    _logError('Startup Warning', msg, 'startup-validation', 0, 0, null);
+    // Don't add duplicate startup warnings
+    var alreadyLogged = _errorLog.some(function(e) {
+      return e.msg === msg && e.source === 'startup-validation';
+    });
+    if (!alreadyLogged) {
+      _logError('Startup Warning', msg, 'startup-validation', 0, 0, null);
+    }
   });
 
   // Only notify user if there are serious issues (not just warnings)
