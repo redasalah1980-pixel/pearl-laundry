@@ -1123,7 +1123,7 @@ var _fbDB = null;
       <!-- Settings + Logout -->
       <span class="tn-uname" id="tn-name" style="display:none">Reda Salah</span>
       <button class="tn-settings" onclick="openSettings()" id="btn-settings-nav" title="Settings">⚙️ <span id="tn-name-display" style="font-size:11px;font-weight:600;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle">Reda Salah</span></button>
-      <a href="manual.html" target="_blank" title="Open User Manual" style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.25);border-radius:6px;color:#c9a84c;font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap;transition:all .2s" onmouseover="this.style.background='rgba(201,168,76,.22)'" onmouseout="this.style.background='rgba(201,168,76,.12)'">📖 Manual</a>
+      <button onclick="showTab('guide')" title="Open Help Center &amp; Manual" style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.25);border-radius:6px;color:#c9a84c;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all .2s;font-family:inherit" onmouseover="this.style.background='rgba(201,168,76,.22)'" onmouseout="this.style.background='rgba(201,168,76,.12)'">📖 Manual</button>
       <button onclick="openCalc()" title="Quick Calculator" style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:6px;color:rgba(255,255,255,.7);font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all .2s" onmouseover="this.style.background='rgba(255,255,255,.12)'" onmouseout="this.style.background='rgba(255,255,255,.06)'">🧮 Calc</button>
       <button class="tn-logout" onclick="doLogout()" title="Logout">⏏ Logout</button>
     </div>
@@ -5294,6 +5294,10 @@ function _bootApp(user) {
   for (var _tm = 1; _tm <= 12; _tm++) { loadTargetFB(CY, _tm); }
   // Now show error badge if any errors were caught during boot
   setTimeout(_updateErrBadge, 500);
+  // Missing dept morning check (runs 4s after login so data is loaded)
+  setTimeout(runMissingDeptCheck, 4000);
+  // Schedule 8pm daily check
+  scheduleMissingDeptCheck();
   // Silent startup validation — runs 3s after boot, never blocks UI
   setTimeout(function() {
     if (typeof runStartupValidation === 'function') runStartupValidation();
@@ -11834,6 +11838,42 @@ function renderGuide() {
      tip('Keep the emergency_restore.html file saved separately from the main system — on your desktop, USB drive, or email it to yourself. If the main system ever breaks, you want this file available even without internet access to the main system.')
     ],
 
+    // ── 34. MISSING DEPARTMENT ALERTS ──────────────────────────
+    ['⚠️ Missing Department Alerts',
+     '<strong>What it does:</strong> Automatically checks every day whether all required departments have data entered. If any are missing, a notification banner appears at the top of the screen.' +
+     '<br><br><strong>When it checks:</strong>' +
+     ul([
+       '<strong>Morning (on login)</strong> — checks all previous days in the current month up to yesterday. If any required department has no entries for any past day, you see the alert immediately.',
+       '<strong>Evening at 8:00 PM</strong> — checks again including today. If you forgot to enter data for today\'s required departments, the alert appears automatically.'
+     ]) +
+     '<br><strong>Required departments (your configuration):</strong>' +
+     ul([
+       '<strong>Rooms Linen</strong> — required every day',
+       '<strong>F &amp; B</strong> — required every day',
+       '<strong>Spa &amp; Pool</strong> — required every day',
+       '<strong>Uniform</strong> — required every day',
+       '<strong>Others</strong> — NOT required (skipped)',
+       '<strong>Dry Cleaning</strong> — NOT required (skipped)'
+     ]) +
+     '<br><strong>What the alert shows:</strong>' +
+     ul([
+       'Each department with missing data and which days are affected',
+       'A <strong>✏️ Go to Entry</strong> button that takes you directly to the entry tab',
+       'A <strong>⚙️ Configure</strong> button to change which departments are required',
+       'Auto-dismisses after 30 seconds if you don\'t interact with it'
+     ]) +
+     '<br><strong>How to configure required departments:</strong>' +
+     step([
+       'Click <strong>⚙️ Configure</strong> on any missing alert banner',
+       'Tick or untick departments in the list',
+       'Click <strong>💾 Save</strong> — takes effect immediately',
+       'The system re-checks right away with your new settings'
+     ]) +
+     warn('The system only alerts on past days and today — never on future days. If Others or Dry Cleaning have no data it is completely ignored unless you add them to the required list.') +
+     tip('If a department genuinely has no laundry on a particular day (e.g. Spa is closed), just enter zeros or use the ✕ dismiss button. The alert is a reminder, not a block — you can always dismiss and continue.')
+    ],
+
+
   ];
 
   var style = '<style>' +
@@ -14685,6 +14725,49 @@ function loadLicencePanel() {
   });
 }
 
+
+// ── Licence admin panel — password visibility toggle ──
+function toggleLicPassVis() {
+  var inp  = document.getElementById('lic-admin-pass');
+  var icon = document.getElementById('lic-eye-icon');
+  if (!inp) return;
+  if (inp.type === 'password') {
+    inp.type = 'text';
+    if (icon) icon.textContent = '🙈';
+  } else {
+    inp.type = 'password';
+    if (icon) icon.textContent = '👁';
+  }
+}
+
+// ── Licence admin panel — verify admin password to unlock key management ──
+function verifyLicenceAdmin() {
+  var pass  = (document.getElementById('lic-admin-pass')?.value || '').trim();
+  var errEl = document.getElementById('lic-auth-err');
+  var creds = getCredentials();
+
+  if (!pass) {
+    if (errEl) { errEl.style.display = 'block'; errEl.textContent = '❌ Please enter your admin password.'; }
+    return;
+  }
+
+  if (pass !== creds.pass) {
+    if (errEl) { errEl.style.display = 'block'; errEl.textContent = '❌ Wrong password. Try again.'; }
+    var inp = document.getElementById('lic-admin-pass');
+    if (inp) { inp.value = ''; inp.focus(); }
+    return;
+  }
+
+  // Correct — hide auth wrap, show content
+  var authWrap = document.getElementById('lic-auth-wrap');
+  var content  = document.getElementById('lic-locked-content');
+  if (authWrap) authWrap.style.display = 'none';
+  if (content)  content.style.display  = 'block';
+  if (errEl)    errEl.style.display    = 'none';
+  loadLicencePanel();
+  loadDeviceLicenceStatus();
+}
+
 function adminGenerateKey() {
   var holder = document.getElementById('new-lic-holder')?.value?.trim() || 'Unknown';
   var expiry = document.getElementById('new-lic-expiry')?.value || null;
@@ -16939,6 +17022,235 @@ function calcKeyboardInit() {
     else if (key === 'Backspace') { calcBtn('⌫'); e.preventDefault(); }
     else if (key === 'Escape') { calcBtn('C'); e.preventDefault(); }
   });
+}
+
+
+// ════════════════════════════════════════════════════════════════
+//  MISSING DEPARTMENT ALERT SYSTEM
+//  Checks yesterday (morning) + today at 8pm
+//  Only alerts on "required" departments — not Others/Dry Cleaning
+// ════════════════════════════════════════════════════════════════
+
+var _REQUIRED_DEPTS_KEY = 'pearl_required_depts';
+var _REQUIRED_DEPTS_DEFAULT = ['Rooms Linen', 'F & B', 'Spa & Pool', 'Uniform'];
+
+function getRequiredDepts() {
+  try {
+    var stored = JSON.parse(_STORE.getItem(_REQUIRED_DEPTS_KEY) || 'null');
+    if (Array.isArray(stored) && stored.length > 0) return stored;
+  } catch(e) {}
+  return _REQUIRED_DEPTS_DEFAULT.slice();
+}
+
+function saveRequiredDepts(arr) {
+  try { _STORE.setItem(_REQUIRED_DEPTS_KEY, JSON.stringify(arr)); } catch(e) {}
+}
+
+// Check if a specific dept has ANY data for a given day
+function deptHasData(y, m, dept, day) {
+  var items = MASTER[dept];
+  if (!items) return false;
+  for (var i = 0; i < items.length; i++) {
+    if (getVal(y, m, dept, i, day - 1) > 0) return true;
+  }
+  return false;
+}
+
+// Returns array of {dept, day, label} for missing required dept/day combos
+function getMissingDeptDays(y, m, upToDay) {
+  var required = getRequiredDepts();
+  var missing  = [];
+  var today    = new Date();
+  for (var day = 1; day <= upToDay; day++) {
+    required.forEach(function(dept) {
+      if (!deptHasData(y, m, dept, day)) {
+        var dt   = new Date(y, m - 1, day);
+        var dows = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+        missing.push({
+          dept: dept,
+          day: day,
+          label: dows[dt.getDay()] + ' ' + day + ' — ' + dept
+        });
+      }
+    });
+  }
+  return missing;
+}
+
+// ── Main check: run on boot (morning) and at 8pm ──
+function runMissingDeptCheck() {
+  var today  = new Date();
+  var todayY = today.getFullYear();
+  var todayM = today.getMonth() + 1;
+  var todayD = today.getDate();
+  var hour   = today.getHours();
+
+  // Morning check: check yesterday + any earlier days this month
+  // Evening check (after 8pm): also check today
+  var checkUpTo = (hour >= 20) ? todayD : todayD - 1;
+  if (checkUpTo < 1) return; // nothing to check yet (1st of month at morning)
+
+  // Only check current month
+  if (CY !== todayY || checkUpTo < 1) return;
+
+  var missing = getMissingDeptDays(todayY, todayM, checkUpTo);
+  if (missing.length === 0) {
+    _dismissMissingAlert();
+    return;
+  }
+
+  _showMissingDeptAlert(missing, todayM);
+}
+
+function _showMissingDeptAlert(missing, m) {
+  // Remove existing
+  var existing = document.getElementById('_dept_alert');
+  if (existing) existing.remove();
+
+  // Group by dept for compact display
+  var byDept = {};
+  missing.forEach(function(item) {
+    if (!byDept[item.dept]) byDept[item.dept] = [];
+    byDept[item.dept].push(item.day);
+  });
+  var depts = Object.keys(byDept);
+
+  var banner = document.createElement('div');
+  banner.id  = '_dept_alert';
+  banner.style.cssText =
+    'position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:8000;' +
+    'background:#fff;border:2px solid #fca5a5;border-radius:14px;' +
+    'box-shadow:0 8px 32px rgba(220,38,38,.15);max-width:560px;width:calc(100vw - 32px);' +
+    'animation:slideDown .4s cubic-bezier(.22,1,.36,1)';
+
+  // Build content
+  var deptRows = depts.map(function(dept) {
+    var days = byDept[dept];
+    var dayStr = days.length <= 4
+      ? days.join(', ')
+      : days.slice(0,3).join(', ') + ' +' + (days.length - 3) + ' more';
+    return '<div style="display:flex;align-items:center;justify-content:space-between;' +
+      'padding:6px 0;border-bottom:1px solid #f1f5f9">' +
+      '<span style="font-size:12px;font-weight:700;color:#0d1b2e">' + dept + '</span>' +
+      '<span style="font-size:11px;color:#dc2626;font-weight:600">Days: ' + dayStr + '</span>' +
+      '</div>';
+  }).join('');
+
+  banner.innerHTML =
+    // Header
+    '<div style="display:flex;align-items:center;justify-content:space-between;' +
+      'padding:12px 16px;background:#fef2f2;border-radius:12px 12px 0 0;border-bottom:1px solid #fecaca">' +
+      '<div style="display:flex;align-items:center;gap:8px">' +
+        '<span style="font-size:18px">⚠️</span>' +
+        '<div>' +
+          '<div style="font-size:13px;font-weight:800;color:#dc2626">Missing Department Data</div>' +
+          '<div style="font-size:11px;color:#94a3b8;margin-top:1px">' + missing.length + ' dept/day combination(s) with no entries</div>' +
+        '</div>' +
+      '</div>' +
+            '<button onclick="_dismissMissingAlert();_STORE.setItem(\'_dept_alert_dismissed\',Date.now())" ' +
+        'style="background:none;border:none;font-size:18px;cursor:pointer;color:#94a3b8;padding:4px">✕</button>' +
+    '</div>' +
+    // Dept rows
+    '<div style="padding:10px 16px">' + deptRows + '</div>' +
+    // Action buttons
+    '<div style="padding:10px 16px;display:flex;gap:8px;flex-wrap:wrap">' +
+            '<button onclick="_goToEntryFromAlert()" ' +
+        'style="flex:1;padding:9px 14px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">✏️ Go to Entry</button>' +
+      '<button onclick="openMissingDeptSettings()" ' +
+        'style="padding:9px 14px;background:#f8fafc;color:#64748b;border:1.5px solid #e2e8f0;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">⚙️ Configure</button>' +
+    '</div>';
+
+  // Add slide-down animation
+  if (!document.getElementById('_dept_anim')) {
+    var s = document.createElement('style');
+    s.id = '_dept_anim';
+    s.textContent = '@keyframes slideDown{from{opacity:0;transform:translateX(-50%) translateY(-20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}';
+    document.head.appendChild(s);
+  }
+
+  document.body.appendChild(banner);
+
+  // Auto-dismiss after 30 seconds
+  setTimeout(function() {
+    var el = document.getElementById('_dept_alert');
+    if (el) { el.style.opacity='0'; el.style.transition='opacity .5s'; setTimeout(function(){ if(el.parentNode) el.remove(); }, 500); }
+  }, 30000);
+}
+
+
+
+function _closeDeptSettings() {
+  var el = document.getElementById('_dept_settings');
+  if (el) el.remove();
+}
+
+function _goToEntryFromAlert() {
+  _dismissMissingAlert();
+  showTab('entry');
+}
+
+function _dismissMissingAlert() {
+  var el = document.getElementById('_dept_alert');
+  if (el) el.remove();
+}
+
+// ── Settings popup to configure required depts ──
+function openMissingDeptSettings() {
+  var existing = document.getElementById('_dept_settings');
+  if (existing) { existing.remove(); return; }
+
+  var required = getRequiredDepts();
+  var box = document.createElement('div');
+  box.id = '_dept_settings';
+  box.style.cssText =
+    'position:fixed;bottom:80px;right:24px;z-index:99999;background:#fff;' +
+    'border:2px solid #e2e8f0;border-radius:14px;padding:18px 20px;' +
+    'box-shadow:0 8px 32px rgba(0,0,0,.18);max-width:300px;font-family:inherit';
+
+  var rows = DEPT_KEYS.map(function(dept) {
+    var checked = required.indexOf(dept) !== -1;
+    return '<label style="display:flex;align-items:center;gap:10px;padding:8px 0;' +
+      'border-bottom:1px solid #f1f5f9;cursor:pointer">' +
+      '<input type="checkbox" data-dept="' + dept + '" ' + (checked ? 'checked' : '') + ' ' +
+        'style="width:16px;height:16px;accent-color:#0d1b2e;cursor:pointer">' +
+      '<span style="font-size:13px;font-weight:600;color:#0d1b2e">' + dept + '</span>' +
+      '</label>';
+  }).join('');
+
+  box.innerHTML =
+    '<div style="font-size:13px;font-weight:800;color:#0d1b2e;margin-bottom:4px">⚙️ Required Departments</div>' +
+    '<div style="font-size:11px;color:#64748b;margin-bottom:12px">Tick departments that must have data every day</div>' +
+    '<div>' + rows + '</div>' +
+    '<div style="display:flex;gap:8px;margin-top:14px">' +
+      '<button id="_dept_save_btn" style="flex:1;padding:9px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">💾 Save</button>' +
+            '<button onclick="_closeDeptSettings()" style="padding:9px 14px;background:#f1f5f9;color:#64748b;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">Cancel</button>' +
+    '</div>';
+
+  document.body.appendChild(box);
+
+  document.getElementById('_dept_save_btn').onclick = function() {
+    var checked = [];
+    box.querySelectorAll('input[type=checkbox]:checked').forEach(function(inp) {
+      checked.push(inp.dataset.dept);
+    });
+    saveRequiredDepts(checked);
+    box.remove();
+    toast('✅ Required departments saved', 'ok');
+    runMissingDeptCheck(); // re-run immediately
+  };
+}
+
+// ── Schedule the 8pm check ──
+function scheduleMissingDeptCheck() {
+  var now  = new Date();
+  var eight = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 20, 0, 0);
+  var msUntil8pm = eight - now;
+  if (msUntil8pm < 0) msUntil8pm += 86400000; // already past 8pm — schedule for tomorrow
+  setTimeout(function() {
+    runMissingDeptCheck();
+    // Then check every 24h
+    setInterval(runMissingDeptCheck, 86400000);
+  }, msUntil8pm);
 }
 
 // ── Service Worker for offline support ──
