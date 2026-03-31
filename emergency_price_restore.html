@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RS Pearl — Emergency Price Restore</title>
+<style>
+  body { font-family: -apple-system, sans-serif; background: #0a0f1a; color: #fff; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+  .card { background: #fff; color: #0d1b2e; border-radius: 16px; padding: 32px; max-width: 560px; width: 100%; box-shadow: 0 32px 80px rgba(0,0,0,.4); }
+  h1 { font-size: 20px; margin: 0 0 6px; color: #dc2626; }
+  p { font-size: 13px; color: #64748b; margin: 0 0 20px; line-height: 1.6; }
+  button { width: 100%; padding: 14px; border: none; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
+  .btn-red { background: #dc2626; color: #fff; }
+  .btn-green { background: #16a34a; color: #fff; display: none; }
+  .btn-grey { background: #f1f5f9; color: #64748b; }
+  #log { background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 14px; font-size: 12px; font-family: monospace; line-height: 1.8; min-height: 80px; white-space: pre-wrap; word-break: break-all; }
+  .ok  { color: #16a34a; font-weight: 700; }
+  .err { color: #dc2626; font-weight: 700; }
+  .inf { color: #0284c7; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>🚨 Emergency Price Restore</h1>
+  <p>This tool reads your most recent cloud backup, extracts the 2026 prices, and restores them directly to Firebase. Use this when prices were accidentally overwritten.</p>
+
+  <button class="btn-red" onclick="startRestore()">🔄 Restore 2026 Prices from Backup</button>
+  <button class="btn-green" id="btn-done" onclick="window.location.href='index.html'">✅ Done — Return to System</button>
+  <button class="btn-grey" onclick="window.location.href='index.html'">← Back to System</button>
+
+  <div style="margin-top:16px;font-size:11px;font-weight:700;color:#94a3b8;margin-bottom:6px">LOG</div>
+  <div id="log">Ready. Click the button above to start.</div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyAbHaR7a3m8Fek--2xl0LUjAuoaNyK3uJw",
+  authDomain: "pearl-management-system.firebaseapp.com",
+  databaseURL: "https://pearl-management-system-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "pearl-management-system",
+  storageBucket: "pearl-management-system.firebasestorage.app",
+  messagingSenderId: "399463917678",
+  appId: "1:399463917678:web:512fcaf07f2bd74af9de7f"
+};
+
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+const logEl = document.getElementById('log');
+function log(msg, cls) {
+  logEl.innerHTML += '\n<span class="' + (cls||'') + '">' + msg + '</span>';
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+async function startRestore() {
+  logEl.innerHTML = '';
+  log('Connecting to Firebase...', 'inf');
+
+  try {
+    // Step 1: Get backup index
+    log('Reading backup index...', 'inf');
+    const indexSnap = await db.ref('pearl/backup/index').once('value');
+    const index = indexSnap.val();
+
+    if (!index || !Array.isArray(index) || index.length === 0) {
+      // Try reading backup versions directly
+      log('No index found — reading versions directly...', 'inf');
+      const versSnap = await db.ref('pearl/backup/versions').once('value');
+      const versions = versSnap.val();
+      if (!versions) {
+        log('❌ No backups found in Firebase at all.', 'err');
+        log('Try: Go to system → Backup tab → click Restore on a recent version.', '');
+        return;
+      }
+      const vKeys = Object.keys(versions).sort().reverse();
+      log('Found ' + vKeys.length + ' backup version(s). Using most recent...', 'inf');
+      await restoreFromVersionData(versions[vKeys[0]]);
+      return;
+    }
+
+    // Sort by savedAt descending — newest first
+    const sorted = [...index].sort(function(a, b) {
+      return (b.savedAt || '').localeCompare(a.savedAt || '');
+    });
+
+    log('Found ' + sorted.length + ' backup version(s)', 'ok');
+
+    // Try each backup until we find one with prices
+    let restored = false;
+    for (let i = 0; i < Math.min(sorted.length, 5); i++) {
+      const ver = sorted[i];
+      log('Trying backup: ' + ver.id + ' saved ' + (ver.savedAt ? new Date(ver.savedAt).toLocaleString() : 'unknown') + '...', 'inf');
+
+      const snap = await db.ref('pearl/backup/versions/' + ver.id).once('value');
+      const backup = snap.val();
+      if (!backup) { log('  → Empty, skipping', ''); continue; }
+
+      const result = await restoreFromVersionData(backup);
+      if (result) { restored = true; break; }
+    }
+
+    if (!restored) {
+      log('\n❌ Could not find prices in any backup.', 'err');
+      log('Trying to read prices directly from pearl/prices/2026...', 'inf');
+      await restoreFromPricesPath();
+    }
+
+  } catch(e) {
+    log('❌ Error: ' + e.message, 'err');
+  }
+}
+
+async function restoreFromVersionData(backup) {
+  // Try to extract 2026 prices from backup
+  let prices2026 = null;
+
+  // Check backup.prices.2026
+  if (backup.prices && backup.prices[2026]) { prices2026 = backup.prices[2026]; log('  → Found prices in backup.prices.2026', 'ok'); }
+  else if (backup.prices && backup.prices['2026']) { prices2026 = backup.prices['2026']; log('  → Found prices in backup.prices["2026"]', 'ok'); }
+  // Check backup.settings
+  else if (backup.settings && backup.settings.prices_2026) { prices2026 = backup.settings.prices_2026; log('  → Found in backup.settings.prices_2026', 'ok'); }
+  else {
+    // Log what keys we have
+    log('  → Keys in backup: ' + Object.keys(backup).join(', '), '');
+    if (backup.prices) log('  → Keys in backup.prices: ' + Object.keys(backup.prices).join(', '), '');
+    return false;
+  }
+
+  await writeRestoredPrices(prices2026);
+  return true;
+}
+
+async function restoreFromPricesPath() {
+  const snap = await db.ref('pearl/prices/2026').once('value');
+  const prices = snap.val();
+  if (!prices) { log('❌ No prices at pearl/prices/2026 either', 'err'); return; }
+  log('Found prices at pearl/prices/2026 — but this may already be the bad version.', 'err');
+  log('\n⚠️  The only safe option now is to manually check your previous backup versions in the system Backup tab.', '');
+}
+
+async function writeRestoredPrices(prices2026) {
+  log('\nWriting restored prices to pearl/prices/2026...', 'inf');
+  await db.ref('pearl/prices/2026').set(prices2026);
+  log('✅ Prices written to Firebase', 'ok');
+
+  log('Clearing bad price schedule...', 'inf');
+  await db.ref('pearl/settings/price_schedule').remove();
+  log('✅ Price schedule cleared', 'ok');
+
+  log('\n✅✅✅ RESTORE COMPLETE ✅✅✅', 'ok');
+  log('Your 2026 prices have been restored and the bad schedule cleared.', 'ok');
+  log('Click "Done — Return to System" and check your January prices.', '');
+
+  document.getElementById('btn-done').style.display = 'block';
+  document.querySelector('.btn-red').style.display = 'none';
+}
+</script>
+</body>
+</html>
