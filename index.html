@@ -2052,13 +2052,13 @@ var _fbDB = null;
       <!-- New schedule form -->
       <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:20px;margin-bottom:18px">
         <!-- Emergency Recovery Panel -->
-        <div id="sched-emergency-wrap" style="background:#fff5f5;border:2px solid #fca5a5;border-radius:12px;padding:16px;margin-bottom:16px;display:none">
+        <div id="sched-emergency-wrap" style="background:#fff5f5;border:2px solid #fca5a5;border-radius:12px;padding:16px;margin-bottom:16px">
           <div style="font-size:13px;font-weight:800;color:#dc2626;margin-bottom:8px">🚨 Emergency: Restore Base Prices</div>
           <div style="font-size:12px;color:#64748b;margin-bottom:12px">If a price change accidentally affected past months, use this to restore the original year base prices from Firebase, then delete any bad schedule entries below.</div>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button onclick="emergencyRestoreBasePrices(2026)" style="padding:9px 16px;background:#dc2626;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">🔄 Restore 2026 Base Prices</button>
-            <button onclick="emergencyRestoreBasePrices(2025)" style="padding:9px 16px;background:#dc2626;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">🔄 Restore 2025 Base Prices</button>
+            <button onclick="restorePricesFromFirebase()" style="padding:9px 16px;background:#dc2626;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">🔄 Restore Prices from Firebase Backup</button>
           </div>
+          <div style="font-size:11px;color:#64748b;margin-top:8px">This reads the original prices saved in Firebase, restores them locally, clears any bad schedule entries, and refreshes the dashboard.</div>
         </div>
         <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
           <button onclick="var w=document.getElementById('sched-emergency-wrap');w.style.display=w.style.display==='none'?'block':'none'" style="padding:6px 12px;background:#fee2e2;border:1.5px solid #fca5a5;color:#dc2626;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer">🚨 Emergency Restore</button>
@@ -7320,6 +7320,100 @@ function deleteScheduleEntry(effectiveDate, year) {
 }
 
 // ── Emergency: restore 2026 base prices from cloud backup ──
+
+// ── Restore ONLY prices from a specific backup version ──
+function restorePricesFromBackup(verId) {
+  if (!window._fbLoadKey) { toast('❌ Firebase not connected', 'err'); return; }
+  toast('⏳ Loading backup prices...', 'info');
+  window._fbLoadKey('pearl/backup/versions/' + verId).then(function(backup) {
+    if (!backup) { toast('❌ Backup not found', 'err'); return; }
+
+    // Prices may be stored in backup.prices or backup.settings.prices
+    var priceData = null;
+    if (backup.prices) {
+      priceData = backup.prices;
+    } else if (backup.settings && backup.settings.prices) {
+      priceData = backup.settings.prices;
+    }
+
+    // Try reading from Firebase pearl/prices path directly if not in backup
+    if (!priceData) {
+      // Fall back: read directly from pearl/prices in Firebase
+      window._fbLoadKey('pearl/prices').then(function(fbPrices) {
+        if (!fbPrices) { toast('❌ No price data found in backup or Firebase', 'err'); return; }
+        _applyRestoredPrices(fbPrices);
+      });
+      return;
+    }
+
+    _applyRestoredPrices(priceData);
+  }).catch(function(e) { toast('❌ Failed: ' + e.message, 'err'); });
+}
+
+// ── Restore prices directly from Firebase pearl/prices path ──
+function restorePricesFromFirebase() {
+  if (!window._fbLoadKey) { toast('❌ Firebase not connected', 'err'); return; }
+  toast('⏳ Reading prices from Firebase...', 'info');
+
+  // Try pearl/prices/2026 first
+  window._fbLoadKey('pearl/prices/2026').then(function(prices2026) {
+    if (prices2026 && typeof prices2026 === 'object' && Object.keys(prices2026).length > 0) {
+      // Check it has dept keys
+      var hasDepts = DEPT_KEYS.some(function(d) { return prices2026[d]; });
+      if (hasDepts) {
+        _applyRestoredPrices({'2026': prices2026});
+        return;
+      }
+    }
+    // Try flat pearl/prices
+    return window._fbLoadKey('pearl/prices').then(function(allPrices) {
+      if (!allPrices) { toast('❌ No prices found in Firebase', 'err'); return; }
+      _applyRestoredPrices(allPrices);
+    });
+  }).catch(function(e) {
+    toast('❌ Failed to load prices: ' + (e.message||e), 'err');
+  });
+}
+
+function _applyRestoredPrices(priceData) {
+  var restored = 0;
+  // priceData may be {2025: {...}, 2026: {...}} or just {dept: [...]}
+  // Detect format
+  var years = Object.keys(priceData).filter(function(k) { return /^\d{4}$/.test(k); });
+  if (years.length > 0) {
+    // Year-keyed format
+    years.forEach(function(y) {
+      var yr = parseInt(y);
+      var prices = priceData[y];
+      if (!prices || typeof prices !== 'object') return;
+      try { _STORE.setItem(prKey(yr), JSON.stringify(prices)); } catch(e) {}
+      if (window._fbSaveKey) window._fbSaveKey('pearl/prices/' + yr, prices);
+      if (yr === CY) PRICES = prices;
+      restored++;
+    });
+  } else {
+    // Direct dept format — assume current year
+    try { _STORE.setItem(prKey(CY), JSON.stringify(priceData)); } catch(e) {}
+    if (window._fbSaveKey) window._fbSaveKey('pearl/prices/' + CY, priceData);
+    PRICES = priceData;
+    restored = 1;
+  }
+
+  if (restored === 0) { toast('⚠️ No price data could be restored', 'warn'); return; }
+
+  // Clear bad schedule entries
+  _PRICE_SCHEDULE = [];
+  savePriceSchedule();
+
+  toast('✅ Prices restored for ' + restored + ' year(s) — schedule cleared', 'ok');
+  setTimeout(function() {
+    try { renderDash(); } catch(e) {}
+    try { renderEntry(); } catch(e) {}
+    try { renderFinance(); } catch(e) {}
+    try { renderPriceScheduleList(); } catch(e) {}
+  }, 500);
+}
+
 function emergencyRestoreBasePrices(year) {
   if (!window._fbLoadKey) { toast('Firebase not connected', 'err'); return; }
   var fbPath = 'pearl/prices/' + year;
