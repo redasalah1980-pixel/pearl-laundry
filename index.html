@@ -2051,6 +2051,18 @@ var _fbDB = null;
 
       <!-- New schedule form -->
       <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:20px;margin-bottom:18px">
+        <!-- Emergency Recovery Panel -->
+        <div id="sched-emergency-wrap" style="background:#fff5f5;border:2px solid #fca5a5;border-radius:12px;padding:16px;margin-bottom:16px;display:none">
+          <div style="font-size:13px;font-weight:800;color:#dc2626;margin-bottom:8px">🚨 Emergency: Restore Base Prices</div>
+          <div style="font-size:12px;color:#64748b;margin-bottom:12px">If a price change accidentally affected past months, use this to restore the original year base prices from Firebase, then delete any bad schedule entries below.</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button onclick="emergencyRestoreBasePrices(2026)" style="padding:9px 16px;background:#dc2626;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">🔄 Restore 2026 Base Prices</button>
+            <button onclick="emergencyRestoreBasePrices(2025)" style="padding:9px 16px;background:#dc2626;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">🔄 Restore 2025 Base Prices</button>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
+          <button onclick="var w=document.getElementById('sched-emergency-wrap');w.style.display=w.style.display==='none'?'block':'none'" style="padding:6px 12px;background:#fee2e2;border:1.5px solid #fca5a5;color:#dc2626;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer">🚨 Emergency Restore</button>
+        </div>
         <div style="font-size:13px;font-weight:800;color:#0d1b2e;margin-bottom:14px">➕ Add New Price Schedule</div>
         <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap">
           <div>
@@ -7233,16 +7245,17 @@ function pcmApply() {
   var res = pcmGetNewPrices();
   if (!res) return;
 
-  // Snapshot the CURRENT prices BEFORE any changes (for Jan schedule if needed)
+  // ── CRITICAL FIX: Never overwrite the base year price table ──
+  // The base prices (pearl_prices_YYYY) are the fallback for dates with NO schedule.
+  // Overwriting them would change all past months that have no schedule entry.
+  // Instead: ONLY save a schedule entry for the from-date.
+  // The schedule entry is what controls prices from that date forwards.
+  // Dates before from-date have no schedule → they keep using base prices → untouched.
+
+  // Snapshot current base prices to use as the "restore" entry if to-date is set
   var currentPR = loadPR(res.targetYr);
 
-  // Update the target year price list with new prices
-  var targetPR = loadPR(res.targetYr);
-  res.depts.forEach(function(d) { targetPR[d] = res.newPrices[d]; });
-  savePR(res.targetYr, targetPR);
-  if (res.targetYr === CY) PRICES = targetPR;
-
-  // Save new prices as schedule entry for from-date
+  // Save new prices ONLY as a schedule entry — DO NOT touch base year prices
   _PRICE_SCHEDULE = _PRICE_SCHEDULE.filter(function(e) {
     return !(e.effectiveDate === fromDate && e.year === res.targetYr && e.dept === res.dept);
   });
@@ -7255,7 +7268,7 @@ function pcmApply() {
     pct: res.pct
   });
 
-  // If to-date set, restore old prices after the range ends
+  // If to-date set, restore OLD base prices after the range ends
   if (toDate) {
     var nextDay = new Date(toDate);
     nextDay.setDate(nextDay.getDate() + 1);
@@ -7285,10 +7298,53 @@ function pcmApply() {
   msg.textContent = '✅ Done! ' + (res.pct !== 0 ? dir + res.pct + '% · ' : '') + 'Schedule saved from ' + fromDate + (toDate ? ' to ' + toDate : ' onwards');
   setTimeout(function(){ msg.textContent = ''; }, 6000);
   renderPriceScheduleList();
-  // Force dashboard refresh
   try { renderDash(); } catch(e) {}
   try { renderEntry(); } catch(e) {}
   try { renderFinance(); } catch(e) {}
+}
+
+
+// ── Delete a specific schedule entry by date+year ──
+function deleteScheduleEntry(effectiveDate, year) {
+  var before = _PRICE_SCHEDULE.length;
+  _PRICE_SCHEDULE = _PRICE_SCHEDULE.filter(function(e) {
+    return !(e.effectiveDate === effectiveDate && e.year === year);
+  });
+  savePriceSchedule();
+  var after = _PRICE_SCHEDULE.length;
+  toast('🗑 Schedule entry deleted (' + (before-after) + ' removed)', 'ok');
+  renderPriceScheduleList();
+  try { renderDash(); } catch(e) {}
+  try { renderEntry(); } catch(e) {}
+  try { renderFinance(); } catch(e) {}
+}
+
+// ── Emergency: restore 2026 base prices from cloud backup ──
+function emergencyRestoreBasePrices(year) {
+  if (!window._fbLoadKey) { toast('Firebase not connected', 'err'); return; }
+  var fbPath = 'pearl/prices/' + year;
+  toast('⏳ Restoring base prices from Firebase...', 'info');
+  window._fbLoadKey(fbPath).then(function(fbPrices) {
+    if (!fbPrices) {
+      // Try alternate path
+      return window._fbLoadKey('pearl/settings/prices_' + year);
+    }
+    return fbPrices;
+  }).then(function(fbPrices) {
+    if (!fbPrices) {
+      toast('⚠️ No backup prices found in Firebase for ' + year, 'err');
+      return;
+    }
+    // Restore to localStorage
+    try { _STORE.setItem(prKey(year), JSON.stringify(fbPrices)); } catch(e) {}
+    if (year === CY) PRICES = fbPrices;
+    toast('✅ Base prices for ' + year + ' restored from Firebase', 'ok');
+    try { renderDash(); } catch(e) {}
+    try { renderEntry(); } catch(e) {}
+    try { renderFinance(); } catch(e) {}
+  }).catch(function(e) {
+    toast('❌ Restore failed: ' + e.message, 'err');
+  });
 }
 
 function previewPadj() {
@@ -7463,7 +7519,7 @@ function renderPriceScheduleList() {
     html += '<div style="font-weight:700;color:#0d1b2e;font-size:13px">' + entry.effectiveDate + badge + '</div>';
     html += '<div style="color:#64748b;font-size:11px;margin-top:2px">Year: ' + (entry.year||'all') + ' · Dept: ' + deptLabel + ' · ' + deptCount + ' dept(s) captured</div>';
     html += '</div></div>';
-    html += '<button onclick="deletePriceSchedule(' + idx + ')" style="background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;border-radius:6px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer">🗑 Delete</button>';
+    html += '<button onclick="deleteScheduleEntry(' + JSON.stringify(entry.effectiveDate) + ',' + (entry.year||0) + ')" style="background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;border-radius:6px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer">🗑 Delete</button>';
     html += '</div>';
   });
   html += '</div>';
