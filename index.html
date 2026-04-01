@@ -1664,7 +1664,15 @@ var _fbDB = null;
 
   <!-- PRICES -->
   <div class="pg" id="tab-prices">
-    <div class="ph"><h1>💰 Rate Manager</h1><p>Versioned prices &amp; weights — historical data always protected</p></div>
+    <div class="ph" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <div>
+        <h1>💰 Rate Manager</h1>
+        <p>Versioned prices &amp; weights — historical data always protected</p>
+      </div>
+      <button onclick="openMonthlyPriceManager()" style="padding:11px 18px;background:linear-gradient(135deg,#0d1b2e,#1e3a5f);color:#c9a84c;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:8px;flex-shrink:0;margin-top:6px" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+        📅 Monthly Price Manager
+      </button>
+    </div>
 
     <!-- ── SUB-TAB NAV ── -->
     <div style="display:flex;gap:0;border-bottom:2px solid #e2e8f0;margin-bottom:20px">
@@ -3418,7 +3426,45 @@ let _DB = {};  // In-memory cache keyed by year
 let _dirty = false;
 
 function lsKey(y) { return 'pearl_laundry_' + y; }
-function prKey(y) { return 'pearl_prices_' + y; }
+function prKey(y)    { return 'pearl_prices_' + y; }
+function prKeyM(y,m) { return 'pearl_prices_' + y + '_' + String(m).padStart(2,'0'); }
+function fbPricePathM(y,m) { return 'pearl/prices/' + y + '_' + String(m).padStart(2,'0'); }
+
+// Load prices for a specific month — falls back to year prices then MASTER
+function loadPRM(y, m) {
+  // 1. Check monthly price version
+  try {
+    var s = JSON.parse(_STORE.getItem(prKeyM(y,m)) || 'null');
+    if (s && typeof s === 'object' && Object.keys(s).length > 0) return s;
+  } catch(e) {}
+  // 2. Fall back to year prices
+  return loadPR(y);
+}
+
+// Save prices for a specific month
+function savePRM(y, m, p) {
+  try { _STORE.setItem(prKeyM(y,m), JSON.stringify(p)); } catch(e) {}
+  if (window._fbSaveKey) window._fbSaveKey(fbPricePathM(y,m), p);
+}
+
+// Check if a month has its own price version
+function hasMonthlyPrices(y, m) {
+  try {
+    var s = JSON.parse(_STORE.getItem(prKeyM(y,m)) || 'null');
+    return s && typeof s === 'object' && Object.keys(s).length > 0;
+  } catch(e) { return false; }
+}
+
+// Copy year prices to a month (create monthly version from year base)
+function createMonthlyPrices(y, m, sourcePrices) {
+  var src = sourcePrices || loadPR(y);
+  var copy = {};
+  DEPT_KEYS.forEach(function(d) {
+    copy[d] = (src[d] || MASTER[d]).map(function(item) { return [...item]; });
+  });
+  savePRM(y, m, copy);
+  return copy;
+}
 function fbDataPath(y) { return 'pearl/data/' + y; }
 function fbPricePath(y) { return 'pearl/prices/' + y; }
 
@@ -3630,23 +3676,43 @@ function savePriceSchedule() {
 // Get the correct price for a dept/item on a specific date (year, month 1-based, day 1-based)
 function getPriceForDate(dept, i, year, month, day) {
   var dateStr = year + '-' + String(month).padStart(2,'0') + '-' + String(day).padStart(2,'0');
-  // Find the latest schedule entry that is <= this date and covers this dept/year
+
+  // 1. Check monthly price version first (takes highest priority)
+  if (hasMonthlyPrices(year, month)) {
+    var mpr = loadPRM(year, month);
+    if (mpr[dept] && mpr[dept][i] !== undefined) {
+      return mpr[dept][i][1] ?? MASTER[dept][i][1];
+    }
+  }
+
+  // 2. Check price schedule (date-based overrides)
   var best = null;
   _PRICE_SCHEDULE.forEach(function(entry) {
-    if (entry.effectiveDate > dateStr) return; // future entry, skip
-    if (entry.year && entry.year !== year) return; // different year
-    if (entry.dept !== 'ALL' && entry.dept !== dept) return; // different dept
+    if (entry.effectiveDate > dateStr) return;
+    if (entry.year && entry.year !== year) return;
+    if (entry.dept !== 'ALL' && entry.dept !== dept) return;
     if (!best || entry.effectiveDate >= best.effectiveDate) best = entry;
   });
   if (best && best.prices && best.prices[dept] && best.prices[dept][i]) {
     return best.prices[dept][i][1] ?? MASTER[dept][i][1];
   }
-  // Fallback: use the correct year's saved prices (NOT always current year)
+
+  // 3. Fall back to year prices
   var pr = (year === CY) ? PRICES : loadPR(year);
   return pr[dept]?.[i]?.[1] ?? MASTER[dept][i][1];
 }
 function getKgForDate(dept, i, year, month, day) {
   var dateStr = year + '-' + String(month).padStart(2,'0') + '-' + String(day).padStart(2,'0');
+
+  // 1. Monthly price version
+  if (hasMonthlyPrices(year, month)) {
+    var mpr = loadPRM(year, month);
+    if (mpr[dept] && mpr[dept][i] !== undefined) {
+      return mpr[dept][i][2] ?? MASTER[dept][i][2];
+    }
+  }
+
+  // 2. Schedule
   var best = null;
   _PRICE_SCHEDULE.forEach(function(entry) {
     if (entry.effectiveDate > dateStr) return;
@@ -3657,7 +3723,8 @@ function getKgForDate(dept, i, year, month, day) {
   if (best && best.prices && best.prices[dept] && best.prices[dept][i]) {
     return best.prices[dept][i][2] ?? MASTER[dept][i][2];
   }
-  // Fallback: use the correct year's saved prices (NOT always current year)
+
+  // 3. Year prices
   var pr = (year === CY) ? PRICES : loadPR(year);
   return pr[dept]?.[i]?.[2] ?? MASTER[dept][i][2];
 }
@@ -15433,6 +15500,15 @@ function getFullBackupObject() {
   }
   // Price schedule
   backup.priceSchedule = _PRICE_SCHEDULE || [];
+  // Monthly price versions
+  backup.monthlyPrices = {};
+  for (var bmy = 2024; bmy <= 2035; bmy++) {
+    for (var bmm = 1; bmm <= 12; bmm++) {
+      if (hasMonthlyPrices(bmy, bmm)) {
+        backup.monthlyPrices[bmy + '_' + String(bmm).padStart(2,'0')] = loadPRM(bmy, bmm);
+      }
+    }
+  }
   // Settings
   ['pearl_credentials','pearl_team_accounts','pearl_tab_access'].forEach(function(k) {
     try {
@@ -15721,9 +15797,21 @@ function _doRestorePricesFromVersion(verId) {
         restoredYears++;
       });
     } else {
-      // Try to find prices in backup structure
       toast('⚠️ No price data found in this backup version', 'warn');
       return;
+    }
+
+    // ── Restore monthly price versions if present ──
+    if (backup.monthlyPrices) {
+      Object.keys(backup.monthlyPrices).forEach(function(key) {
+        var parts = key.split('_');
+        var yr = parseInt(parts[0]);
+        var mm = parseInt(parts[1]);
+        var prices = backup.monthlyPrices[key];
+        if (!prices) return;
+        try { _STORE.setItem(prKeyM(yr,mm), JSON.stringify(prices)); } catch(e) {}
+        if (window._fbSaveKey) tasks.push(window._fbSaveKey(fbPricePathM(yr,mm), prices));
+      });
     }
 
     // ── Restore price schedule ──
@@ -15748,6 +15836,227 @@ function _doRestorePricesFromVersion(verId) {
     });
 
   }).catch(function(e) { toast('❌ Failed: ' + (e.message||e), 'err'); });
+}
+
+
+// ════════════════════════════════════════════════════════════════
+//  MONTHLY PRICE VERSION MANAGER
+//  Lock past months + create per-month price tables
+//  This prevents any future price changes from affecting past data
+// ════════════════════════════════════════════════════════════════
+
+// ── Lock all entries in a month: stamp current price on every entry ──
+// After locking, that month's revenue is frozen regardless of price changes
+function lockMonthPrices(y, m) {
+  var db = loadDB(y);
+  var nd = dim(y, m);
+  var locked = 0;
+  var mpr = loadPRM(y, m); // get the month's prices (monthly version or year fallback)
+
+  DEPT_KEYS.forEach(function(dept) {
+    MASTER[dept].forEach(function(_, i) {
+      for (var day = 0; day < nd; day++) {
+        var key = m + '-' + dept + '-' + i + '-' + day;
+        if (db[key] && db[key] > 0 && !db[key + '-p']) {
+          // Entry exists but not yet locked — lock it now
+          var price = mpr[dept] ? (mpr[dept][i] ? mpr[dept][i][1] : MASTER[dept][i][1]) : MASTER[dept][i][1];
+          var kg    = mpr[dept] ? (mpr[dept][i] ? mpr[dept][i][2] : MASTER[dept][i][2]) : MASTER[dept][i][2];
+          db[key + '-p'] = price;
+          db[key + '-k'] = kg;
+          locked++;
+        }
+      }
+    });
+  });
+
+  if (locked > 0) {
+    saveDB(y);
+    // Also create a monthly price snapshot so this month always uses its own prices
+    if (!hasMonthlyPrices(y, m)) {
+      createMonthlyPrices(y, m, mpr);
+    }
+  }
+  return locked;
+}
+
+// ── Set up April (or any future month) with new prices ──
+// Creates a monthly price version by applying % change to previous month
+function createMonthlyPriceVersion(y, m, sourcePct) {
+  // Source: previous month's prices (or year prices if no previous month version)
+  var prevM = m === 1 ? 12 : m - 1;
+  var prevY = m === 1 ? y - 1 : y;
+  var sourcePrices = hasMonthlyPrices(prevY, prevM) ? loadPRM(prevY, prevM) : loadPR(y);
+
+  var newPrices = {};
+  DEPT_KEYS.forEach(function(d) {
+    var src = sourcePrices[d] || MASTER[d];
+    newPrices[d] = src.map(function(item) {
+      return [
+        item[0],
+        Math.round(item[1] * (1 + sourcePct/100) * 10000) / 10000,
+        item[2]
+      ];
+    });
+  });
+
+  savePRM(y, m, newPrices);
+  return newPrices;
+}
+
+// ── UI: Lock Past Months Panel ──
+
+
+function _closeCreateMonth() {
+  var el = document.getElementById('_create_month_prices');
+  if (el) el.remove();
+}
+
+function _closeMPM() {
+  var el = document.getElementById('_mpm_modal');
+  if (el) el.remove();
+}
+
+function openMonthlyPriceManager() {
+  var existing = document.getElementById('_mpm_modal');
+  if (existing) { existing.remove(); return; }
+
+  var modal = document.createElement('div');
+  modal.id = '_mpm_modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9800;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)';
+
+  var MONTH_NAMES_S = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var today = new Date();
+  var curM  = today.getMonth() + 1;
+
+  // Build month rows
+  var rows = '';
+  for (var mi = 1; mi <= 12; mi++) {
+    var isPast    = mi < curM;
+    var isCurrent = mi === curM;
+    var isFuture  = mi > curM;
+    var hasM      = hasMonthlyPrices(CY, mi);
+    var locked    = isPast || isCurrent;
+
+    var statusBg  = hasM ? '#f0fdf4' : (isPast ? '#fff7ed' : '#f8fafc');
+    var statusBdr = hasM ? '#86efac' : (isPast ? '#fde68a' : '#e2e8f0');
+    var statusTxt = hasM ? '<span style="color:#16a34a;font-weight:700;font-size:11px">✅ Monthly prices set</span>'
+                  : isPast ? '<span style="color:#d97706;font-weight:700;font-size:11px">⚠️ Uses year prices</span>'
+                  : '<span style="color:#94a3b8;font-size:11px">Future month</span>';
+
+    var btns = '';
+    if (isPast || isCurrent) {
+      btns += '<button onclick="_lockMonth(' + mi + ')" style="padding:5px 10px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer" title="Stamp locked prices on all entries in this month">🔒 Lock Entries</button> ';
+    }
+    if (!hasM) {
+      btns += '<button onclick="_createMonthPrices(' + mi + ')" style="padding:5px 10px;background:#eff6ff;color:#1d4ed8;border:1.5px solid #bfdbfe;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer" title="Create a dedicated price table for this month">📋 Set Prices</button>';
+    } else {
+      btns += '<button onclick="_editMonthPrices(' + mi + ')" style="padding:5px 10px;background:#f0fdf4;color:#15803d;border:1.5px solid #86efac;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">✏️ Edit Prices</button>';
+    }
+
+    rows += '<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:' + statusBg + ';border:1.5px solid ' + statusBdr + ';border-radius:10px;margin-bottom:8px;flex-wrap:wrap">' +
+      '<div style="width:48px;height:36px;background:#0d1b2e;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#c9a84c;flex-shrink:0">' + MONTH_NAMES_S[mi-1] + '</div>' +
+      '<div style="flex:1;min-width:0">' + statusTxt + '</div>' +
+      '<div style="display:flex;gap:6px;flex-wrap:wrap">' + btns + '</div>' +
+    '</div>';
+  }
+
+  modal.innerHTML =
+    '<div style="background:#fff;border-radius:18px;width:580px;max-width:96vw;max-height:88vh;overflow:hidden;display:flex;flex-direction:column">' +
+      '<div style="background:linear-gradient(135deg,#0d1b2e,#1e3a5f);padding:18px 24px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">' +
+        '<div>' +
+          '<div style="font-size:16px;font-weight:800;color:#c9a84c">📅 Monthly Price Manager — ' + CY + '</div>' +
+          '<div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:2px">Set independent prices per month · Lock past entries permanently</div>' +
+        '</div>' +
+                '<button onclick="_closeMPM()" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:8px;padding:6px 14px;font-size:13px;cursor:pointer">✕</button>' +
+      '</div>' +
+      '<div style="padding:16px 20px;background:#fffbeb;border-bottom:1px solid #fde68a;font-size:12px;color:#92400e;line-height:1.6">' +
+        '<strong>How to safely change prices from April 1:</strong> ' +
+        '① Click 🔒 Lock Entries on Jan, Feb, Mar — this permanently freezes their revenue calculations. ' +
+        '② Click 📋 Set Prices on April — enter the new April prices independently. ' +
+        '③ Done — each month is now completely isolated.' +
+      '</div>' +
+      '<div style="flex:1;overflow-y:auto;padding:16px 20px" id="_mpm_rows">' + rows + '</div>' +
+      '<div style="padding:12px 20px;border-top:1px solid #e2e8f0;display:flex;justify-content:flex-end">' +
+                '<button onclick="_closeMPM()" style="padding:9px 20px;background:#f1f5f9;color:#64748b;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">Close</button>' +
+      '</div>' +
+    '</div>';
+
+  document.body.appendChild(modal);
+}
+
+function _lockMonth(m) {
+  var locked = lockMonthPrices(CY, m);
+  var MONTH_NAMES_S = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  if (locked > 0) {
+    toast('🔒 ' + MONTH_NAMES_S[m-1] + ' locked — ' + locked + ' entries frozen at current prices', 'ok');
+  } else {
+    toast('ℹ️ ' + MONTH_NAMES_S[m-1] + ' — no new entries to lock (already locked or no data)', 'ok');
+  }
+  // Refresh the modal
+  document.getElementById('_mpm_modal').remove();
+  setTimeout(openMonthlyPriceManager, 200);
+}
+
+function _createMonthPrices(m) {
+  // Create monthly price version for this month
+  // Show a quick input for % adjustment vs previous month
+  var MONTH_NAMES_S = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  var box = document.createElement('div');
+  box.id = '_create_month_prices';
+  box.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9900;display:flex;align-items:center;justify-content:center;padding:20px';
+
+  var prevM = m === 1 ? 12 : m - 1;
+  var prevLabel = MONTH_NAMES_S[prevM-1];
+  var monthLabel = MONTH_NAMES_S[m-1];
+
+  box.innerHTML =
+    '<div style="background:#fff;border-radius:14px;padding:24px;max-width:380px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3)">' +
+      '<div style="font-size:15px;font-weight:800;color:#0d1b2e;margin-bottom:4px">📋 Set ' + monthLabel + ' ' + CY + ' Prices</div>' +
+      '<div style="font-size:12px;color:#64748b;margin-bottom:16px;line-height:1.5">Choose how to set prices for ' + monthLabel + '. The previous month (' + prevLabel + ') is used as the base.</div>' +
+      '<div style="margin-bottom:12px">' +
+        '<div style="font-size:11px;font-weight:700;color:#94a3b8;margin-bottom:6px">% CHANGE FROM ' + prevLabel.toUpperCase() + '</div>' +
+        '<div style="display:flex;align-items:center;gap:8px">' +
+          '<input id="_mpm_pct" type="number" step="0.01" placeholder="e.g. 3.5 or 0 for same prices" style="flex:1;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;font-weight:700;color:#0d1b2e;outline:none">' +
+          '<span style="font-weight:700;color:#64748b">%</span>' +
+        '</div>' +
+        '<div style="font-size:11px;color:#94a3b8;margin-top:4px">Enter 0 to copy ' + prevLabel + ' prices exactly · Enter 3.5 for +3.5% increase</div>' +
+      '</div>' +
+      '<div style="display:flex;gap:8px;margin-top:16px">' +
+        '<button id="_mpm_apply_btn" style="flex:1;padding:11px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">✅ Create ' + monthLabel + ' Prices</button>' +
+                '<button onclick="_closeCreateMonth()" style="padding:11px 16px;background:#f1f5f9;color:#64748b;border:none;border-radius:8px;font-size:13px;cursor:pointer">Cancel</button>' +
+      '</div>' +
+      '<div id="_mpm_create_msg" style="display:none;margin-top:10px;font-size:12px;text-align:center;font-weight:600"></div>' +
+    '</div>';
+
+  document.body.appendChild(box);
+
+  document.getElementById('_mpm_apply_btn').onclick = function() {
+    var pct = parseFloat(document.getElementById('_mpm_pct').value) || 0;
+    var newPrices = createMonthlyPriceVersion(CY, m, pct);
+    var deptCount = Object.keys(newPrices).length;
+    var itemCount = Object.values(newPrices).reduce(function(s,d){ return s+d.length; }, 0);
+    var msgEl = document.getElementById('_mpm_create_msg');
+    msgEl.style.color = '#16a34a';
+    msgEl.textContent = '✅ ' + MONTH_NAMES_S[m-1] + ' prices created — ' + itemCount + ' items across ' + deptCount + ' departments' + (pct !== 0 ? ' (' + (pct>0?'+':'') + pct + '%)' : ' (same as ' + prevLabel + ')');
+    msgEl.style.display = 'block';
+    setTimeout(function() {
+      box.remove();
+      document.getElementById('_mpm_modal').remove();
+      setTimeout(openMonthlyPriceManager, 200);
+      try { renderEntry(); } catch(e) {}
+      try { renderDash(); } catch(e) {}
+    }, 1500);
+    toast('📋 ' + MONTH_NAMES_S[m-1] + ' ' + CY + ' price table created', 'ok');
+  };
+}
+
+function _editMonthPrices(m) {
+  // For now, redirect to Prices tab with month pre-selected
+  // Full edit UI can be added later
+  document.getElementById('_mpm_modal').remove();
+  showTab('prices');
+  toast('ℹ️ Go to Price List tab to edit monthly prices', 'ok');
 }
 
 function deleteBackupVersion(verId) {
