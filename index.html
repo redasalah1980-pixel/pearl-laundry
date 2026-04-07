@@ -5380,6 +5380,8 @@ function _bootApp(user) {
   setTimeout(runMissingDeptCheck, 4000);
   // Schedule 8pm daily check
   scheduleMissingDeptCheck();
+  // New month lock reminder (runs 6s after login — days 1-7 of each month only)
+  setTimeout(checkNewMonthLockReminder, 6000);
   // Silent startup validation — runs 3s after boot, never blocks UI
   setTimeout(function() {
     if (typeof runStartupValidation === 'function') runStartupValidation();
@@ -12270,6 +12272,119 @@ function renderGuide() {
      tip('If a department genuinely has no laundry on a particular day (e.g. Spa is closed), just enter zeros or use the ✕ dismiss button. The alert is a reminder, not a block — you can always dismiss and continue.')
     ],
 
+    // ── 35. MONTHLY PRICE MANAGER ────────────────────────────
+    ['💰 Monthly Price Manager',
+     '<strong>What it is:</strong> An independent price table per month. Each month can have its own prices completely isolated from every other month. Changing May prices never affects April or June.' +
+     '<br><br><strong>How to open it:</strong> Go to <strong>Prices</strong> tab → click <strong>📅 Monthly Price Manager</strong> button in the top right.' +
+     '<br><br><strong>What you see:</strong>' +
+     ul([
+       '<strong>✅ Monthly prices set</strong> — this month has its own independent price table',
+       '<strong>⚠️ Uses year prices</strong> — this month falls back to the year base prices',
+       '<strong>Future month</strong> — no action needed until that month arrives'
+     ]) +
+     '<br><strong>Two actions per month:</strong>' +
+     ul([
+       '<strong>🔒 Lock Entries</strong> — permanently stamps the current price onto every saved entry in that month. After locking, revenue for that month is frozen forever regardless of any future price changes.',
+       '<strong>📋 Set Prices</strong> — creates an independent price table for that month. Enter a % change from the previous month (e.g. 3.5 for +3.5%, 0 to copy exactly, -2 for -2%).'
+     ]) +
+     '<br><strong>Safe price change workflow (use this every time):</strong>' +
+     step([
+       'Open 📅 Monthly Price Manager',
+       'Click 🔒 Lock Entries on all past months that have data',
+       'Click 📋 Set Prices on the new month and enter the % change',
+       'Done — the new month has new prices, all past months are frozen'
+     ]) +
+     warn('Always lock past months BEFORE setting new prices. The system warns you automatically if you have unlocked past months when you open the manager.') +
+     tip('The manager shows a red warning banner listing any past months that have data but are not yet locked. Always clear that warning before proceeding.')
+    ],
+
+    // ── 36. PRICE CHANGE — STEP BY STEP ─────────────────────
+    ['🔄 Changing Prices for a New Month',
+     '<strong>Scenario:</strong> You want to change prices starting May 1 without affecting January–April data.' +
+     '<br><br><strong>Step-by-step:</strong>' +
+     step([
+       'Go to <strong>Prices</strong> tab → click <strong>📅 Monthly Price Manager</strong>',
+       'Check the red warning banner — if Jan, Feb, Mar, Apr are listed as unlocked, click 🔒 Lock Entries on each one first',
+       'Find May in the list → click <strong>📋 Set Prices</strong>',
+       'Enter the % change (e.g. <strong>3.5</strong> for +3.5% from April, <strong>0</strong> to copy April prices exactly)',
+       'Click <strong>✅ Create May Prices</strong>',
+       'May now shows <strong>✅ Monthly prices set</strong>',
+       'Go to Entry tab → select any May day → confirm prices show the new values'
+     ]) +
+     '<br><strong>To verify it worked:</strong>' +
+     ul([
+       'Entry tab → April day → price should be the old value',
+       'Entry tab → May 1 → price should be the new value',
+       'Both months are completely independent'
+     ]) +
+     tip('You can do this for any month at any time — not just at the start of the month. Even if you have already entered May data, you can still set May prices and re-save those entries to lock them at the new price.') +
+     warn('If you enter May data BEFORE setting May prices, those entries will use the year prices. After setting May prices, re-open and re-save each day to lock the correct price.')
+    ],
+
+    // ── 37. ANNUAL REPORT ────────────────────────────────────
+    ['📊 Annual Report',
+     '<strong>What it shows:</strong> A complete year view — revenue, KG, volume, department performance, and top items — all in one management-level report.' +
+     '<br><br><strong>How to open:</strong> Click <strong>Reports ▾</strong> in the nav → <strong>Annual Report</strong>. Select the year from the dropdown.' +
+     '<br><br><strong>7 sections in the report:</strong>' +
+     ul([
+       '<strong>Year at a Glance</strong> — 6 summary cards: Total Revenue, Total KG, Total Pieces, Avg Monthly Revenue, Avg Daily KG, Months Active',
+       '<strong>Monthly Breakdown Table</strong> — all 12 months with Revenue, KG, Pieces, Avg Daily Revenue, Avg Daily KG, and a column per department. Current month is highlighted.',
+       '<strong>Revenue Trend Chart</strong> — bar chart of all 12 months. Current month shown in gold.',
+       '<strong>Department Performance</strong> — each department with Revenue, % of total (visual bar), KG, Pieces, Avg per Piece, KG per Piece',
+       '<strong>Top 10 Items by Revenue</strong> — which items generated the most revenue this year',
+       '<strong>Top 10 Items by Volume</strong> — which items had the highest piece count',
+       '<strong>Top 10 Items by Weight</strong> — which items were heaviest in total KG'
+     ]) +
+     '<br>All calculations use monthly price versions — so revenue is accurate even when prices changed mid-year.' +
+     '<br><br>Click <strong>🖨️ Print / PDF</strong> to print or save as a PDF for management reporting.' +
+     tip('Use the Annual Report at the end of each month to track year-to-date performance. The Monthly Breakdown table highlights the current month so you can see exactly where you are in the year.')
+    ],
+
+    // ── 38. MONTHLY DETAIL REPORT ────────────────────────────
+    ['📅 Monthly Detail Report',
+     '<strong>What it shows:</strong> A full breakdown of one month — every item, every day, quantities entered, prices, revenue, and KG per department.' +
+     '<br><br><strong>How to open:</strong> Click <strong>Reports ▾</strong> → <strong>Monthly Overview</strong>. Select month and department.' +
+     '<br><br><strong>What\'s in the report:</strong>' +
+     ul([
+       '<strong>Dept summary cards</strong> at the top — one card per department showing Revenue, KG, Pieces at a glance',
+       '<strong>Price column</strong> — shows the actual monthly price for each item (correct for that month)',
+       '<strong>KG/pc column</strong> — weight per piece',
+       '<strong>Daily quantity columns</strong> — one column per day of the month',
+       '<strong>Pcs total</strong> — total pieces for the month per item',
+       '<strong>Revenue column</strong> — total revenue per item',
+       '<strong>KG total column</strong> — total kilograms per item'
+     ]) +
+     '<br><strong>Export options:</strong>' +
+     ul([
+       '<strong>📊 Excel (.xlsx)</strong> — full monthly table with all items',
+       '<strong>🖨️ PDF / Print</strong> — print or save as PDF',
+       '<strong>📄 CSV</strong> — raw data for spreadsheets'
+     ]) +
+     tip('Use the department filter to focus on one department at a time. When All Departments is selected, dept summary cards appear at the top for a quick overview before the detail tables.')
+    ],
+
+    // ── 39. BACKUP — PRICES RESTORE ──────────────────────────
+    ['💰 Restoring Prices from Backup',
+     '<strong>What it does:</strong> Restores ONLY the prices from a previous backup version. Entry data (quantities, daily records) is completely untouched.' +
+     '<br><br><strong>When to use it:</strong> If prices were accidentally changed and your revenue calculations are wrong, use this to instantly restore prices from any backup version.' +
+     '<br><br><strong>How to use:</strong>' +
+     step([
+       'Go to <strong>Backup</strong> tab',
+       'In the Backup History section, find a version from before the price change',
+       'Click <strong>💰 Prices</strong> next to that version (not 🔄 Data)',
+       'Confirm in the dialog that appears',
+       'Prices are restored and the price schedule is cleared automatically',
+       'Check Entry tab to confirm prices are correct'
+     ]) +
+     '<br><strong>Two restore buttons per backup version:</strong>' +
+     ul([
+       '<strong>🔄 Data</strong> — restores entry data (quantities, daily records). Use this if data was lost.',
+       '<strong>💰 Prices</strong> — restores only prices and price schedule. Use this if prices were wrong.'
+     ]) +
+     warn('The 💰 Prices restore clears the current price schedule. Any scheduled price changes will need to be re-applied after the restore.') +
+     tip('Always take a cloud backup before changing prices. That way you always have a recent version to restore from if anything goes wrong.')
+    ],
+
 
   ];
 
@@ -16207,6 +16322,28 @@ function openMonthlyPriceManager() {
   var today = new Date();
   var curM  = today.getMonth() + 1;
 
+  // ── Check for unlocked past months and build reminder ──
+  var unlocked = [];
+  for (var mi = 1; mi < curM; mi++) {
+    // Check if this past month has data but no locked entries
+    var nd = dim(CY, mi);
+    var hasData = false;
+    var hasLocked = false;
+    var db = loadDB(CY);
+    DEPT_KEYS.forEach(function(dept) {
+      MASTER[dept].forEach(function(_, i) {
+        for (var d = 0; d < nd; d++) {
+          var key = mi + '-' + dept + '-' + i + '-' + d;
+          if (db[key] && db[key] > 0) {
+            hasData = true;
+            if (db[key + '-p']) hasLocked = true;
+          }
+        }
+      });
+    });
+    if (hasData && !hasLocked) unlocked.push(mi);
+  }
+
   // Build month rows
   var rows = '';
   for (var mi = 1; mi <= 12; mi++) {
@@ -16248,9 +16385,20 @@ function openMonthlyPriceManager() {
         '</div>' +
                 '<button onclick="_closeMPM()" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:8px;padding:6px 14px;font-size:13px;cursor:pointer">✕</button>' +
       '</div>' +
-      '<div style="padding:16px 20px;background:#fffbeb;border-bottom:1px solid #fde68a;font-size:12px;color:#92400e;line-height:1.6">' +
-        '<strong>Step 1:</strong> Click 🔒 Lock Entries on Jan, Feb, Mar to freeze their prices permanently.<br>' +
-        '<strong>Step 2:</strong> Click the gold button below to apply the pre-calculated April 2026 prices (2025 base +3.5%).' +
+      // Unlocked months warning banner
+      (unlocked.length > 0 ?
+        '<div style="padding:14px 20px;background:#fef2f2;border-bottom:2px solid #fca5a5;font-size:12px;color:#dc2626;line-height:1.6">' +
+          '<strong>⚠️ Action Required — Lock Past Months Before Changing Prices</strong><br>' +
+          'The following months have data but entries are not locked yet: <strong>' +
+          unlocked.map(function(m){ return MONTH_NAMES_S[m-1]; }).join(', ') +
+          '</strong><br>' +
+          '<span style="font-size:11px;color:#7f1d1d">Click 🔒 Lock Entries on each one before setting new prices — this permanently protects their revenue calculations.</span>' +
+        '</div>' : '') +
+      '<div style="padding:14px 20px;background:#fffbeb;border-bottom:1px solid #fde68a;font-size:12px;color:#92400e;line-height:1.6">' +
+        '<strong>How it works:</strong> ' +
+        '① Lock past months (🔒 Lock Entries) to freeze their prices permanently. ' +
+        '② Set prices for the new month (📋 Set Prices or 🚀 Apply April Prices). ' +
+        '③ Each month is fully isolated — changing one never affects another.' +
       '</div>' +
       '<div style="padding:12px 20px;background:#f0fdf4;border-bottom:1.5px solid #86efac;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">' +
         '<div style="font-size:12px;color:#15803d;line-height:1.5">' +
@@ -18133,6 +18281,127 @@ function scheduleMissingDeptCheck() {
     // Then check every 24h
     setInterval(runMissingDeptCheck, 86400000);
   }, msUntil8pm);
+}
+
+
+// ════════════════════════════════════════════════════════════════
+//  NEW MONTH LOCK REMINDER
+//  Fires once on the 1st of each month if previous month has
+//  unlocked data — reminds user to lock before entering new data
+// ════════════════════════════════════════════════════════════════
+
+function checkNewMonthLockReminder() {
+  var today  = new Date();
+  var day    = today.getDate();
+  var curM   = today.getMonth() + 1;  // 1-based
+  var curY   = today.getFullYear();
+  var prevM  = curM === 1 ? 12 : curM - 1;
+  var prevY  = curM === 1 ? curY - 1 : curY;
+
+  // Only run on days 1–7 of the month (grace window)
+  if (day > 7) return;
+
+  // Don't show more than once per month
+  var shownKey = 'pearl_lock_reminder_' + curY + '_' + String(curM).padStart(2,'0');
+  if (_STORE.getItem(shownKey)) return;
+
+  // Check if previous month has any data that is NOT locked
+  var db   = loadDB(prevY);
+  var nd   = dim(prevY, prevM);
+  var hasUnlocked = false;
+
+  outer:
+  for (var i_d = 0; i_d < nd; i_d++) {
+    for (var di = 0; di < DEPT_KEYS.length; di++) {
+      var dept = DEPT_KEYS[di];
+      for (var ii = 0; ii < MASTER[dept].length; ii++) {
+        var key = prevM + '-' + dept + '-' + ii + '-' + i_d;
+        if (db[key] && db[key] > 0 && !db[key + '-p']) {
+          hasUnlocked = true;
+          break outer;
+        }
+      }
+    }
+  }
+
+  if (!hasUnlocked) return; // previous month already locked or has no data
+
+  // Mark as shown for this month
+  try { _STORE.setItem(shownKey, '1'); } catch(e) {}
+
+  // Show the banner
+  _showLockReminderBanner(prevM, prevY, curM);
+}
+
+var MONTH_NAMES_FULL = ['January','February','March','April','May','June',
+                        'July','August','September','October','November','December'];
+
+
+function _dismissLockReminder() {
+  var el = document.getElementById('_lock_reminder');
+  if (el) el.remove();
+}
+
+function _showLockReminderBanner(prevM, prevY, curM) {
+  var existing = document.getElementById('_lock_reminder');
+  if (existing) existing.remove();
+
+  var banner = document.createElement('div');
+  banner.id  = '_lock_reminder';
+  banner.style.cssText =
+    'position:fixed;top:62px;left:50%;transform:translateX(-50%);z-index:8100;' +
+    'background:#fff;border:2px solid #c9a84c;border-radius:14px;' +
+    'box-shadow:0 8px 32px rgba(201,168,76,.25);max-width:520px;width:calc(100vw - 32px);' +
+    'animation:slideDown .4s cubic-bezier(.22,1,.36,1);font-family:inherit';
+
+  var prevName = MONTH_NAMES_FULL[prevM - 1];
+  var curName  = MONTH_NAMES_FULL[curM  - 1];
+
+  banner.innerHTML =
+    '<div style="display:flex;align-items:center;justify-content:space-between;' +
+      'padding:12px 16px;background:linear-gradient(135deg,#0d1b2e,#1e3a5f);' +
+      'border-radius:12px 12px 0 0">' +
+      '<div style="display:flex;align-items:center;gap:10px">' +
+        '<span style="font-size:22px">🔒</span>' +
+        '<div>' +
+          '<div style="font-size:13px;font-weight:800;color:#c9a84c">New Month — Lock ' + prevName + ' Before Entering ' + curName + ' Data</div>' +
+          '<div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:1px">' + prevName + ' has unsaved entries — lock them now to protect the revenue calculations</div>' +
+        '</div>' +
+      '</div>' +
+      '<button onclick="_dismissLockReminder()" ' +
+        'style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);' +
+        'color:#fff;border-radius:7px;padding:5px 12px;font-size:12px;cursor:pointer">✕</button>' +
+    '</div>' +
+    '<div style="padding:14px 16px">' +
+      '<div style="font-size:12px;color:#64748b;margin-bottom:12px;line-height:1.6">' +
+        'Locking ' + prevName + ' permanently freezes its revenue calculations. ' +
+        'You can then set new prices for ' + curName + ' without affecting past data.' +
+      '</div>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
+        '<button onclick="_goToLockMonth(' + prevM + ')" ' +
+          'style="flex:1;padding:10px 16px;background:linear-gradient(135deg,#0d1b2e,#1e3a5f);' +
+          'color:#c9a84c;border:none;border-radius:9px;font-size:12px;font-weight:800;cursor:pointer">' +
+          '🔒 Lock ' + prevName + ' Now</button>' +
+        '<button onclick="_dismissLockReminder()" ' +
+          'style="padding:10px 16px;background:#f8fafc;color:#64748b;border:1.5px solid #e2e8f0;' +
+          'border-radius:9px;font-size:12px;font-weight:700;cursor:pointer">Remind Me Later</button>' +
+      '</div>' +
+    '</div>';
+
+  document.body.appendChild(banner);
+
+  // Auto dismiss after 45 seconds
+  setTimeout(function() {
+    var el = document.getElementById('_lock_reminder');
+    if (el) { el.style.opacity='0'; el.style.transition='opacity .5s'; setTimeout(function(){ if(el.parentNode) el.remove(); },500); }
+  }, 45000);
+}
+
+function _goToLockMonth(m) {
+  var el = document.getElementById('_lock_reminder');
+  if (el) el.remove();
+  showTab('prices');
+  setTimeout(openMonthlyPriceManager, 400);
 }
 
 // ── Service Worker for offline support ──
