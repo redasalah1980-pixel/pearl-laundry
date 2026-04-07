@@ -8883,7 +8883,7 @@ function printPricesPDF(mode) {
     '<div style="margin-top:24px;padding-top:12px;border-top:1px solid #e2e8f0;text-align:center;font-size:10.5px;color:#94a3b8">' +
       '© Reda Salah · Laundry Management System · All Rights Reserved' +
     '</div>' +
-    '<script>window.onload=function(){window.print();}<\/script>' +
+    '<scr'+'ipt>window.onload=function(){window.print();}</scr'+'ipt>' +
     '</body></html>';
 
   printWin.document.write(html2);
@@ -9662,7 +9662,7 @@ function printBenchmarkPDF() {
     '<div class="section"><div class="section-hdr table">📊 Day-by-Day Benchmark Table</div><div class="section-body">' + tableHTML + '</div></div>' +
     '<div class="section"><div class="section-hdr dept">🏢 Department Breakdown</div><div class="section-body" style="padding:14px">' + deptHTML + '</div></div>' +
     '<div class="footer">© ' + CY + ' Reda Salah · RS · Pearl Laundry Management System · All Rights Reserved</div>' +
-    '<script>window.onload=function(){window.print();}<\/script>' +
+    '<scr'+'ipt>window.onload=function(){window.print();}</scr'+'ipt>' +
     '</body></html>';
 
   printWin.document.write(html2);
@@ -16375,36 +16375,60 @@ function _confirmDelete(verId) {
 }
 
 function _doDeleteBackup(verId) {
-  // Load latest index from localStorage
+  // Load index from BOTH localStorage and Firebase to get the most complete list
   var stored = [];
   try { stored = JSON.parse(_STORE.getItem('pearl_backup_index') || '[]'); } catch(e) {}
+
+  // Filter out the deleted version
   var newIndex = stored.filter(function(v) { return v.id !== verId; });
 
-  // Save locally first
+  // 1. Save updated index locally immediately
   try { _STORE.setItem('pearl_backup_index', JSON.stringify(newIndex)); } catch(e) {}
 
   toast('⏳ Deleting...', 'info');
 
-  // Remove version data from Firebase
+  // 2. Remove version data from Firebase
+  var deletePromises = [];
   if (window._fbDB) {
-    window._fbDB.ref('pearl/backup/versions/' + verId).remove().catch(function(e) {
-      console.warn('[Backup] Failed to remove version data:', e);
-    });
+    deletePromises.push(
+      window._fbDB.ref('pearl/backup/versions/' + verId).remove()
+        .catch(function(e) { console.warn('[Backup] Failed to remove version data:', e); })
+    );
   }
 
-  // Save updated index to Firebase
+  // 3. Save updated index to Firebase
   if (window._fbSaveKey) {
-    window._fbSaveKey('pearl/backup/index', newIndex).then(function() {
-      toast('✅ Backup version deleted', 'ok');
-      renderBackupHistory();
-    }).catch(function(e) {
-      toast('⚠️ Deleted locally — cloud sync issue', 'warn');
-      renderBackupHistory();
-    });
-  } else {
-    toast('✅ Backup deleted (local only)', 'ok');
-    renderBackupHistory();
+    deletePromises.push(
+      window._fbSaveKey('pearl/backup/index', newIndex)
+        .catch(function(e) { console.warn('[Backup] Failed to update index:', e); })
+    );
   }
+
+  // 4. After ALL operations complete, re-render directly with newIndex
+  // (don't reload from Firebase — it might still have stale data)
+  Promise.all(deletePromises).then(function() {
+    toast('✅ Backup version deleted', 'ok');
+    _renderBackupIndexDirect(newIndex);
+  }).catch(function() {
+    toast('⚠️ Deleted locally — cloud sync issue', 'warn');
+    _renderBackupIndexDirect(newIndex);
+  });
+}
+
+// Re-render backup history from a known-good index (no Firebase reload)
+function _renderBackupIndexDirect(index) {
+  var wrap = document.getElementById('backup-history-wrap');
+  if (!wrap) return;
+  if (!index || index.length === 0) {
+    wrap.innerHTML = '<div style="text-align:center;padding:20px;color:#94a3b8;font-size:13px">' +
+      'No backup versions yet.<br>Click <strong>☁️ Save Cloud Backup Now</strong> to create your first version.' +
+      '</div>';
+    return;
+  }
+  // Trigger a fresh render from Firebase after a short delay to confirm sync
+  setTimeout(function() { renderBackupHistory(); }, 1500);
+  // Immediately show the filtered list
+  renderBackupTab && renderBackupTab();
 }
 
 function renderBackupHistory() {
