@@ -1487,7 +1487,7 @@ var _fbDB = null;
 
   <!-- MONTHLY -->
   <div class="pg" id="tab-monthly">
-    <div class="ph"><h1>📅 Monthly Overview</h1><p>Full month data across all departments</p></div>
+    <div class="ph"><h1>📅 Monthly Detail</h1><p>Full month breakdown — items, quantities, prices, KG &amp; revenue per department</p></div>
     <div class="ctrl" style="flex-wrap:wrap;gap:8px;align-items:center">
       <div class="ctrl-group"><div class="ctrl-label">Month</div>
         <select id="mon-month" onchange="renderMonthly()"></select></div>
@@ -1522,16 +1522,19 @@ var _fbDB = null;
 
   <!-- REPORT -->
   <div class="pg" id="tab-report">
-    <div class="ph"><h1>Report &amp; PDF</h1><p>Laundry Management System — printable &amp; exportable</p></div>
-    <div class="ctrl">
-      <div class="ctrl-group"><div class="ctrl-label">Month</div>
-        <select id="rep-month" onchange="renderReport()"></select></div>
+    <div class="ph" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <div>
+        <h1>📊 Annual Report</h1>
+        <p>Full year performance — revenue, KG, volume, department breakdown &amp; top items</p>
+      </div>
+    </div>
+    <div class="ctrl" style="flex-wrap:wrap;gap:8px;align-items:center">
       <div class="ctrl-group"><div class="ctrl-label">Year</div>
         <select id="rep-year" onchange="renderReport()"></select></div>
-      <button class="btn-save gold" onclick="window.print()">🖨 Print / Save PDF</button>
-      <button class="btn-save" onclick="exportCSV()">⬇ Export CSV</button>
+      <button onclick="renderReport()" style="padding:8px 16px;background:#f8fafc;border:1.5px solid #e2e8f0;color:#64748b;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">🔄 Refresh</button>
+      <button onclick="window.print()" style="padding:8px 16px;background:linear-gradient(135deg,#0d1b2e,#1e3a5f);color:#c9a84c;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">🖨️ Print / PDF</button>
     </div>
-    <div id="report-wrap"></div>
+    <div id="report-wrap" style="padding:4px 0"></div>
 
   <div style="text-align:center;padding:18px 0 10px;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;margin-top:32px;letter-spacing:0.3px">
     © Reda Salah · All Rights Reserved
@@ -6939,38 +6942,96 @@ function financeExportPDF() {
 //  MONTHLY
 // ════════════════════════════════════════════════════════════════
 function renderMonthly() {
-  const m = parseInt(document.getElementById('mon-month')?.value || new Date().getMonth() + 1);
-  const dsel = document.getElementById('mon-dept')?.value || 'ALL';
-  const {qr, kg, pcs, byDept} = monthTotals(CY, m);
-  const nd = dim(CY, m);
-  document.getElementById('mon-stats').innerHTML = `
-    <div class="sc blue"><div class="sc-lbl">Total Revenue</div><div class="sc-val">${fmtMoney(qr)}</div><div class="sc-sub">${MONTH_NAMES[m-1]} ${CY}</div></div>
-    <div class="sc green"><div class="sc-lbl">Total KG</div><div class="sc-val">${kg.toFixed(1)}<span>kg</span></div><div class="sc-sub">All departments</div></div>
-    <div class="sc dark"><div class="sc-lbl">Total Pieces</div><div class="sc-val">${pcs.toLocaleString()}</div><div class="sc-sub">All items</div></div>`;
-  const depts = dsel === 'ALL' ? DEPT_KEYS : [dsel];
-  const days = Array.from({length: nd}, (_, i) => i + 1);
-  let h = '';
-  depts.forEach(dept => {
-    const col = DEPT_COLORS[dept]; const items = MASTER[dept];
-    let h2 = `<div class="mon-dept-section">
-      <div class="mon-dept-hd" style="background:${col}">${DEPT_ICONS[dept]} ${dept}</div>
-      <div class="tscroll"><table class="mon">
-        <thead><tr><th>Item</th>${days.map(d => `<th>${d}</th>`).join('')}<th>Total</th><th>QR</th></tr></thead>
-        <tbody>`;
-    let dSubDay = Array(nd).fill(0), dSubPcs = 0, dSubQR = 0;
-    items.forEach((_, i) => {
-      const nm = getN(dept, i), pr = getP(dept, i); let rTotal = 0;
-      const cells = days.map((d, di) => {
-        const v = getVal(CY, m, dept, i, di); rTotal += v; dSubDay[di] += v;
-        return v > 0 ? `<td class="nz">${v}</td>` : `<td></td>`;
-      }).join('');
-      dSubPcs += rTotal; dSubQR += rTotal * pr;
-      h2 += `<tr><td>${nm}</td>${cells}<td class="${rTotal>0?'nz':''}">${rTotal || ''}</td><td class="${rTotal>0?'nz':''}">${rTotal > 0 ? f2(rTotal * pr) : ''}</td></tr>`;
+  var m    = parseInt(document.getElementById('mon-month')?.value || new Date().getMonth() + 1);
+  var dsel = document.getElementById('mon-dept')?.value || 'ALL';
+  var nd   = dim(CY, m);
+  var days = Array.from({length: nd}, function(_, i) { return i + 1; });
+
+  // Use monthly prices if available
+  var mpr = hasMonthlyPrices(CY, m) ? loadPRM(CY, m) : PRICES;
+
+  // Calculate totals using correct prices
+  var totalQR = 0, totalKG = 0, totalPCS = 0;
+  var deptTotals = {};
+  DEPT_KEYS.forEach(function(dept) {
+    var dQR = 0, dKG = 0, dPCS = 0;
+    MASTER[dept].forEach(function(_, i) {
+      var pr = mpr[dept]?.[i]?.[1] ?? MASTER[dept][i][1];
+      var kg = mpr[dept]?.[i]?.[2] ?? MASTER[dept][i][2];
+      for (var d = 0; d < nd; d++) {
+        var v = getVal(CY, m, dept, i, d);
+        dQR += v * pr; dKG += v * kg; dPCS += v;
+      }
     });
-    h2 += `<tr class="sub-r"><td>Subtotal</td>${dSubDay.map(v => `<td>${v || ''}</td>`).join('')}<td>${dSubPcs}</td><td>${f2(dSubQR)}</td></tr>`;
-    h2 += `</tbody></table></div></div>`;
+    deptTotals[dept] = {qr: dQR, kg: dKG, pcs: dPCS};
+    totalQR += dQR; totalKG += dKG; totalPCS += dPCS;
+  });
+
+  // Stats bar
+  document.getElementById('mon-stats').innerHTML =
+    '<div class="sc blue"><div class="sc-lbl">Total Revenue</div><div class="sc-val">' + fmtMoney(totalQR) + '</div><div class="sc-sub">' + MONTH_NAMES[m-1] + ' ' + CY + '</div></div>' +
+    '<div class="sc green"><div class="sc-lbl">Total KG</div><div class="sc-val">' + totalKG.toFixed(1) + '<span>kg</span></div><div class="sc-sub">All departments</div></div>' +
+    '<div class="sc dark"><div class="sc-lbl">Total Pieces</div><div class="sc-val">' + totalPCS.toLocaleString() + '</div><div class="sc-sub">All items</div></div>' +
+    '<div class="sc orange"><div class="sc-lbl">Avg Daily Rev</div><div class="sc-val">' + fmtMoney(totalQR / nd) + '</div><div class="sc-sub">Per day this month</div></div>';
+
+  // Dept summary cards
+  var deptCards = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:24px">';
+  DEPT_KEYS.forEach(function(dept) {
+    var t = deptTotals[dept];
+    var col = DEPT_COLORS[dept] || '#0d1b2e';
+    deptCards += '<div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;overflow:hidden">' +
+      '<div style="background:' + col + ';padding:8px 12px;font-size:11px;font-weight:800;color:#fff">' + DEPT_ICONS[dept] + ' ' + dept + '</div>' +
+      '<div style="padding:10px 12px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;font-size:11px">' +
+        '<div><div style="color:#94a3b8;font-size:10px">Revenue</div><div style="font-weight:700;color:#0d1b2e">' + fmtMoney(t.qr) + '</div></div>' +
+        '<div><div style="color:#94a3b8;font-size:10px">KG</div><div style="font-weight:700;color:#0d1b2e">' + t.kg.toFixed(1) + '</div></div>' +
+        '<div><div style="color:#94a3b8;font-size:10px">Pieces</div><div style="font-weight:700;color:#0d1b2e">' + t.pcs.toLocaleString() + '</div></div>' +
+      '</div></div>';
+  });
+  deptCards += '</div>';
+
+  // Item tables per dept
+  var depts = dsel === 'ALL' ? DEPT_KEYS : [dsel];
+  var h = dsel === 'ALL' ? deptCards : '';
+
+  depts.forEach(function(dept) {
+    var col = DEPT_COLORS[dept] || '#0d1b2e';
+    var items = MASTER[dept];
+    var h2 = '<div class="mon-dept-section">' +
+      '<div class="mon-dept-hd" style="background:' + col + '">' + DEPT_ICONS[dept] + ' ' + dept + '</div>' +
+      '<div class="tscroll"><table class="mon">' +
+      '<thead><tr><th>Item</th><th>Price</th><th>KG/pc</th>' +
+      days.map(function(d) { return '<th>' + d + '</th>'; }).join('') +
+      '<th>Pcs</th><th>Revenue</th><th>KG</th></tr></thead><tbody>';
+    var dSubDay = Array(nd).fill(0), dSubPcs = 0, dSubQR = 0, dSubKG = 0;
+    items.forEach(function(_, i) {
+      var nm = getN(dept, i);
+      var pr = mpr[dept]?.[i]?.[1] ?? MASTER[dept][i][1];
+      var kg = mpr[dept]?.[i]?.[2] ?? MASTER[dept][i][2];
+      var rTotal = 0, rKG = 0;
+      var cells = days.map(function(d, di) {
+        var v = getVal(CY, m, dept, i, di);
+        rTotal += v; dSubDay[di] += v;
+        return v > 0 ? '<td class="nz">' + v + '</td>' : '<td></td>';
+      }).join('');
+      rKG = rTotal * kg;
+      dSubPcs += rTotal; dSubQR += rTotal * pr; dSubKG += rKG;
+      h2 += '<tr>' +
+        '<td>' + nm + '</td>' +
+        '<td style="font-size:10px;color:#64748b">' + pr.toFixed(4) + '</td>' +
+        '<td style="font-size:10px;color:#64748b">' + kg.toFixed(3) + '</td>' +
+        cells +
+        '<td class="' + (rTotal>0?'nz':'') + '">' + (rTotal||'') + '</td>' +
+        '<td class="' + (rTotal>0?'nz':'') + '">' + (rTotal > 0 ? f2(rTotal * pr) : '') + '</td>' +
+        '<td style="font-size:11px;color:#64748b">' + (rKG > 0 ? rKG.toFixed(2) : '') + '</td>' +
+        '</tr>';
+    });
+    h2 += '<tr class="sub-r"><td colspan="3">Subtotal — ' + dept + '</td>' +
+      dSubDay.map(function(v) { return '<td>' + (v||'') + '</td>'; }).join('') +
+      '<td>' + dSubPcs + '</td><td>' + f2(dSubQR) + '</td><td>' + dSubKG.toFixed(2) + '</td></tr>';
+    h2 += '</tbody></table></div></div>';
     h += h2;
   });
+
   document.getElementById('mon-wrap').innerHTML = h;
 }
 
@@ -6978,138 +7039,256 @@ function renderMonthly() {
 //  REPORT
 // ════════════════════════════════════════════════════════════════
 function renderReport() {
-  const m   = parseInt(document.getElementById('rep-month')?.value || new Date().getMonth() + 1);
-  const ry  = parseInt(document.getElementById('rep-year')?.value  || CY);
-  const nd  = dim(ry, m);
-  const days = Array.from({length: nd}, (_, i) => i + 1);
-  const mName = MONTH_NAMES[m - 1];
-  const today = new Date();
+  var ry  = parseInt(document.getElementById('rep-year')?.value || CY);
+  var wrap = document.getElementById('report-wrap');
+  if (!wrap) return;
 
-  // ── Piece count table ────────────────────────────────────────
-  let gDay = Array(nd).fill(0), gTotal = 0;
-  let tbody = '';
-
-  // Summary accumulators per dept
-  const deptSummary = {}; // dept -> {pcs, qr, kg}
-  let grandPcs = 0, grandQR = 0, grandKG = 0;
+  // ── Collect full year data ──────────────────────────────────
+  var yearData = {};   // month -> {qr, kg, pcs, byDept}
+  var yrQR = 0, yrKG = 0, yrPCS = 0;
+  var deptYear = {};   // dept -> {qr, kg, pcs}
+  var itemYear = {};   // dept+i -> {name, dept, qr, kg, pcs}
 
   DEPT_KEYS.forEach(function(dept) {
-    const col = DEPT_COLORS[dept] || '#1A2332';
-    tbody += '<tr class="dr"><td colspan="' + (nd + 3) + '" style="background:' + col + '">' + DEPT_ICONS[dept] + ' ' + dept.toUpperCase() + '</td></tr>';
-    let dDay = Array(nd).fill(0), dTotal = 0, dQR = 0, dKG = 0;
-    MASTER[dept].forEach(function(_, i) {
-      const nm = getN(dept, i), pr = getP(dept, i), kg = getK(dept, i);
-      let rT = 0;
-      const cells = days.map(function(d, di) {
-        const v = getVal(ry, m, dept, i, di);
-        rT += v; dDay[di] += v; gDay[di] += v;
-        return '<td>' + (v || '') + '</td>';
-      }).join('');
-      dTotal += rT; dQR += rT * pr; dKG += rT * kg; gTotal += rT;
-      tbody += '<tr><td>' + nm + '</td><td>' + pr.toFixed(4) + '</td>' + cells + '<td><strong>' + (rT || '') + '</strong></td></tr>';
-    });
-    tbody += '<tr class="sr"><td colspan="2">Subtotal — ' + dept + '</td>' + dDay.map(function(v){ return '<td>' + (v || '') + '</td>'; }).join('') + '<td>' + dTotal + '</td></tr>';
-    deptSummary[dept] = {pcs: dTotal, qr: dQR, kg: dKG};
-    grandPcs += dTotal; grandQR += dQR; grandKG += dKG;
+    deptYear[dept] = {qr:0, kg:0, pcs:0};
   });
 
-  // ── Monthly summary table ───────────────────────────────────
-  var smRows = '';
-  DEPT_KEYS.forEach(function(dept) {
-    var s = deptSummary[dept];
-    smRows += '<tr class="dept-subtotal">' +
-      '<td>' + DEPT_ICONS[dept] + ' ' + dept + '</td>' +
-      '<td>' + s.pcs.toLocaleString() + '</td>' +
-      '<td>' + fmtMoney(s.qr) + '</td>' +
-      '<td>' + s.kg.toFixed(2) + ' KG</td>' +
-      '</tr>';
-  });
-  smRows += '<tr>' +
-    '<td>🏆 GRAND TOTAL</td>' +
-    '<td>' + grandPcs.toLocaleString() + '</td>' +
-    '<td>' + fmtMoney(grandQR) + '</td>' +
-    '<td>' + grandKG.toFixed(2) + ' KG</td>' +
-    '</tr>';
-
-  // ── Yearly summary (all months of selected year) ─────────────
-  var yrRows = '';
-  var yrPcs = 0, yrQR = 0, yrKG = 0;
   for (var mi = 1; mi <= 12; mi++) {
-    var mnd = dim(ry, mi);
-    var mPcs = 0, mQR = 0, mKG = 0;
+    var nd = dim(ry, mi);
+    var mpr = hasMonthlyPrices(ry, mi) ? loadPRM(ry, mi) : loadPR(ry);
+    var mQR = 0, mKG = 0, mPCS = 0;
+    var mByDept = {};
     DEPT_KEYS.forEach(function(dept) {
+      var dQR = 0, dKG = 0, dPCS = 0;
       MASTER[dept].forEach(function(_, i) {
-        for (var d = 0; d < mnd; d++) {
+        var pr = mpr[dept]?.[i]?.[1] ?? MASTER[dept][i][1];
+        var kg = mpr[dept]?.[i]?.[2] ?? MASTER[dept][i][2];
+        var nm = MASTER[dept][i][0];
+        var key = dept + '::' + i;
+        if (!itemYear[key]) itemYear[key] = {name:nm, dept:dept, qr:0, kg:0, pcs:0};
+        for (var d = 0; d < nd; d++) {
           var v = getVal(ry, mi, dept, i, d);
-          mPcs += v; mQR += v * getP(dept, i); mKG += v * getK(dept, i);
+          if (v > 0) {
+            dQR += v*pr; dKG += v*kg; dPCS += v;
+            itemYear[key].qr  += v*pr;
+            itemYear[key].kg  += v*kg;
+            itemYear[key].pcs += v;
+          }
         }
       });
+      mByDept[dept] = {qr:dQR, kg:dKG, pcs:dPCS};
+      deptYear[dept].qr  += dQR;
+      deptYear[dept].kg  += dKG;
+      deptYear[dept].pcs += dPCS;
+      mQR += dQR; mKG += dKG; mPCS += dPCS;
     });
-    var isCurrentMonth = (mi === m);
-    yrRows += '<tr' + (isCurrentMonth ? ' style="background:#e0f2fe;font-weight:700"' : '') + '>' +
-      '<td>' + MONTH_NAMES[mi - 1] + (isCurrentMonth ? ' ◀' : '') + '</td>' +
-      '<td>' + (mPcs > 0 ? mPcs.toLocaleString() : '—') + '</td>' +
-      '<td>' + (mQR > 0 ? fmtMoney(mQR) : '—') + '</td>' +
-      '<td>' + (mKG > 0 ? mKG.toFixed(2) + ' KG' : '—') + '</td>' +
-      '</tr>';
-    yrPcs += mPcs; yrQR += mQR; yrKG += mKG;
+    yearData[mi] = {qr:mQR, kg:mKG, pcs:mPCS, byDept:mByDept};
+    yrQR += mQR; yrKG += mKG; yrPCS += mPCS;
   }
-  yrRows += '<tr>' +
-    '<td>🏆 YEAR TOTAL ' + ry + '</td>' +
-    '<td>' + yrPcs.toLocaleString() + '</td>' +
-    '<td>' + fmtMoney(yrQR) + '</td>' +
-    '<td>' + yrKG.toFixed(2) + ' KG</td>' +
-    '</tr>';
 
-  document.getElementById('report-wrap').innerHTML =
-    '<div class="report-header">' +
-      '<div class="rh-left">' +
-        '<img class="rh-logo" src="' + LOGO_B64 + '" alt="RS Logo">' +
-        '<div class="rh-text"><h2>Reda Salah</h2><p>Laundry Management System — Monthly Report</p></div>' +
-      '</div>' +
-      '<div class="rh-right">' +
-        '<strong>' + mName + ' ' + ry + '</strong><br>' +
-        '© Reda Salah · Laundry Management System · All Rights Reserved<br>' +
-        'Generated: ' + fmtDate(today) + '<br>' +
-        '© Reda Salah · Laundry Management System · All Rights Reserved' +
-      '</div>' +
-    '</div>' +
-    '<div class="card"><div class="tscroll">' +
-    '<table class="report">' +
-      '<thead><tr>' +
-        '<th style="min-width:160px">Item</th><th>Price QR</th>' +
-        days.map(function(d){ return '<th>' + d + '</th>'; }).join('') +
-        '<th style="background:var(--gold3)">Total Pcs</th>' +
-      '</tr></thead>' +
-      '<tbody>' + tbody + '</tbody>' +
-      '<tfoot><tr>' +
-        '<td colspan="2">GRAND TOTAL — ' + mName + ' ' + ry + '</td>' +
-        gDay.map(function(v){ return '<td>' + (v || '') + '</td>'; }).join('') +
-        '<td>' + gTotal.toLocaleString() + '</td>' +
-      '</tr></tfoot>' +
-    '</table></div></div>' +
+  // How many months have data
+  var monthsWithData = Object.keys(yearData).filter(function(mi) { return yearData[mi].qr > 0; }).length;
+  var avgMonthlyRev  = monthsWithData > 0 ? yrQR / monthsWithData : 0;
 
-    // ── Monthly Summary Section ──────────────────────────────
-    '<div class="rpt-summary-section card">' +
-      '<h3>📊 ' + mName + ' ' + ry + ' — Summary by Department</h3>' +
-      '<table class="rpt-summary-tbl">' +
-        '<thead><tr><th>Department</th><th>Total Pcs</th><th>Revenue (QR)</th><th>Total KG</th></tr></thead>' +
-        '<tbody>' + smRows + '</tbody>' +
-      '</table>' +
+  // Top items by revenue
+  var itemList = Object.values(itemYear).filter(function(x) { return x.pcs > 0; });
+  var topByRev = itemList.slice().sort(function(a,b) { return b.qr - a.qr; }).slice(0, 10);
+  var topByVol = itemList.slice().sort(function(a,b) { return b.pcs - a.pcs; }).slice(0, 10);
+  var topByKG  = itemList.slice().sort(function(a,b) { return b.kg - a.kg; }).slice(0, 10);
 
-      // ── Yearly Summary ──────────────────────────────────────
-      '<h3 style="margin-top:20px">📅 Year ' + ry + ' — Monthly Overview</h3>' +
-      '<table class="rpt-summary-tbl">' +
-        '<thead><tr><th>Month</th><th>Total Pcs</th><th>Revenue (QR)</th><th>Total KG</th></tr></thead>' +
-        '<tbody>' + yrRows + '</tbody>' +
-      '</table>' +
-    '</div>' +
+  // ── Build HTML ───────────────────────────────────────────────
+  var html = '';
 
-    '<div class="rpt-copy">' +
-      '© Reda Salah · Laundry Management System · All Rights Reserved<br>' +
-      '© Reda Salah · Laundry Management System · All Rights Reserved' +
+  // ── SECTION 1: Year at a glance ──────────────────────────────
+  html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:28px">' +
+    _rCard('Total Revenue ' + ry, fmtMoney(yrQR), 'All departments', '#1d4ed8', '#eff6ff') +
+    _rCard('Total KG', yrKG.toFixed(1) + ' kg', 'All departments', '#15803d', '#f0fdf4') +
+    _rCard('Total Pieces', yrPCS.toLocaleString(), 'Items processed', '#92400e', '#fffbeb') +
+    _rCard('Avg Monthly Rev', fmtMoney(avgMonthlyRev), monthsWithData + ' months with data', '#7e22ce', '#fdf4ff') +
+    _rCard('Avg Daily KG', (yrKG / Math.max(monthsWithData * 30, 1)).toFixed(1) + ' kg', 'Estimated daily avg', '#0e7490', '#ecfeff') +
+    _rCard('Months Active', monthsWithData + ' / 12', 'Months with entries', '#be185d', '#fdf2f8') +
+  '</div>';
+
+  // ── SECTION 2: Monthly breakdown table ───────────────────────
+  html += _rSection('📅 Monthly Breakdown — ' + ry,
+    '<table style="width:100%;border-collapse:collapse;font-size:12px">' +
+    '<thead><tr style="background:#0d1b2e;color:#c9a84c">' +
+    '<th style="padding:10px 12px;text-align:left;font-weight:700">Month</th>' +
+    '<th style="padding:10px 12px;text-align:right">Revenue (QR)</th>' +
+    '<th style="padding:10px 12px;text-align:right">KG</th>' +
+    '<th style="padding:10px 12px;text-align:right">Pieces</th>' +
+    '<th style="padding:10px 12px;text-align:right">Avg Daily Rev</th>' +
+    '<th style="padding:10px 12px;text-align:right">Avg Daily KG</th>' +
+    DEPT_KEYS.map(function(d) { return '<th style="padding:10px 8px;text-align:right;font-size:10px">' + DEPT_ICONS[d] + '</th>'; }).join('') +
+    '</tr></thead><tbody>' +
+    (function() {
+      var rows = '';
+      for (var mi = 1; mi <= 12; mi++) {
+        var md = yearData[mi];
+        var nd = dim(ry, mi);
+        var isCur = (ry === CY && mi === new Date().getMonth()+1);
+        var hasD = md.qr > 0;
+        var bg = isCur ? '#e0f2fe' : (mi % 2 === 0 ? '#f8fafc' : '#fff');
+        rows += '<tr style="background:' + bg + ';' + (isCur ? 'font-weight:700' : '') + '">' +
+          '<td style="padding:9px 12px;border-bottom:1px solid #e2e8f0;font-weight:600">' +
+            MONTH_NAMES[mi-1] + (isCur ? ' ◀ Current' : '') + '</td>' +
+          '<td style="padding:9px 12px;border-bottom:1px solid #e2e8f0;text-align:right;color:' + (hasD?'#0d1b2e':'#94a3b8') + '">' + (hasD ? fmtMoney(md.qr) : '—') + '</td>' +
+          '<td style="padding:9px 12px;border-bottom:1px solid #e2e8f0;text-align:right;color:' + (hasD?'#0d1b2e':'#94a3b8') + '">' + (hasD ? md.kg.toFixed(1) : '—') + '</td>' +
+          '<td style="padding:9px 12px;border-bottom:1px solid #e2e8f0;text-align:right;color:' + (hasD?'#0d1b2e':'#94a3b8') + '">' + (hasD ? md.pcs.toLocaleString() : '—') + '</td>' +
+          '<td style="padding:9px 12px;border-bottom:1px solid #e2e8f0;text-align:right;font-size:11px;color:#64748b">' + (hasD ? fmtMoney(md.qr/nd) : '—') + '</td>' +
+          '<td style="padding:9px 12px;border-bottom:1px solid #e2e8f0;text-align:right;font-size:11px;color:#64748b">' + (hasD ? (md.kg/nd).toFixed(1) : '—') + '</td>' +
+          DEPT_KEYS.map(function(dept) {
+            var dv = md.byDept[dept];
+            return '<td style="padding:9px 8px;border-bottom:1px solid #e2e8f0;text-align:right;font-size:11px;color:#64748b">' +
+              (dv && dv.qr > 0 ? fmtMoney(dv.qr) : '—') + '</td>';
+          }).join('') +
+          '</tr>';
+      }
+      // Totals row
+      rows += '<tr style="background:#0d1b2e;color:#c9a84c;font-weight:800">' +
+        '<td style="padding:10px 12px">🏆 YEAR TOTAL</td>' +
+        '<td style="padding:10px 12px;text-align:right">' + fmtMoney(yrQR) + '</td>' +
+        '<td style="padding:10px 12px;text-align:right">' + yrKG.toFixed(1) + '</td>' +
+        '<td style="padding:10px 12px;text-align:right">' + yrPCS.toLocaleString() + '</td>' +
+        '<td style="padding:10px 12px;text-align:right;font-size:11px">' + fmtMoney(avgMonthlyRev) + '/mo</td>' +
+        '<td style="padding:10px 12px;text-align:right;font-size:11px">' + (yrKG/Math.max(monthsWithData*30,1)).toFixed(1) + '/day</td>' +
+        DEPT_KEYS.map(function(dept) {
+          return '<td style="padding:10px 8px;text-align:right;font-size:11px">' + fmtMoney(deptYear[dept].qr) + '</td>';
+        }).join('') +
+        '</tr>';
+      return rows;
+    })() +
+    '</tbody></table>');
+
+  // ── SECTION 3: Revenue bar chart (simple CSS bars) ────────────
+  var maxRev = Math.max.apply(null, Object.values(yearData).map(function(d){ return d.qr; }));
+  html += _rSection('📊 Revenue Trend — ' + ry,
+    '<div style="display:flex;align-items:flex-end;gap:6px;height:140px;padding:0 4px">' +
+    (function() {
+      var bars = '';
+      for (var mi = 1; mi <= 12; mi++) {
+        var md = yearData[mi];
+        var pct = maxRev > 0 ? (md.qr / maxRev * 100) : 0;
+        var isCur = (ry === CY && mi === new Date().getMonth()+1);
+        bars += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">' +
+          '<div style="font-size:9px;color:#64748b;font-weight:700">' + (md.qr > 0 ? fmtMoney(md.qr/1000).replace('QR ','') + 'k' : '') + '</div>' +
+          '<div style="width:100%;background:' + (isCur ? '#c9a84c' : (md.qr > 0 ? '#0d1b2e' : '#e2e8f0')) + ';' +
+            'height:' + Math.max(pct, md.qr > 0 ? 4 : 0) + '%;border-radius:4px 4px 0 0;min-height:' + (md.qr>0?'4px':'0') + ';transition:all .3s"></div>' +
+          '<div style="font-size:9px;color:#64748b;writing-mode:vertical-rl;transform:rotate(180deg);height:28px">' + MONTH_NAMES[mi-1].slice(0,3) + '</div>' +
+          '</div>';
+      }
+      return bars;
+    })() +
+    '</div>');
+
+  // ── SECTION 4: Department breakdown ──────────────────────────
+  html += _rSection('🏨 Department Performance — ' + ry,
+    '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">' +
+    '<thead><tr style="background:#0d1b2e;color:#c9a84c">' +
+    '<th style="padding:10px 14px;text-align:left">Department</th>' +
+    '<th style="padding:10px 14px;text-align:right">Revenue (QR)</th>' +
+    '<th style="padding:10px 14px;text-align:right">% of Total</th>' +
+    '<th style="padding:10px 14px;text-align:right">Total KG</th>' +
+    '<th style="padding:10px 14px;text-align:right">Total Pieces</th>' +
+    '<th style="padding:10px 14px;text-align:right">Avg per Piece</th>' +
+    '<th style="padding:10px 14px;text-align:right">KG per Piece</th>' +
+    '</tr></thead><tbody>' +
+    DEPT_KEYS.map(function(dept, di) {
+      var d = deptYear[dept];
+      var pct = yrQR > 0 ? (d.qr / yrQR * 100) : 0;
+      var col = DEPT_COLORS[dept] || '#0d1b2e';
+      return '<tr style="background:' + (di%2===0?'#fff':'#f8fafc') + '">' +
+        '<td style="padding:10px 14px;border-bottom:1px solid #e2e8f0">' +
+          '<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:' + col + ';margin-right:8px"></span>' +
+          '<strong>' + DEPT_ICONS[dept] + ' ' + dept + '</strong></td>' +
+        '<td style="padding:10px 14px;border-bottom:1px solid #e2e8f0;text-align:right;font-weight:700">' + (d.qr>0?fmtMoney(d.qr):'—') + '</td>' +
+        '<td style="padding:10px 14px;border-bottom:1px solid #e2e8f0;text-align:right">' +
+          '<div style="display:flex;align-items:center;gap:8px;justify-content:flex-end">' +
+          '<div style="width:60px;background:#e2e8f0;border-radius:4px;height:6px">' +
+            '<div style="width:' + pct.toFixed(1) + '%;background:' + col + ';height:100%;border-radius:4px"></div></div>' +
+          pct.toFixed(1) + '%</div></td>' +
+        '<td style="padding:10px 14px;border-bottom:1px solid #e2e8f0;text-align:right">' + (d.kg>0?d.kg.toFixed(1):'—') + '</td>' +
+        '<td style="padding:10px 14px;border-bottom:1px solid #e2e8f0;text-align:right">' + (d.pcs>0?d.pcs.toLocaleString():'—') + '</td>' +
+        '<td style="padding:10px 14px;border-bottom:1px solid #e2e8f0;text-align:right;font-size:11px;color:#64748b">' + (d.pcs>0?fmtMoney(d.qr/d.pcs):'—') + '</td>' +
+        '<td style="padding:10px 14px;border-bottom:1px solid #e2e8f0;text-align:right;font-size:11px;color:#64748b">' + (d.pcs>0?(d.kg/d.pcs).toFixed(3):'—') + '</td>' +
+        '</tr>';
+    }).join('') +
+    '<tr style="background:#0d1b2e;color:#c9a84c;font-weight:800">' +
+    '<td style="padding:10px 14px">🏆 TOTAL</td>' +
+    '<td style="padding:10px 14px;text-align:right">' + fmtMoney(yrQR) + '</td>' +
+    '<td style="padding:10px 14px;text-align:right">100%</td>' +
+    '<td style="padding:10px 14px;text-align:right">' + yrKG.toFixed(1) + '</td>' +
+    '<td style="padding:10px 14px;text-align:right">' + yrPCS.toLocaleString() + '</td>' +
+    '<td style="padding:10px 14px;text-align:right">' + (yrPCS>0?fmtMoney(yrQR/yrPCS):'—') + '</td>' +
+    '<td style="padding:10px 14px;text-align:right">' + (yrPCS>0?(yrKG/yrPCS).toFixed(3):'—') + '</td>' +
+    '</tr></tbody></table></div>');
+
+  // ── SECTION 5: Top 10 by Revenue ─────────────────────────────
+  html += _rSection('💰 Top 10 Items by Revenue — ' + ry, _rTopTable(topByRev, 'qr', yrQR));
+
+  // ── SECTION 6: Top 10 by Volume ──────────────────────────────
+  html += _rSection('📦 Top 10 Items by Volume (Pieces) — ' + ry, _rTopTable(topByVol, 'pcs', yrPCS));
+
+  // ── SECTION 7: Top 10 by KG ──────────────────────────────────
+  html += _rSection('⚖️ Top 10 Items by Weight (KG) — ' + ry, _rTopTable(topByKG, 'kg', yrKG));
+
+  wrap.innerHTML = html;
+}
+
+// ── Report helper: card ──────────────────────────────────────
+function _rCard(label, value, sub, color, bg) {
+  return '<div style="background:' + bg + ';border:1.5px solid ' + color + '33;border-radius:12px;padding:14px 16px">' +
+    '<div style="font-size:10px;font-weight:700;color:' + color + ';letter-spacing:.8px;margin-bottom:4px">' + label.toUpperCase() + '</div>' +
+    '<div style="font-size:20px;font-weight:800;color:' + color + ';line-height:1.2">' + value + '</div>' +
+    '<div style="font-size:11px;color:#94a3b8;margin-top:3px">' + sub + '</div>' +
     '</div>';
 }
+
+// ── Report helper: section wrapper ───────────────────────────
+function _rSection(title, innerHtml) {
+  return '<div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;overflow:hidden;margin-bottom:20px">' +
+    '<div style="background:#0d1b2e;padding:12px 18px;font-size:13px;font-weight:800;color:#c9a84c">' + title + '</div>' +
+    '<div style="padding:16px;overflow-x:auto">' + innerHtml + '</div>' +
+    '</div>';
+}
+
+// ── Report helper: top items table ────────────────────────────
+function _rTopTable(items, metric, total) {
+  var labels = {qr:'Revenue (QR)', pcs:'Pieces', kg:'KG'};
+  var fmtVal = function(item) {
+    if (metric === 'qr')  return fmtMoney(item.qr);
+    if (metric === 'pcs') return item.pcs.toLocaleString() + ' pcs';
+    if (metric === 'kg')  return item.kg.toFixed(1) + ' kg';
+    return '';
+  };
+  var html = '<table style="width:100%;border-collapse:collapse;font-size:12px">' +
+    '<thead><tr style="background:#f8fafc">' +
+    '<th style="padding:8px 12px;text-align:left;font-weight:700;color:#64748b">#</th>' +
+    '<th style="padding:8px 12px;text-align:left;font-weight:700;color:#64748b">Item</th>' +
+    '<th style="padding:8px 12px;text-align:left;font-weight:700;color:#64748b">Dept</th>' +
+    '<th style="padding:8px 12px;text-align:right;font-weight:700;color:#64748b">' + labels[metric] + '</th>' +
+    '<th style="padding:8px 12px;text-align:right;font-weight:700;color:#64748b">% of Total</th>' +
+    '<th style="padding:8px 40px 8px 12px;text-align:left;font-weight:700;color:#64748b">Share</th>' +
+    '</tr></thead><tbody>';
+  items.forEach(function(item, idx) {
+    var val = metric === 'qr' ? item.qr : metric === 'pcs' ? item.pcs : item.kg;
+    var pct = total > 0 ? (val / total * 100) : 0;
+    var col = DEPT_COLORS[item.dept] || '#0d1b2e';
+    html += '<tr style="border-bottom:1px solid #f1f5f9">' +
+      '<td style="padding:9px 12px;color:#94a3b8;font-weight:700">' + (idx+1) + '</td>' +
+      '<td style="padding:9px 12px;font-weight:600;color:#0d1b2e">' + item.name + '</td>' +
+      '<td style="padding:9px 12px"><span style="font-size:10px;background:' + col + '22;color:' + col + ';padding:2px 7px;border-radius:10px;font-weight:700">' + item.dept + '</span></td>' +
+      '<td style="padding:9px 12px;text-align:right;font-weight:700;color:#0d1b2e">' + fmtVal(item) + '</td>' +
+      '<td style="padding:9px 12px;text-align:right;color:#64748b">' + pct.toFixed(1) + '%</td>' +
+      '<td style="padding:9px 12px">' +
+        '<div style="width:120px;background:#e2e8f0;border-radius:4px;height:6px">' +
+          '<div style="width:' + Math.min(pct*4,100).toFixed(0) + '%;background:' + col + ';height:100%;border-radius:4px"></div></div></td>' +
+      '</tr>';
+  });
+  html += '</tbody></table>';
+  return html;
+}
+
 
 // ════════════════════════════════════════════════════════════════
 //  FINANCE
