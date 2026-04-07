@@ -1405,6 +1405,12 @@ var _fbDB = null;
     <div id="dash-target-bar" style="margin-bottom:14px"></div>
     <div id="dash-occ-quick" style="margin-bottom:10px"></div>
     <div id="dash-occ-strip" style="margin-bottom:14px"></div>
+
+    <!-- End-of-Month Checklist (shows last 3 days + first 3 days next month) -->
+    <div id="eom-checklist-container" style="margin-bottom:18px;display:none">
+      <div id="eom-checklist-wrap"></div>
+    </div>
+
     <div class="two-col">
       <div class="cal-wrap">
         <div class="cal-head"><div class="cal-title">📅 Monthly Calendar
@@ -5446,6 +5452,8 @@ function _bootApp(user) {
   setTimeout(checkNewMonthLockReminder, 6000);
   // FX rate update reminder (runs 8s after login)
   setTimeout(checkFxRateReminder, 8000);
+  // End-of-month checklist reminder (runs 10s after login)
+  setTimeout(checkEomReminder, 10000);
   // Silent startup validation — runs 3s after boot, never blocks UI
   setTimeout(function() {
     if (typeof runStartupValidation === 'function') runStartupValidation();
@@ -5648,6 +5656,18 @@ function refreshTab() {
 //  DASHBOARD
 // ════════════════════════════════════════════════════════════════
 function renderDash() {
+  // Show/hide end-of-month checklist
+  var _eomInfo = shouldShowEomChecklist();
+  var _eomContainer = document.getElementById('eom-checklist-container');
+  if (_eomContainer) {
+    if (_eomInfo.show) {
+      _eomContainer.style.display = 'block';
+      renderEomChecklist(_eomInfo.y, _eomInfo.m);
+    } else {
+      _eomContainer.style.display = 'none';
+    }
+  }
+
   const m = parseInt(document.getElementById('dash-month')?.value || new Date().getMonth() + 1);
   const {qr, kg, pcs, byDept} = monthTotals(CY, m);
   const nd = dim(CY, m); let act = 0;
@@ -7288,6 +7308,65 @@ function renderReport() {
     '<td style="padding:10px 14px;text-align:right">' + (yrPCS>0?fmtMoney(yrQR/yrPCS):'—') + '</td>' +
     '<td style="padding:10px 14px;text-align:right">' + (yrPCS>0?(yrKG/yrPCS).toFixed(3):'—') + '</td>' +
     '</tr></tbody></table></div>');
+
+  // ── SECTION 4b: Department × Month Matrix ───────────────────
+  html += _rSection('🔀 Department × Month Comparison — ' + ry,
+    (function() {
+      var headerCols = '<th style="padding:9px 12px;text-align:left;font-weight:700;color:#64748b;background:#f8fafc">Month</th>';
+      DEPT_KEYS.forEach(function(dept) {
+        headerCols += '<th style="padding:9px 10px;text-align:right;font-weight:700;color:#64748b;font-size:11px;background:#f8fafc">' +
+          DEPT_ICONS[dept] + ' ' + dept.split(' ')[0] + '</th>';
+      });
+      headerCols += '<th style="padding:9px 12px;text-align:right;font-weight:700;color:#64748b;background:#f8fafc">Total</th>';
+
+      // Find max per dept for highlighting
+      var deptMaxes = {};
+      var deptMins  = {};
+      DEPT_KEYS.forEach(function(dept) {
+        var vals = [];
+        for (var mi2 = 1; mi2 <= 12; mi2++) {
+          var v = yearData[mi2] && yearData[mi2].byDept[dept] ? yearData[mi2].byDept[dept].qr : 0;
+          if (v > 0) vals.push(v);
+        }
+        deptMaxes[dept] = vals.length > 0 ? Math.max.apply(null, vals) : 0;
+        deptMins[dept]  = vals.length > 1 ? Math.min.apply(null, vals) : 0;
+      });
+
+      var rows = '';
+      for (var mi = 1; mi <= 12; mi++) {
+        var md   = yearData[mi];
+        var isCur = (ry === CY && mi === new Date().getMonth()+1);
+        var hasD  = md && md.qr > 0;
+        var rowBg = isCur ? '#e0f2fe' : (mi%2===0?'#f8fafc':'#fff');
+        rows += '<tr style="background:' + rowBg + (isCur?';font-weight:700':'') + '">';
+        rows += '<td style="padding:8px 12px;border-bottom:1px solid #f1f5f9;font-weight:600;white-space:nowrap">' +
+          MONTH_NAMES[mi-1] + (isCur?' ◀':'') + '</td>';
+        DEPT_KEYS.forEach(function(dept) {
+          var dv  = md && md.byDept[dept] ? md.byDept[dept].qr : 0;
+          var isMax = dv > 0 && dv === deptMaxes[dept];
+          var isMin = dv > 0 && dv === deptMins[dept] && deptMins[dept] !== deptMaxes[dept];
+          var bg  = isMax ? 'background:#f0fdf4;color:#16a34a;font-weight:800' :
+                    isMin ? 'background:#fef2f2;color:#dc2626' : 'color:#0d1b2e';
+          rows += '<td style="padding:8px 10px;border-bottom:1px solid #f1f5f9;text-align:right;font-size:11px;' + bg + '">' +
+            (dv > 0 ? fmtMoney(dv) : '<span style="color:#e2e8f0">—</span>') + '</td>';
+        });
+        rows += '<td style="padding:8px 12px;border-bottom:1px solid #f1f5f9;text-align:right;font-weight:700;color:#0d1b2e">' +
+          (hasD ? fmtMoney(md.qr) : '—') + '</td>';
+        rows += '</tr>';
+      }
+      // Totals row
+      rows += '<tr style="background:#0d1b2e;color:#c9a84c;font-weight:800">';
+      rows += '<td style="padding:9px 12px">TOTAL</td>';
+      DEPT_KEYS.forEach(function(dept) {
+        rows += '<td style="padding:9px 10px;text-align:right;font-size:11px">' + fmtMoney(deptYear[dept].qr) + '</td>';
+      });
+      rows += '<td style="padding:9px 12px;text-align:right">' + fmtMoney(yrQR) + '</td>';
+      rows += '</tr>';
+
+      return '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">' +
+        '<thead><tr>' + headerCols + '</tr></thead><tbody>' + rows + '</tbody></table></div>' +
+        '<div style="margin-top:8px;font-size:10px;color:#64748b">🟢 Best month per department &nbsp; 🔴 Lowest month per department</div>';
+    })());
 
   // ── SECTION 5: Top 10 by Revenue ─────────────────────────────
   html += _rSection('💰 Top 10 Items by Revenue — ' + ry, _rTopTable(topByRev, 'qr', yrQR));
@@ -16954,6 +17033,203 @@ function autoCloudBackup() {
   _STORE.setItem('pearl_last_cloud_backup', new Date().toLocaleString());
 }
 
+
+// ════════════════════════════════════════════════════════════════
+//  END-OF-MONTH CHECKLIST
+//  Shows last 3 days of month + first 3 days of next month
+//  5 items: Days entered, Depts locked, Prices locked, Finance posted, Backup saved
+// ════════════════════════════════════════════════════════════════
+
+var _EOM_KEY_PREFIX = 'pearl_eom_checklist_';
+
+function eomKey(y, m) {
+  return _EOM_KEY_PREFIX + y + '_' + String(m).padStart(2,'0');
+}
+
+function loadEomChecklist(y, m) {
+  try {
+    var stored = JSON.parse(_STORE.getItem(eomKey(y,m)) || 'null');
+    return stored || { financePosted: false, reportExported: false };
+  } catch(e) { return { financePosted: false, reportExported: false }; }
+}
+
+function saveEomChecklist(y, m, data) {
+  try { _STORE.setItem(eomKey(y,m), JSON.stringify(data)); } catch(e) {}
+  if (window._fbSaveKey) window._fbSaveKey('pearl/settings/eom_' + y + '_' + m, data);
+}
+
+
+function _eomTick(y, m, key) {
+  toggleEomItem(parseInt(y), parseInt(m), String(key));
+}
+
+function toggleEomItem(y, m, key) {
+  var data = loadEomChecklist(y, m);
+  data[key] = !data[key];
+  saveEomChecklist(y, m, data);
+  renderEomChecklist(y, m);
+}
+
+// Auto-detect checklist items
+function getEomStatus(y, m) {
+  var nd   = dim(y, m);
+  var db   = loadDB(y);
+  var manual = loadEomChecklist(y, m);
+
+  // 1. All days entered — check all required depts have data for every day
+  var required = getRequiredDepts();
+  var missingDays = 0;
+  for (var d = 0; d < nd; d++) {
+    required.forEach(function(dept) {
+      var hasData = MASTER[dept].some(function(_, i) {
+        return (db[m + '-' + dept + '-' + i + '-' + d] || 0) > 0;
+      });
+      if (!hasData) missingDays++;
+    });
+  }
+  var allDaysEntered = missingDays === 0;
+
+  // 2. Prices locked — check at least one entry has locked price
+  var hasLocked = false;
+  var hasAnyData = false;
+  outerLoop:
+  for (var d2 = 0; d2 < nd; d2++) {
+    for (var di = 0; di < DEPT_KEYS.length; di++) {
+      var dept2 = DEPT_KEYS[di];
+      for (var ii = 0; ii < MASTER[dept2].length; ii++) {
+        var key = m + '-' + dept2 + '-' + ii + '-' + d2;
+        if (db[key] > 0) {
+          hasAnyData = true;
+          if (db[key + '-p']) { hasLocked = true; break outerLoop; }
+        }
+      }
+    }
+  }
+  var pricesLocked = hasAnyData ? hasLocked : true;
+
+  // 3. Has monthly price version
+  var monthlyPricesSet = hasMonthlyPrices(y, m);
+
+  // 4. Backup saved this month
+  var backupSaved = false;
+  try {
+    var idx2 = JSON.parse(_STORE.getItem('pearl_backup_index') || '[]');
+    if (Array.isArray(idx2) && idx2.length > 0) {
+      var latestBackup = new Date(idx2[0].savedAt);
+      backupSaved = latestBackup.getFullYear() === y && latestBackup.getMonth()+1 === m;
+    }
+  } catch(e) {}
+
+  return {
+    allDaysEntered:   { done: allDaysEntered,    label: 'All days entered',          detail: allDaysEntered ? 'No missing data' : missingDays + ' dept/day combination(s) missing', action: function(){ showTab("entry"); } },
+    pricesLocked:     { done: pricesLocked,       label: 'Prices locked',             detail: pricesLocked ? 'All entries frozen' : 'Some entries not locked', action: function(){ showTab("prices"); setTimeout(openMonthlyPriceManager, 300); } },
+    monthlyPricesSet: { done: monthlyPricesSet,   label: 'Monthly prices set',        detail: monthlyPricesSet ? 'Price table exists for this month' : 'Using year prices', action: function(){ showTab("prices"); setTimeout(openMonthlyPriceManager, 300); } },
+    financePosted:    { done: manual.financePosted, label: 'Finance posted',          detail: manual.financePosted ? 'Marked as done' : 'Tick when posted', manual: true },
+    backupSaved:      { done: backupSaved,         label: 'Cloud backup saved',        detail: backupSaved ? 'Backup exists for this month' : 'No backup saved this month', action: function(){ showTab("backup"); } }
+  };
+}
+
+function renderEomChecklist(y, m) {
+  var wrap = document.getElementById('eom-checklist-wrap');
+  if (!wrap) return;
+
+  var status = getEomStatus(y, m);
+  var keys   = ['allDaysEntered','pricesLocked','monthlyPricesSet','financePosted','backupSaved'];
+  var doneCount = keys.filter(function(k){ return status[k].done; }).length;
+  var allDone   = doneCount === keys.length;
+  var MNS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  var headerBg  = allDone ? '#f0fdf4' : (doneCount >= 3 ? '#fffbeb' : '#fef2f2');
+  var headerBdr = allDone ? '#86efac' : (doneCount >= 3 ? '#fde68a' : '#fca5a5');
+  var headerIcon = allDone ? '🎉' : (doneCount >= 3 ? '⏳' : '⚠️');
+
+  // Build using DOM — no innerHTML quote issues
+  wrap.innerHTML = '';
+  var card = document.createElement('div');
+  card.style.cssText = 'background:' + headerBg + ';border:2px solid ' + headerBdr + ';border-radius:14px;overflow:hidden';
+
+  // Header
+  var hdr = document.createElement('div');
+  hdr.style.cssText = 'padding:12px 16px;border-bottom:1px solid ' + headerBdr + ';display:flex;align-items:center;justify-content:space-between';
+  hdr.innerHTML =
+    '<div style="display:flex;align-items:center;gap:8px">' +
+      '<span style="font-size:18px">' + headerIcon + '</span>' +
+      '<div>' +
+        '<div style="font-size:13px;font-weight:800;color:#0d1b2e">End-of-Month Checklist — ' + MNS[m-1] + ' ' + y + '</div>' +
+        '<div style="font-size:11px;color:#64748b;margin-top:1px">' + doneCount + ' of ' + keys.length + ' completed' + (allDone ? ' — Month complete! ✅' : '') + '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div style="background:#0d1b2e;color:#c9a84c;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:800">' + doneCount + '/' + keys.length + '</div>';
+  card.appendChild(hdr);
+
+  // Items
+  var body = document.createElement('div');
+  body.style.cssText = 'padding:10px 14px;display:flex;flex-direction:column;gap:6px';
+
+  keys.forEach(function(k) {
+    var item     = status[k];
+    var rowBg    = item.done ? '#f0fdf4' : '#fff';
+    var rowBdr   = item.done ? '#86efac' : '#e2e8f0';
+    var checkBg  = item.done ? '#16a34a' : '#e2e8f0';
+    var checkClr = item.done ? '#fff'    : '#94a3b8';
+
+    var row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:9px 12px;background:' + rowBg + ';border:1.5px solid ' + rowBdr + ';border-radius:9px';
+
+    // Checkbox
+    if (item.manual) {
+      var cb = document.createElement('button');
+      cb.style.cssText = 'width:24px;height:24px;border-radius:6px;border:2px solid ' + (item.done?'#16a34a':'#d1d5db') + ';background:' + checkBg + ';cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;color:' + checkClr;
+      cb.innerHTML = item.done ? '✓' : '';
+      cb.onclick = (function(ky){ return function(){ _eomTick(y, m, ky); }; })(k);
+      row.appendChild(cb);
+    } else {
+      var dot = document.createElement('div');
+      dot.style.cssText = 'width:24px;height:24px;border-radius:6px;background:' + checkBg + ';display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;color:' + checkClr;
+      dot.textContent = item.done ? '✓' : '○';
+      row.appendChild(dot);
+    }
+
+    // Label + detail
+    var info = document.createElement('div');
+    info.style.cssText = 'flex:1;min-width:0';
+    info.innerHTML =
+      '<div style="font-size:12px;font-weight:700;color:#0d1b2e' + (item.done?';text-decoration:line-through;opacity:.6':'') + '">' + item.label + '</div>' +
+      '<div style="font-size:10px;color:#94a3b8;margin-top:1px">' + item.detail + '</div>';
+    row.appendChild(info);
+
+    // Fix button
+    if (!item.done && item.action) {
+      var btn = document.createElement('button');
+      btn.textContent = 'Fix →';
+      btn.style.cssText = 'padding:5px 10px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;flex-shrink:0';
+      btn.onclick = item.action;
+      row.appendChild(btn);
+    }
+
+    body.appendChild(row);
+  });
+
+  card.appendChild(body);
+  wrap.appendChild(card);
+}
+
+
+function _goToEomChecklist() {
+  _dismissEomReminder();
+  // Scroll dashboard into view and open checklist
+  showTab('dashboard');
+  setTimeout(function(){
+    var wrap = document.getElementById('eom-checklist-wrap');
+    if (wrap) wrap.scrollIntoView({ behavior:'smooth', block:'center' });
+  }, 300);
+}
+
+function _dismissEomReminder() {
+  var el = document.getElementById('_eom_reminder');
+  if (el) el.remove();
+}
+
 </script>
 
 <!-- ══ RECEIVING LOG DRAWER ══════════════════════════════════════ -->
@@ -18843,6 +19119,7 @@ function checkFxRateReminder() {
     if (el) { el.style.opacity='0'; el.style.transition='opacity .5s'; setTimeout(function(){ if(el.parentNode)el.remove(); },500); }
   }, 20000);
 }
+
 
 // ── Service Worker for offline support ──
 if ('serviceWorker' in navigator) {
