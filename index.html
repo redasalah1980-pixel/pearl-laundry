@@ -16563,6 +16563,32 @@ function _doDeleteBackup(verId) {
   });
 }
 
+
+function renderBackupHistory() {
+  var wrap = document.getElementById('backup-history-wrap');
+  if (!wrap) return;
+  wrap.innerHTML = '<div style="text-align:center;padding:16px;color:#94a3b8;font-size:12px">⏳ Loading from Firebase...</div>';
+
+  if (window._fbLoadKey) {
+    window._fbLoadKey('pearl/backup/index').then(function(idx) {
+      var result = [];
+      if (Array.isArray(idx)) result = idx;
+      else if (idx && typeof idx === 'object') result = Object.values(idx);
+      result.sort(function(a,b){ return (b.savedAt||'').localeCompare(a.savedAt||''); });
+      try { _STORE.setItem('pearl_backup_index', JSON.stringify(result)); } catch(e) {}
+      _renderBackupIndexDirect(result);
+    }).catch(function() {
+      var cached = null;
+      try { cached = JSON.parse(_STORE.getItem('pearl_backup_index') || 'null'); } catch(e) {}
+      _renderBackupIndexDirect(cached || []);
+    });
+  } else {
+    var cached2 = null;
+    try { cached2 = JSON.parse(_STORE.getItem('pearl_backup_index') || 'null'); } catch(e) {}
+    _renderBackupIndexDirect(cached2 || []);
+  }
+}
+
 // Re-render backup history from a known-good index (no Firebase reload needed)
 function _renderBackupIndexDirect(index) {
   var wrap = document.getElementById('backup-history-wrap');
