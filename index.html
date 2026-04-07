@@ -1354,7 +1354,12 @@ var _fbDB = null;
 
   <!-- DASHBOARD -->
   <div class="pg on" id="tab-dashboard">
-    <div class="ph"><h1>Dashboard</h1><p>Live overview — Laundry Management System</p></div>
+    <div class="ph" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <div><h1>Dashboard</h1><p>Live overview — Laundry Management System</p></div>
+      <button onclick="openFxConverter(monthTotals(CY,parseInt(document.getElementById('dash-month')?.value||new Date().getMonth()+1)).qr)"
+        style="padding:9px 16px;background:linear-gradient(135deg,#0d1b2e,#1e3a5f);color:#c9a84c;border:none;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;margin-top:4px;flex-shrink:0"
+        title="Convert this month total to other currencies">💱 Convert Revenue</button>
+    </div>
     <div class="ctrl" style="flex-wrap:wrap;gap:10px;align-items:flex-end">
       <div class="ctrl-group"><div class="ctrl-label">Month</div>
         <select id="dash-month" onchange="renderDash()"></select></div>
@@ -1487,7 +1492,16 @@ var _fbDB = null;
 
   <!-- MONTHLY -->
   <div class="pg" id="tab-monthly">
-    <div class="ph"><h1>📅 Monthly Detail</h1><p>Full month breakdown — items, quantities, prices, KG &amp; revenue per department</p></div>
+    <div class="ph" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <div>
+        <h1>📅 Monthly Detail</h1>
+        <p>Full month breakdown — items, quantities, prices, KG &amp; revenue per department</p>
+      </div>
+      <button onclick="openFxConverter(monthTotals(CY,parseInt(document.getElementById('mon-month')?.value||new Date().getMonth()+1)).qr)"
+        style="padding:9px 16px;background:linear-gradient(135deg,#0d1b2e,#1e3a5f);color:#c9a84c;border:none;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;margin-top:4px;flex-shrink:0">
+        💱 View in USD / EUR...
+      </button>
+    </div>
     <div class="ctrl" style="flex-wrap:wrap;gap:8px;align-items:center">
       <div class="ctrl-group"><div class="ctrl-label">Month</div>
         <select id="mon-month" onchange="renderMonthly()"></select></div>
@@ -1527,6 +1541,10 @@ var _fbDB = null;
         <h1>📊 Annual Report</h1>
         <p>Full year performance — revenue, KG, volume, department breakdown &amp; top items</p>
       </div>
+      <button onclick="(function(){var ry=parseInt(document.getElementById('rep-year')?.value||new Date().getFullYear());var t=0;for(var mi=1;mi<=12;mi++){t+=monthTotals(ry,mi).qr;}openFxConverter(t);})()"
+        style="padding:9px 16px;background:linear-gradient(135deg,#0d1b2e,#1e3a5f);color:#c9a84c;border:none;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;margin-top:4px;flex-shrink:0">
+        💱 Year Total in USD / EUR...
+      </button>
     </div>
     <div class="ctrl" style="flex-wrap:wrap;gap:8px;align-items:center">
       <div class="ctrl-group"><div class="ctrl-label">Year</div>
@@ -2755,20 +2773,23 @@ var _fbDB = null;
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
           <div style="width:40px;height:40px;background:#f0fdf4;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px">💱</div>
           <div>
-            <div style="font-size:15px;font-weight:800;color:#0d1b2e">Currency Settings</div>
-            <div style="font-size:12px;color:#64748b;margin-top:2px">Change how amounts display across the whole system. Synced to all devices.</div>
+            <div style="font-size:15px;font-weight:800;color:#0d1b2e">Currency &amp; Converter</div>
+            <div style="font-size:12px;color:#64748b;margin-top:2px">Display currency + convert QAR to any currency instantly</div>
           </div>
         </div>
-        <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;padding:20px;margin-bottom:16px">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+
+        <!-- Section 1: Display Currency -->
+        <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;padding:18px;margin-bottom:14px">
+          <div style="font-size:11px;font-weight:800;color:#0d1b2e;letter-spacing:1px;margin-bottom:14px">📋 DISPLAY CURRENCY</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
             <div>
-              <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px;letter-spacing:.8px">CURRENCY SYMBOL</div>
+              <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px;letter-spacing:.8px">SYMBOL</div>
               <input type="text" id="set-currency-symbol" maxlength="5" placeholder="e.g. QR, $, €"
                 style="width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:15px;font-weight:700;color:#0d1b2e;outline:none;box-sizing:border-box"
                 oninput="updateCurrencyPreview()">
             </div>
             <div>
-              <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px;letter-spacing:.8px">DECIMAL PLACES</div>
+              <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px;letter-spacing:.8px">DECIMALS</div>
               <select id="set-currency-decimals" onchange="updateCurrencyPreview()" style="width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-weight:600;color:#0d1b2e;background:#fff">
                 <option value="0">0 — e.g. 32,074</option>
                 <option value="2" selected>2 — e.g. 32,073.63</option>
@@ -2776,38 +2797,75 @@ var _fbDB = null;
               </select>
             </div>
           </div>
-          <div style="margin-bottom:16px">
-            <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:8px;letter-spacing:.8px">SYMBOL POSITION</div>
-            <div style="display:flex;gap:10px">
-              <label style="display:flex;align-items:center;gap:8px;padding:10px 16px;border:1.5px solid #e2e8f0;border-radius:8px;cursor:pointer;flex:1">
-                <input type="radio" name="currency-pos" id="pos-after" value="after" checked onchange="updateCurrencyPreview()">
-                <div><div style="font-size:13px;font-weight:700;color:#0d1b2e">After</div><div style="font-size:11px;color:#94a3b8">32,073.63 QR</div></div>
-              </label>
-              <label style="display:flex;align-items:center;gap:8px;padding:10px 16px;border:1.5px solid #e2e8f0;border-radius:8px;cursor:pointer;flex:1">
-                <input type="radio" name="currency-pos" id="pos-before" value="before" onchange="updateCurrencyPreview()">
-                <div><div style="font-size:13px;font-weight:700;color:#0d1b2e">Before</div><div style="font-size:11px;color:#94a3b8">QR 32,073.63</div></div>
-              </label>
+          <div style="display:flex;gap:10px;margin-bottom:14px">
+            <label style="display:flex;align-items:center;gap:8px;padding:10px 16px;border:1.5px solid #e2e8f0;border-radius:8px;cursor:pointer;flex:1">
+              <input type="radio" name="currency-pos" id="pos-after" value="after" checked onchange="updateCurrencyPreview()">
+              <div><div style="font-size:12px;font-weight:700;color:#0d1b2e">After</div><div style="font-size:10px;color:#94a3b8">32,073 QR</div></div>
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;padding:10px 16px;border:1.5px solid #e2e8f0;border-radius:8px;cursor:pointer;flex:1">
+              <input type="radio" name="currency-pos" id="pos-before" value="before" onchange="updateCurrencyPreview()">
+              <div><div style="font-size:12px;font-weight:700;color:#0d1b2e">Before</div><div style="font-size:10px;color:#94a3b8">QR 32,073</div></div>
+            </label>
+          </div>
+          <div style="background:#f8fafc;border-radius:10px;padding:12px;text-align:center;margin-bottom:14px">
+            <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">PREVIEW</div>
+            <div id="currency-preview" style="font-size:26px;font-weight:900;color:#0d1b2e">32,073.63 QR</div>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
+            <button onclick="quickCurrency('QR','after',2)" style="padding:6px 12px;border:1.5px solid #e2e8f0;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;background:#fff">QR</button>
+            <button onclick="quickCurrency('$','before',2)" style="padding:6px 12px;border:1.5px solid #e2e8f0;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;background:#fff">$ USD</button>
+            <button onclick="quickCurrency('€','before',2)" style="padding:6px 12px;border:1.5px solid #e2e8f0;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;background:#fff">€ EUR</button>
+            <button onclick="quickCurrency('£','before',2)" style="padding:6px 12px;border:1.5px solid #e2e8f0;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;background:#fff">£ GBP</button>
+            <button onclick="quickCurrency('SAR','after',2)" style="padding:6px 12px;border:1.5px solid #e2e8f0;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;background:#fff">SAR</button>
+            <button onclick="quickCurrency('AED','after',2)" style="padding:6px 12px;border:1.5px solid #e2e8f0;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;background:#fff">AED</button>
+            <button onclick="quickCurrency('KWD','after',3)" style="padding:6px 12px;border:1.5px solid #e2e8f0;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;background:#fff">KWD</button>
+          </div>
+          <div id="currency-msg" style="font-size:12px;font-weight:600;color:#16a34a;margin-bottom:10px"></div>
+          <button onclick="applyCurrencySettings()" style="width:100%;padding:12px;background:linear-gradient(135deg,#0d1b2e,#1e3a5f);color:#c9a84c;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">💾 Save Display Currency</button>
+        </div>
+
+        <!-- Section 2: Exchange Rates -->
+        <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;padding:18px;margin-bottom:14px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+            <div style="font-size:11px;font-weight:800;color:#0d1b2e;letter-spacing:1px">💱 EXCHANGE RATES (QAR BASE)</div>
+            <div id="fx-last-updated" style="font-size:10px;color:#94a3b8"></div>
+          </div>
+          <div style="font-size:11px;color:#64748b;margin-bottom:14px">Set how many QAR = 1 of each currency. Used for instant conversion anywhere in the system.</div>
+
+          <!-- Rate reminder setting -->
+          <div style="background:#fffbeb;border:1.5px solid #fde68a;border-radius:9px;padding:11px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px">
+            <span style="font-size:16px">⏰</span>
+            <div style="flex:1">
+              <div style="font-size:12px;font-weight:700;color:#92400e">Rate Update Reminder</div>
+              <div style="font-size:11px;color:#94a3b8;margin-top:1px">Remind me to check rates every</div>
             </div>
+            <select id="fx-reminder-days" onchange="saveFxRates()" style="padding:6px 10px;border:1.5px solid #fde68a;border-radius:7px;font-size:12px;font-weight:700;color:#92400e;background:#fffbeb;cursor:pointer">
+              <option value="0">Off</option>
+              <option value="7">1 week</option>
+              <option value="14" selected>2 weeks</option>
+              <option value="30">1 month</option>
+            </select>
           </div>
-          <div style="background:#f8fafc;border-radius:10px;padding:14px;text-align:center">
-            <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:6px;letter-spacing:.8px">LIVE PREVIEW</div>
-            <div id="currency-preview" style="font-size:28px;font-weight:900;color:#0d1b2e">32,073.63 QR</div>
-          </div>
+
+          <!-- Rate inputs -->
+          <div id="fx-rates-wrap" style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px"></div>
+
+          <button onclick="saveFxRates()" style="width:100%;padding:12px;background:linear-gradient(135deg,#0d1b2e,#1e3a5f);color:#c9a84c;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">💾 Save Exchange Rates</button>
+          <div id="fx-save-msg" style="font-size:12px;font-weight:600;color:#16a34a;margin-top:8px;text-align:center"></div>
         </div>
-        <div style="margin-bottom:16px">
-          <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:8px;letter-spacing:.8px">QUICK SELECT</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button onclick="quickCurrency('QR','after',2)" style="padding:7px 14px;border:1.5px solid #e2e8f0;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;background:#fff">QR</button>
-            <button onclick="quickCurrency('$','before',2)" style="padding:7px 14px;border:1.5px solid #e2e8f0;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;background:#fff">$ USD</button>
-            <button onclick="quickCurrency('€','before',2)" style="padding:7px 14px;border:1.5px solid #e2e8f0;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;background:#fff">€ EUR</button>
-            <button onclick="quickCurrency('£','before',2)" style="padding:7px 14px;border:1.5px solid #e2e8f0;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;background:#fff">£ GBP</button>
-            <button onclick="quickCurrency('SAR','after',2)" style="padding:7px 14px;border:1.5px solid #e2e8f0;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;background:#fff">SAR</button>
-            <button onclick="quickCurrency('AED','after',2)" style="padding:7px 14px;border:1.5px solid #e2e8f0;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;background:#fff">AED</button>
-            <button onclick="quickCurrency('KWD','after',3)" style="padding:7px 14px;border:1.5px solid #e2e8f0;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;background:#fff">KWD</button>
+
+        <!-- Section 3: Quick Converter -->
+        <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;padding:18px">
+          <div style="font-size:11px;font-weight:800;color:#0d1b2e;letter-spacing:1px;margin-bottom:14px">🔢 QUICK CONVERTER</div>
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
+            <input type="number" id="fx-input-amount" placeholder="Enter QAR amount" step="0.01"
+              style="flex:1;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;font-weight:700;color:#0d1b2e;outline:none"
+              oninput="renderFxConvert()">
+            <span style="font-size:13px;font-weight:700;color:#64748b">QAR</span>
           </div>
+          <div id="fx-convert-results" style="display:flex;flex-direction:column;gap:8px"></div>
         </div>
-        <div id="currency-msg" style="font-size:12px;font-weight:600;color:#16a34a;margin-bottom:10px"></div>
-        <button onclick="applyCurrencySettings()" style="width:100%;padding:14px;background:linear-gradient(135deg,#0d1b2e,#1e3a5f);color:#c9a84c;border:none;border-radius:11px;font-size:14px;font-weight:700;cursor:pointer">💾 Save Currency Settings</button>
+
       </div>
 
             <div id="spanel-hotel" style="display:none">
@@ -3864,6 +3922,7 @@ window.addEventListener('fb-ready', function() {
   loadPriceSchedule();
   loadAuditLog();
   loadCurrency();
+  loadFxRates();
   loadHotelSettings();
   syncAllTargetsFromFB();
   // Auto-sync all occupancy data from Firebase on startup
@@ -5382,6 +5441,8 @@ function _bootApp(user) {
   scheduleMissingDeptCheck();
   // New month lock reminder (runs 6s after login — days 1-7 of each month only)
   setTimeout(checkNewMonthLockReminder, 6000);
+  // FX rate update reminder (runs 8s after login)
+  setTimeout(checkFxRateReminder, 8000);
   // Silent startup validation — runs 3s after boot, never blocks UI
   setTimeout(function() {
     if (typeof runStartupValidation === 'function') runStartupValidation();
@@ -12386,6 +12447,86 @@ function renderGuide() {
     ],
 
 
+    // ── 40. CURRENCY & EXCHANGE RATES ───────────────────────
+    ['💱 Currency & Exchange Rates',
+     '<strong>Two separate things:</strong> The display currency (what symbol shows everywhere in the system) and the exchange rates (for converting QAR amounts to other currencies). They are independent — you can display in QAR and still convert to USD on demand.' +
+     '<br><br><strong>How to open:</strong> Settings → Currency tab. The panel has three sections.' +
+     '<br><br><strong>Section 1 — Display Currency</strong>' +
+     ul([
+       'Change the symbol shown everywhere (QR, $, €, etc.)',
+       'Set position — before or after the number',
+       'Set decimal places (0, 2, or 3)',
+       'Quick select buttons for common currencies',
+       'Click <strong>💾 Save Display Currency</strong> to apply — syncs to all devices'
+     ]) +
+     '<br><strong>Section 2 — Exchange Rates</strong>' +
+     ul([
+       'Eight currencies with editable rates: USD, EUR, GBP, SAR, AED, KWD, EGP, INR',
+       'Rates are stored as <strong>how many QAR = 1 unit</strong> of that currency (e.g. 1 USD = 3.64 QAR)',
+       'Update any rate — just type the new value and click <strong>💾 Save Exchange Rates</strong>',
+       'Rates are synced to Firebase so every device uses the same rates',
+       'A <strong>Rate Update Reminder</strong> dropdown lets you choose how often to be reminded to check rates: Off, 1 week, 2 weeks, or 1 month'
+     ]) +
+     '<br><strong>Section 3 — Quick Converter</strong>' +
+     ul([
+       'Type any QAR amount and see it instantly converted to all 8 currencies side by side',
+       'Updates live as you type — no button to press',
+       'Useful when someone asks you about a specific amount'
+     ]) +
+     tip('The default rates are approximate. Always update them to match your bank or hotel finance rates before using for reporting.')
+    ],
+
+    // ── 41. CONVERTING REVENUE TO OTHER CURRENCIES ──────────
+    ['💱 Converting Revenue to Other Currencies',
+     '<strong>Scenario:</strong> Someone asks "what was March revenue in USD?" — you can answer in 2 seconds.' +
+     '<br><br><strong>Three places to convert instantly:</strong>' +
+     ul([
+       '<strong>Dashboard</strong> — click <strong>💱 Convert Revenue</strong> button in the top right. Shows the current month total in all 8 currencies.',
+       '<strong>Monthly Detail report</strong> — click <strong>💱 View in USD / EUR...</strong>. Shows that month total in all currencies.',
+       '<strong>Annual Report</strong> — click <strong>💱 Year Total in USD / EUR...</strong>. Shows the full year revenue in all currencies.'
+     ]) +
+     '<br>Each button opens a popup showing the QAR amount converted to all 8 currencies at once. A link at the bottom lets you update rates if needed.' +
+     '<br><br><strong>Example:</strong>' +
+     ul([
+       'March revenue: 48,250 QAR',
+       'USD: $ 13,255.49',
+       'EUR: € 12,092.73',
+       'GBP: £ 10,489.13',
+       'SAR: 49,742.27 SAR'
+     ]) +
+     warn('Conversions are based on the rates you set manually in Settings → Currency. They are NOT live rates. Always update rates regularly to keep conversions accurate.') +
+     tip('Set up a monthly reminder in Settings → Currency → Rate Update Reminder. This way you never forget to check if exchange rates have changed significantly.')
+    ],
+
+    // ── 42. RATE UPDATE REMINDER ────────────────────────────
+    ['⏰ Exchange Rate Reminder',
+     '<strong>What it does:</strong> Automatically reminds you to check and update exchange rates on a schedule you set. The reminder appears as a small banner in the bottom-right corner of the screen.' +
+     '<br><br><strong>How to set it up:</strong>' +
+     step([
+       'Go to Settings → Currency tab',
+       'In Section 2 (Exchange Rates), find the <strong>Rate Update Reminder</strong> dropdown',
+       'Choose: Off / 1 week / 2 weeks / 1 month',
+       'Click <strong>💾 Save Exchange Rates</strong>',
+       'The system now tracks when you last saved rates and reminds you automatically'
+     ]) +
+     '<br><strong>What the reminder looks like:</strong><br>' +
+     '<div style="background:#fffbeb;border:1.5px solid #fde68a;border-radius:9px;padding:12px;margin:10px 0;font-size:12px">' +
+     '💱 <strong>Exchange Rates Need Update</strong><br>' +
+     'Rates were last updated <strong>14 days ago</strong>. Check they are still accurate.<br>' +
+     '<em>Two buttons: Update Now (opens Settings) · Later (dismisses)</em>' +
+     '</div>' +
+     '<br><strong>Behaviour:</strong>' +
+     ul([
+       'Shows 8 seconds after login — never during work',
+       'Shows maximum once per day — not every login',
+       'Auto-dismisses after 20 seconds if you do not interact',
+       'Clicking <strong>Update Now</strong> takes you directly to the Currency settings panel',
+       'Clicking <strong>Later</strong> dismisses it until tomorrow'
+     ]) +
+     tip('Set the reminder to 2 weeks — that is usually the right balance. Exchange rates do not change dramatically day to day, but checking every 2 weeks keeps your reports accurate.')
+    ],
+
+
   ];
 
   var style = '<style>' +
@@ -18399,6 +18540,293 @@ function _goToLockMonth(m) {
   if (el) el.remove();
   showTab('prices');
   setTimeout(openMonthlyPriceManager, 400);
+}
+
+
+// ════════════════════════════════════════════════════════════════
+//  EXCHANGE RATE SYSTEM
+//  Stores QAR-based rates for multiple currencies
+//  Reminder to update rates on a schedule
+//  Quick converter + "View in USD" anywhere
+// ════════════════════════════════════════════════════════════════
+
+var _FX_STORE_KEY  = 'pearl_fx_rates';
+var _FX_FB_PATH    = 'pearl/settings/fx_rates';
+
+// Default rates (QAR to each currency — how many QAR = 1 unit)
+var _FX_DEFAULT = {
+  USD: { name:'US Dollar',       symbol:'$',   position:'before', rate: 3.64,  decimals:2 },
+  EUR: { name:'Euro',            symbol:'€',   position:'before', rate: 3.99,  decimals:2 },
+  GBP: { name:'British Pound',   symbol:'£',   position:'before', rate: 4.60,  decimals:2 },
+  SAR: { name:'Saudi Riyal',     symbol:'SAR', position:'after',  rate: 0.97,  decimals:2 },
+  AED: { name:'UAE Dirham',      symbol:'AED', position:'after',  rate: 0.99,  decimals:2 },
+  KWD: { name:'Kuwaiti Dinar',   symbol:'KWD', position:'after',  rate:11.84,  decimals:3 },
+  EGP: { name:'Egyptian Pound',  symbol:'EGP', position:'after',  rate: 0.075, decimals:2 },
+  INR: { name:'Indian Rupee',    symbol:'₹',   position:'before', rate: 0.044, decimals:2 }
+};
+
+var _FX_RATES = {};
+var _FX_REMINDER_DAYS = 14;
+var _FX_LAST_UPDATED  = null;
+
+function loadFxRates() {
+  try {
+    var stored = JSON.parse(_STORE.getItem(_FX_STORE_KEY) || 'null');
+    if (stored) {
+      _FX_RATES         = stored.rates         || JSON.parse(JSON.stringify(_FX_DEFAULT));
+      _FX_REMINDER_DAYS = stored.reminderDays  !== undefined ? stored.reminderDays : 14;
+      _FX_LAST_UPDATED  = stored.lastUpdated   || null;
+    } else {
+      _FX_RATES = JSON.parse(JSON.stringify(_FX_DEFAULT));
+    }
+  } catch(e) {
+    _FX_RATES = JSON.parse(JSON.stringify(_FX_DEFAULT));
+  }
+  if (window._fbLoadKey) {
+    window._fbLoadKey(_FX_FB_PATH).then(function(fb) {
+      if (fb && fb.rates) {
+        _FX_RATES         = fb.rates;
+        _FX_REMINDER_DAYS = fb.reminderDays !== undefined ? fb.reminderDays : _FX_REMINDER_DAYS;
+        _FX_LAST_UPDATED  = fb.lastUpdated  || _FX_LAST_UPDATED;
+        try { _STORE.setItem(_FX_STORE_KEY, JSON.stringify({rates:_FX_RATES, reminderDays:_FX_REMINDER_DAYS, lastUpdated:_FX_LAST_UPDATED})); } catch(e) {}
+      }
+    }).catch(function(){});
+  }
+}
+
+function saveFxRates() {
+  // Read reminder setting
+  var remSel = document.getElementById('fx-reminder-days');
+  if (remSel) _FX_REMINDER_DAYS = parseInt(remSel.value) || 0;
+
+  // Read rate inputs
+  Object.keys(_FX_RATES).forEach(function(code) {
+    var inp = document.getElementById('fx-rate-' + code);
+    if (inp) {
+      var val = parseFloat(inp.value);
+      if (!isNaN(val) && val > 0) _FX_RATES[code].rate = val;
+    }
+  });
+
+  _FX_LAST_UPDATED = new Date().toISOString();
+
+  var payload = { rates: _FX_RATES, reminderDays: _FX_REMINDER_DAYS, lastUpdated: _FX_LAST_UPDATED };
+  try { _STORE.setItem(_FX_STORE_KEY, JSON.stringify(payload)); } catch(e) {}
+  if (window._fbSaveKey) window._fbSaveKey(_FX_FB_PATH, payload);
+
+  // Update last-updated display
+  var el = document.getElementById('fx-last-updated');
+  if (el) el.textContent = 'Updated: ' + new Date().toLocaleDateString();
+
+  var msg = document.getElementById('fx-save-msg');
+  if (msg) { msg.textContent = '✅ Rates saved successfully'; setTimeout(function(){ msg.textContent=''; },3000); }
+
+  toast('✅ Exchange rates saved', 'ok');
+  renderFxRateInputs();
+  renderFxConvert();
+}
+
+// Convert QAR amount to a target currency
+function convertFromQAR(qarAmount, currencyCode) {
+  var fx = _FX_RATES[currencyCode];
+  if (!fx || !fx.rate || fx.rate <= 0) return null;
+  return qarAmount / fx.rate;
+}
+
+// Format a converted amount with the currency's symbol
+function fmtFX(amount, currencyCode) {
+  var fx = _FX_RATES[currencyCode];
+  if (!fx) return '';
+  var dec = fx.decimals || 2;
+  var parts = amount.toFixed(dec).split('.');
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  var num = parts.join('.');
+  if (fx.position === 'before') return fx.symbol + ' ' + num;
+  return num + ' ' + fx.symbol;
+}
+
+// Render rate input rows in settings
+function renderFxRateInputs() {
+  var wrap = document.getElementById('fx-rates-wrap');
+  if (!wrap) return;
+
+  var lastUpdatedEl = document.getElementById('fx-last-updated');
+  if (lastUpdatedEl && _FX_LAST_UPDATED) {
+    lastUpdatedEl.textContent = 'Updated ' + new Date(_FX_LAST_UPDATED).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+  }
+
+  var remSel = document.getElementById('fx-reminder-days');
+  if (remSel) remSel.value = String(_FX_REMINDER_DAYS);
+
+  var html = '';
+  Object.keys(_FX_RATES).forEach(function(code) {
+    var fx = _FX_RATES[code];
+    html += '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:9px">' +
+      '<div style="width:40px;height:36px;background:#0d1b2e;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#c9a84c;flex-shrink:0">' + code + '</div>' +
+      '<div style="flex:1;min-width:0">' +
+        '<div style="font-size:12px;font-weight:700;color:#0d1b2e">' + fx.name + '</div>' +
+        '<div style="font-size:10px;color:#94a3b8">1 ' + code + ' = ? QAR</div>' +
+      '</div>' +
+      '<div style="display:flex;align-items:center;gap:6px">' +
+        '<input type="number" id="fx-rate-' + code + '" value="' + fx.rate + '" step="0.0001" min="0.0001"' +
+          ' style="width:90px;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:700;color:#0d1b2e;text-align:right;outline:none"' +
+          ' oninput="renderFxConvert()">' +
+        '<span style="font-size:11px;color:#64748b;font-weight:700">QAR</span>' +
+      '</div>' +
+    '</div>';
+  });
+  wrap.innerHTML = html;
+}
+
+// Render quick converter results
+function renderFxConvert() {
+  var wrap = document.getElementById('fx-convert-results');
+  if (!wrap) return;
+  var amtEl = document.getElementById('fx-input-amount');
+  var qar = amtEl ? (parseFloat(amtEl.value) || 0) : 0;
+  if (qar <= 0) { wrap.innerHTML = '<div style="text-align:center;color:#94a3b8;font-size:12px;padding:8px">Enter an amount above to see conversions</div>'; return; }
+
+  var html = '';
+  Object.keys(_FX_RATES).forEach(function(code) {
+    var converted = convertFromQAR(qar, code);
+    if (converted === null) return;
+    var fx = _FX_RATES[code];
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:9px">' +
+      '<div style="display:flex;align-items:center;gap:8px">' +
+        '<div style="width:36px;height:30px;background:#0d1b2e;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#c9a84c">' + code + '</div>' +
+        '<span style="font-size:12px;color:#64748b">' + fx.name + '</span>' +
+      '</div>' +
+      '<div style="font-size:15px;font-weight:800;color:#0d1b2e">' + fmtFX(converted, code) + '</div>' +
+    '</div>';
+  });
+  wrap.innerHTML = html;
+}
+
+// Open the currency converter modal from anywhere (e.g. dashboard, reports)
+
+
+
+function _goToFxFromReminder() {
+  var el = document.getElementById('_fx_reminder');
+  if (el) el.remove();
+  showTab('settings');
+  setTimeout(function(){ switchStab('currency'); }, 200);
+}
+
+function _closeFxReminder() {
+  var el = document.getElementById('_fx_reminder');
+  if (el) el.remove();
+}
+
+function _goToFxSettings() {
+  _closeFxModal();
+  showTab('settings');
+  setTimeout(function(){ switchStab('currency'); }, 200);
+}
+
+function _closeFxModal() {
+  var el = document.getElementById('_fx_modal');
+  if (el) el.remove();
+}
+
+function openFxConverter(qarAmount) {
+  var existing = document.getElementById('_fx_modal');
+  if (existing) { existing.remove(); return; }
+
+  var modal = document.createElement('div');
+  modal.id = '_fx_modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9800;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)';
+
+  var rows = '';
+  Object.keys(_FX_RATES).forEach(function(code) {
+    var converted = convertFromQAR(qarAmount, code);
+    if (converted === null) return;
+    var fx = _FX_RATES[code];
+    rows += '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:9px">' +
+      '<div style="display:flex;align-items:center;gap:8px">' +
+        '<div style="width:38px;height:32px;background:#0d1b2e;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#c9a84c">' + code + '</div>' +
+        '<div><div style="font-size:12px;font-weight:700;color:#0d1b2e">' + fx.name + '</div><div style="font-size:10px;color:#94a3b8">1 ' + code + ' = ' + fx.rate + ' QAR</div></div>' +
+      '</div>' +
+      '<div style="font-size:16px;font-weight:800;color:#0d1b2e">' + fmtFX(converted, code) + '</div>' +
+    '</div>';
+  });
+
+  modal.innerHTML =
+    '<div style="background:#fff;border-radius:16px;width:480px;max-width:96vw;max-height:88vh;overflow:hidden;display:flex;flex-direction:column">' +
+      '<div style="background:linear-gradient(135deg,#0d1b2e,#1e3a5f);padding:16px 20px;display:flex;align-items:center;justify-content:space-between">' +
+        '<div>' +
+          '<div style="font-size:15px;font-weight:800;color:#c9a84c">💱 Currency Converter</div>' +
+          '<div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:2px">' + fmtMoney(qarAmount) + ' converted to all currencies</div>' +
+        '</div>' +
+        '<button onclick="_closeFxModal()" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:8px;padding:6px 14px;font-size:13px;cursor:pointer">✕</button>' +
+      '</div>' +
+      '<div style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:8px">' + rows + '</div>' +
+      '<div style="padding:12px 16px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center">' +
+        '<div style="font-size:10px;color:#94a3b8">Rates set in Settings → Currency</div>' +
+        '<button onclick="_goToFxSettings()" style="padding:7px 14px;background:#f1f5f9;color:#64748b;border:none;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer">⚙️ Update Rates</button>' +
+      '</div>' +
+    '</div>';
+
+  document.body.appendChild(modal);
+}
+
+// ── Rate update reminder (runs on login) ──────────────────────
+function checkFxRateReminder() {
+  if (!_FX_REMINDER_DAYS || _FX_REMINDER_DAYS <= 0) return;
+  if (!_FX_LAST_UPDATED) {
+    // Never updated — show first-time nudge after 3 days
+    var installKey = 'pearl_fx_install_date';
+    var installed  = _STORE.getItem(installKey);
+    if (!installed) { try { _STORE.setItem(installKey, new Date().toISOString()); } catch(e) {} return; }
+    var daysSince = (Date.now() - new Date(installed)) / 86400000;
+    if (daysSince < 3) return;
+  } else {
+    var daysSince2 = (Date.now() - new Date(_FX_LAST_UPDATED)) / 86400000;
+    if (daysSince2 < _FX_REMINDER_DAYS) return;
+  }
+
+  // Don't show more than once per day
+  var todayKey = 'pearl_fx_reminder_' + new Date().toISOString().slice(0,10);
+  if (_STORE.getItem(todayKey)) return;
+  try { _STORE.setItem(todayKey, '1'); } catch(e) {}
+
+  // Show toast with action button
+  var banner = document.createElement('div');
+  banner.id = '_fx_reminder';
+  banner.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:8200;background:#fff;' +
+    'border:2px solid #fde68a;border-radius:12px;padding:14px 16px;max-width:320px;' +
+    'box-shadow:0 8px 24px rgba(0,0,0,.15);font-family:inherit;animation:slideUp .4s ease';
+
+  var daysTxt = _FX_LAST_UPDATED
+    ? Math.round((Date.now() - new Date(_FX_LAST_UPDATED)) / 86400000) + ' days ago'
+    : 'never';
+
+  banner.innerHTML =
+    '<div style="display:flex;gap:10px;align-items:flex-start">' +
+      '<span style="font-size:20px;flex-shrink:0">💱</span>' +
+      '<div style="flex:1">' +
+        '<div style="font-size:13px;font-weight:800;color:#0d1b2e;margin-bottom:3px">Exchange Rates Need Update</div>' +
+        '<div style="font-size:11px;color:#64748b;margin-bottom:10px">Rates were last updated <strong>' + daysTxt + '</strong>. Check they\'re still accurate.</div>' +
+        '<div style="display:flex;gap:6px">' +
+          '<button onclick="_goToFxFromReminder()" ' +
+            'style="flex:1;padding:8px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer">⚙️ Update Now</button>' +
+          '<button onclick="_closeFxReminder()" ' +
+            'style="padding:8px 12px;background:#f1f5f9;color:#64748b;border:none;border-radius:7px;font-size:11px;cursor:pointer">Later</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
+  if (!document.getElementById('_slideUp_style')) {
+    var ss = document.createElement('style');
+    ss.id = '_slideUp_style';
+    ss.textContent = '@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}';
+    document.head.appendChild(ss);
+  }
+  document.body.appendChild(banner);
+  setTimeout(function() {
+    var el = document.getElementById('_fx_reminder');
+    if (el) { el.style.opacity='0'; el.style.transition='opacity .5s'; setTimeout(function(){ if(el.parentNode)el.remove(); },500); }
+  }, 20000);
 }
 
 // ── Service Worker for offline support ──
