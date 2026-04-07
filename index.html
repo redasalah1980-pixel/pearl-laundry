@@ -18289,10 +18289,10 @@ function _showMissingDeptAlert(missing, m) {
   var banner = document.createElement('div');
   banner.id  = '_dept_alert';
   banner.style.cssText =
-    'position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:8000;' +
+    'position:fixed;top:60px;left:50%;z-index:8000;' +
     'background:#fff;border:2px solid #fca5a5;border-radius:14px;' +
     'box-shadow:0 8px 32px rgba(220,38,38,.15);max-width:560px;width:calc(100vw - 32px);' +
-    'animation:slideDown .4s cubic-bezier(.22,1,.36,1)';
+    'animation:slideDown .4s cubic-bezier(.22,1,.36,1) forwards';
 
   // Build content
   var deptRows = depts.map(function(dept) {
@@ -18335,7 +18335,7 @@ function _showMissingDeptAlert(missing, m) {
   if (!document.getElementById('_dept_anim')) {
     var s = document.createElement('style');
     s.id = '_dept_anim';
-    s.textContent = '@keyframes slideDown{from{opacity:0;transform:translateX(-50%) translateY(-20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}';
+    s.textContent = '@keyframes slideDown{from{opacity:0;transform:translate(-50%,-20px)}to{opacity:1;transform:translate(-50%,0)}}';
     document.head.appendChild(s);
   }
 
@@ -18490,7 +18490,7 @@ function _showLockReminderBanner(prevM, prevY, curM) {
   var banner = document.createElement('div');
   banner.id  = '_lock_reminder';
   banner.style.cssText =
-    'position:fixed;top:62px;left:50%;transform:translateX(-50%);z-index:8100;' +
+    'position:fixed;top:62px;left:50%;z-index:8100;' +
     'background:#fff;border:2px solid #c9a84c;border-radius:14px;' +
     'box-shadow:0 8px 32px rgba(201,168,76,.25);max-width:520px;width:calc(100vw - 32px);' +
     'animation:slideDown .4s cubic-bezier(.22,1,.36,1);font-family:inherit';
@@ -18666,6 +18666,7 @@ function renderFxRateInputs() {
   if (remSel) remSel.value = String(_FX_REMINDER_DAYS);
 
   var html = '';
+  if (!_FX_RATES || Object.keys(_FX_RATES).length === 0) { _FX_RATES = JSON.parse(JSON.stringify(_FX_DEFAULT)); }
   Object.keys(_FX_RATES).forEach(function(code) {
     var fx = _FX_RATES[code];
     html += '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:9px">' +
@@ -18694,6 +18695,7 @@ function renderFxConvert() {
   if (qar <= 0) { wrap.innerHTML = '<div style="text-align:center;color:#94a3b8;font-size:12px;padding:8px">Enter an amount above to see conversions</div>'; return; }
 
   var html = '';
+  if (!_FX_RATES || Object.keys(_FX_RATES).length === 0) { _FX_RATES = JSON.parse(JSON.stringify(_FX_DEFAULT)); }
   Object.keys(_FX_RATES).forEach(function(code) {
     var converted = convertFromQAR(qar, code);
     if (converted === null) return;
@@ -18740,12 +18742,18 @@ function openFxConverter(qarAmount) {
   var existing = document.getElementById('_fx_modal');
   if (existing) { existing.remove(); return; }
 
+  // Always ensure rates are populated before building modal
+  if (!_FX_RATES || typeof _FX_RATES !== 'object' || Object.keys(_FX_RATES).length === 0) {
+    _FX_RATES = JSON.parse(JSON.stringify(_FX_DEFAULT));
+  }
+
   var modal = document.createElement('div');
   modal.id = '_fx_modal';
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9800;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)';
 
+  var rates = _FX_RATES;
   var rows = '';
-  Object.keys(_FX_RATES).forEach(function(code) {
+  Object.keys(rates).forEach(function(code) {
     var converted = convertFromQAR(qarAmount, code);
     if (converted === null) return;
     var fx = _FX_RATES[code];
