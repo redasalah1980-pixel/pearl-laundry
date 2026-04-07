@@ -4732,6 +4732,9 @@ function openCurrencySettings() {
   if (decEl) decEl.value = String(_CURRENCY.decimals !== undefined ? _CURRENCY.decimals : 2);
   if (posEl) posEl.checked = true;
   updateCurrencyPreview();
+  // Render FX rate inputs and quick converter
+  setTimeout(renderFxRateInputs, 50);
+  setTimeout(renderFxConvert, 50);
 }
 
 function renderAuditLog() {
@@ -18565,19 +18568,19 @@ var _FX_DEFAULT = {
   INR: { name:'Indian Rupee',    symbol:'₹',   position:'before', rate: 0.044, decimals:2 }
 };
 
-var _FX_RATES = {};
+var _FX_RATES = null; // will be set by loadFxRates()
 var _FX_REMINDER_DAYS = 14;
 var _FX_LAST_UPDATED  = null;
 
 function loadFxRates() {
+  // Always start with defaults — overwrite if stored data exists
+  _FX_RATES = JSON.parse(JSON.stringify(_FX_DEFAULT));
   try {
     var stored = JSON.parse(_STORE.getItem(_FX_STORE_KEY) || 'null');
-    if (stored) {
-      _FX_RATES         = stored.rates         || JSON.parse(JSON.stringify(_FX_DEFAULT));
+    if (stored && stored.rates && Object.keys(stored.rates).length > 0) {
+      _FX_RATES         = stored.rates;
       _FX_REMINDER_DAYS = stored.reminderDays  !== undefined ? stored.reminderDays : 14;
       _FX_LAST_UPDATED  = stored.lastUpdated   || null;
-    } else {
-      _FX_RATES = JSON.parse(JSON.stringify(_FX_DEFAULT));
     }
   } catch(e) {
     _FX_RATES = JSON.parse(JSON.stringify(_FX_DEFAULT));
@@ -18628,6 +18631,10 @@ function saveFxRates() {
 
 // Convert QAR amount to a target currency
 function convertFromQAR(qarAmount, currencyCode) {
+  // Ensure rates are loaded
+  if (!_FX_RATES || Object.keys(_FX_RATES).length === 0) {
+    _FX_RATES = JSON.parse(JSON.stringify(_FX_DEFAULT));
+  }
   var fx = _FX_RATES[currencyCode];
   if (!fx || !fx.rate || fx.rate <= 0) return null;
   return qarAmount / fx.rate;
