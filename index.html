@@ -5827,7 +5827,7 @@ function renderEntry() {
 
 function updateEntStats(m, day) {
   let dQR = 0, dKG = 0, depQR = 0, depKG = 0, depPCS = 0;
-  const _statPR = PRICES; // use cached global — no Firebase call
+  const _statPR = hasMonthlyPrices(CY, m) ? loadPRM(CY, m) : PRICES;
   DEPT_KEYS.forEach(d => MASTER[d].forEach((_, i) => {
     // For the active department, read live input values from DOM (not saved cache)
     let v;
@@ -5859,8 +5859,8 @@ function renderEntryTable() {
   const items = MASTER[entDept];
   const dateStr = `${DAY_NAMES[new Date(CY,m-1,day).getDay()]} ${day} ${MONTH_NAMES[m-1]} ${CY}`;
   let rows = '';
-  // Use cached PRICES for display — fast, no Firebase call
-  const _entPR = PRICES;
+  // Use monthly price version if available, otherwise fall back to year prices
+  const _entPR = hasMonthlyPrices(CY, m) ? loadPRM(CY, m) : PRICES;
   items.forEach((_, i) => {
     const nm = getN(entDept, i);
     const pr = _entPR[entDept]?.[i]?.[1] ?? MASTER[entDept][i][1];
@@ -5896,8 +5896,9 @@ function renderEntryTable() {
 function onQI(i, m, day) {
   const inp = document.getElementById('qi_' + i);
   const v = Math.max(0, parseInt(inp.value) || 0); inp.value = v;
-  const pr = PRICES[entDept]?.[i]?.[1] ?? MASTER[entDept][i][1];
-  const kg = PRICES[entDept]?.[i]?.[2] ?? MASTER[entDept][i][2];
+  const _mqPR = hasMonthlyPrices(CY, m) ? loadPRM(CY, m) : PRICES;
+  const pr = _mqPR[entDept]?.[i]?.[1] ?? MASTER[entDept][i][1];
+  const kg = _mqPR[entDept]?.[i]?.[2] ?? MASTER[entDept][i][2];
   const ct = document.getElementById('ct_' + i); if (ct) ct.textContent = v > 0 ? f2(v * pr) : '';
   const kt = document.getElementById('kt_' + i); if (kt) kt.textContent = v > 0 ? (v * kg).toFixed(3) : '';
   inp.closest('tr')?.classList.toggle('hq', v > 0);
