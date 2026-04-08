@@ -17042,6 +17042,81 @@ function autoCloudBackup() {
 
 var _EOM_KEY_PREFIX = 'pearl_eom_checklist_';
 
+// ── Check if checklist should show (last 3 days OR first 3 days next month) ──
+function shouldShowEomChecklist() {
+  var today = new Date();
+  var d  = today.getDate();
+  var m  = today.getMonth() + 1;
+  var y  = today.getFullYear();
+  var nd = dim(y, m);
+  if (d >= nd - 2) return { show: true, y: y, m: m };
+  if (d <= 3) {
+    var pm = m === 1 ? 12 : m - 1;
+    var py = m === 1 ? y - 1 : y;
+    return { show: true, y: py, m: pm };
+  }
+  return { show: false };
+}
+
+function saveEomChecklist(y, m, data) {
+  try { _STORE.setItem(eomKey(y,m), JSON.stringify(data)); } catch(e) {}
+  if (window._fbSaveKey) window._fbSaveKey('pearl/settings/eom_' + y + '_' + m, data);
+}
+
+// ── Login reminder banner for end-of-month ──
+function checkEomReminder() {
+  var info = shouldShowEomChecklist();
+  if (!info.show) return;
+  var status  = getEomStatus(info.y, info.m);
+  var keys    = ['allDaysEntered','pricesLocked','monthlyPricesSet','financePosted','backupSaved'];
+  var pending = keys.filter(function(k){ return !status[k].done; }).length;
+  if (pending === 0) return;
+  var todayKey = 'pearl_eom_reminder_' + new Date().toISOString().slice(0,10);
+  if (_STORE.getItem(todayKey)) return;
+  try { _STORE.setItem(todayKey, '1'); } catch(e) {}
+  var MNF = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var mName    = MNF[info.m - 1];
+  var today2   = new Date();
+  var nd2      = dim(info.y, info.m);
+  var daysLeft = nd2 - today2.getDate();
+  var isAfter  = today2.getDate() <= 3 && today2.getMonth()+1 !== info.m;
+
+  var banner = document.createElement('div');
+  banner.id  = '_eom_reminder';
+  banner.style.cssText = 'position:fixed;bottom:24px;left:24px;z-index:8200;background:#fff;' +
+    'border:2px solid #c9a84c;border-radius:12px;padding:14px 16px;max-width:340px;' +
+    'box-shadow:0 8px 24px rgba(0,0,0,.15);font-family:inherit';
+
+  var title = isAfter
+    ? mName + ' Checklist Not Complete'
+    : daysLeft + ' day' + (daysLeft===1?'':'s') + ' left in ' + mName;
+
+  var inner = document.createElement('div');
+  inner.style.cssText = 'display:flex;gap:10px;align-items:flex-start';
+  inner.innerHTML =
+    '<span style="font-size:22px;flex-shrink:0">📋</span>' +
+    '<div style="flex:1">' +
+      '<div style="font-size:13px;font-weight:800;color:#0d1b2e;margin-bottom:3px">' + title + '</div>' +
+      '<div style="font-size:11px;color:#64748b;margin-bottom:10px">' + pending + ' item' + (pending===1?'':'s') + ' still pending before closing the month.</div>' +
+      '<div style="display:flex;gap:6px">' +
+        '<button id="_eom_go_btn" style="flex:1;padding:8px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer">📋 View Checklist</button>' +
+        '<button id="_eom_later_btn" style="padding:8px 12px;background:#f1f5f9;color:#64748b;border:none;border-radius:7px;font-size:11px;cursor:pointer">Later</button>' +
+      '</div>' +
+    '</div>';
+  banner.appendChild(inner);
+  document.body.appendChild(banner);
+
+  banner.querySelector('#_eom_go_btn').onclick    = _goToEomChecklist;
+  banner.querySelector('#_eom_later_btn').onclick = _dismissEomReminder;
+
+  setTimeout(function(){
+    var el = document.getElementById('_eom_reminder');
+    if (el){ el.style.opacity='0'; el.style.transition='opacity .5s';
+      setTimeout(function(){ if(el.parentNode) el.remove(); }, 500); }
+  }, 25000);
+}
+
+
 function eomKey(y, m) {
   return _EOM_KEY_PREFIX + y + '_' + String(m).padStart(2,'0');
 }
