@@ -10611,7 +10611,8 @@ function renderDashOccQuick(m) {
   var todayY      = today.getFullYear();
   var totalRooms  = _TOTAL_ROOMS || 161;
   var isCurrentM  = (CY === todayY && m === todayM);
-  var displayDay  = isCurrentM ? todayD : dim(CY, m);
+  var selDay      = parseInt(document.getElementById('occ-day-sel')?.value || 0);
+  var displayDay  = selDay > 0 ? selDay : (isCurrentM ? todayD : dim(CY, m));
   var occ         = loadDayOcc(CY, m, displayDay);
   var rooms       = occ ? occ.rooms : null;
   var pct         = rooms !== null ? (rooms / totalRooms * 100).toFixed(1) : null;
@@ -10669,7 +10670,12 @@ function renderDashOccQuick(m) {
   form.id = 'occ-edit-form';
   form.style.cssText = 'display:none;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:12px;padding:14px 16px;margin-top:8px';
   form.innerHTML =
-    '<div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:10px;letter-spacing:.5px">EDIT OCCUPANCY — ' + dayLabel.toUpperCase() + '</div>' +
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">' +
+    '<div style="font-size:11px;font-weight:700;color:#64748b;letter-spacing:.5px">EDIT OCCUPANCY</div>' +
+    '<select id="occ-day-sel" onchange="renderDashOccQuick(' + m + ')" style="padding:5px 8px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:12px;font-weight:700;color:#0d1b2e;background:#fff;cursor:pointer">' +
+    (function(){ var opts=''; for(var _d=1;_d<=dim(CY,m);_d++){ var _dn=DAY_NAMES[new Date(CY,m-1,_d).getDay()]; opts+='<option value="'+_d+'" '+(_d===displayDay?'selected':'')+'>'+_dn+' '+_d+'</option>'; } return opts; })() +
+    '</select>' +
+    '</div>' +
     '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">' +
       '<div>' +
         '<div style="font-size:10px;color:#94a3b8;margin-bottom:4px">Rooms Occupied</div>' +
@@ -10688,7 +10694,7 @@ function renderDashOccQuick(m) {
       '</div>' +
       '<div style="display:flex;gap:8px">' +
         '<button onclick="saveOccFromCompact(' + m + ',' + displayDay + ',' + totalRooms + ')" style="padding:10px 18px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">💾 Save</button>' +
-        '<button onclick="document._closeOccEdit()" style="padding:10px 14px;background:#f1f5f9;color:#64748b;border:none;border-radius:8px;font-size:13px;cursor:pointer">Cancel</button>' +
+        '<button onclick="_closeOccEdit()" style="padding:10px 14px;background:#f1f5f9;color:#64748b;border:none;border-radius:8px;font-size:13px;cursor:pointer">Cancel</button>' +
       '</div>' +
     '</div>';
   el.appendChild(form);
@@ -17120,8 +17126,13 @@ function getEomStatus(y, m) {
 
   // 1. All days entered — smart check (ignores rest days, dry cleaning, acknowledged)
   var required    = getRequiredDepts();
-  var smartMissing = getSmartMissingDays(y, m, nd);
-  var allDaysEntered = smartMissing.length === 0;
+  // For current month: only check days up to yesterday (today might not be entered yet)
+  var today2  = new Date();
+  var checkTo = (y === today2.getFullYear() && m === today2.getMonth()+1)
+    ? today2.getDate() - 1   // only check up to yesterday for current month
+    : nd;                     // full month for past months
+  var smartMissing   = checkTo > 0 ? getSmartMissingDays(y, m, checkTo) : [];
+  var allDaysEntered = smartMissing.length === 0 && checkTo >= nd - 1; // past months: full check
 
   // 2. Prices locked
   var hasLocked = false, hasAnyData = false;
@@ -18058,18 +18069,21 @@ function renderYearHealth() {
     var status    = getEomStatus(curY, mi);
     var doneCount = keys.filter(function(k){ return status[k].done; }).length;
     var total     = keys.length;
-    var pct       = Math.round(doneCount / total * 100);
 
     var bg, bdr, icon, statusTxt;
-    if (doneCount === total) {
+
+    if (isCurrent) {
+      // Current month — never green, always "in progress"
+      // Show how many items done so far, with a clock icon
+      bg = '#eff6ff'; bdr = '#c9a84c'; icon = '🔄'; statusTxt = doneCount + '/5';
+    } else if (doneCount === total) {
+      // Past month fully complete
       bg = '#f0fdf4'; bdr = '#86efac'; icon = '✅'; statusTxt = '5/5';
     } else if (doneCount >= 3) {
       bg = '#fffbeb'; bdr = '#fde68a'; icon = '⚠️'; statusTxt = doneCount + '/5';
     } else {
       bg = '#fef2f2'; bdr = '#fca5a5'; icon = '🔴'; statusTxt = doneCount + '/5';
     }
-
-    if (isCurrent) { bdr = '#c9a84c'; }
 
     html += '<div onclick="openMonthChecklist(' + mi + ')" ' +
       'style="padding:8px 6px;background:' + bg + ';border:2px solid ' + bdr + ';border-radius:9px;text-align:center;cursor:pointer;transition:all .15s" ' +
@@ -18092,12 +18106,14 @@ function openMonthChecklist(m) {
   modal.id = '_month_checklist_modal';
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9800;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)';
 
-  var curY = new Date().getFullYear();
+  var curY    = new Date().getFullYear();
+  var curMon  = new Date().getMonth() + 1;
+  var isCurMon = (m === curMon);
   var MNF  = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   var keys = ['allDaysEntered','pricesLocked','monthlyPricesSet','financePosted','backupSaved'];
   var status = getEomStatus(curY, m);
   var doneCount = keys.filter(function(k){ return status[k].done; }).length;
-  var allDone   = doneCount === keys.length;
+  var allDone   = doneCount === keys.length && !isCurMon;
 
   var inner = document.createElement('div');
   inner.style.cssText = 'background:#fff;border-radius:16px;width:460px;max-width:96vw;overflow:hidden';
@@ -18107,8 +18123,8 @@ function openMonthChecklist(m) {
   hdr.style.cssText = 'background:linear-gradient(135deg,#0d1b2e,#1e3a5f);padding:16px 20px;display:flex;align-items:center;justify-content:space-between';
   hdr.innerHTML =
     '<div>' +
-      '<div style="font-size:15px;font-weight:800;color:#c9a84c">📋 ' + MNF[m-1] + ' ' + curY + ' Checklist</div>' +
-      '<div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:2px">' + doneCount + ' of ' + keys.length + ' items complete</div>' +
+      '<div style="font-size:15px;font-weight:800;color:#c9a84c">' + (isCurMon?'🔄':'📋') + ' ' + MNF[m-1] + ' ' + curY + ' Checklist' + (isCurMon?' — In Progress':'') + '</div>' +
+      '<div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:2px">' + (isCurMon ? 'Month still ongoing — items update automatically' : doneCount + ' of ' + keys.length + ' items complete') + '</div>' +
     '</div>' +
     '<div style="background:' + (allDone?'#16a34a':'#c9a84c') + ';color:' + (allDone?'#fff':'#0d1b2e') + ';border-radius:20px;padding:4px 12px;font-size:13px;font-weight:800">' + doneCount + '/' + keys.length + '</div>';
   inner.appendChild(hdr);
