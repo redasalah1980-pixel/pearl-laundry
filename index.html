@@ -17154,12 +17154,16 @@ function toggleEomItem(y, m, key) {
 
 // Auto-detect checklist items
 function getEomStatus(y, m) {
-  var nd   = dim(y, m);
-  var db   = loadDB(y);
+  var nd     = dim(y, m);
+  var db     = loadDB(y);
   var manual = loadEomChecklist(y, m);
+  var today  = new Date();
+  var curY   = today.getFullYear();
+  var curM   = today.getMonth() + 1;
+  var isPast = (y < curY) || (y === curY && m < curM);
 
-  // 1. All days entered — check all required depts have data for every day
-  var required = getRequiredDepts();
+  // 1. All days entered
+  var required    = getRequiredDepts();
   var missingDays = 0;
   for (var d = 0; d < nd; d++) {
     required.forEach(function(dept) {
@@ -17171,9 +17175,8 @@ function getEomStatus(y, m) {
   }
   var allDaysEntered = missingDays === 0;
 
-  // 2. Prices locked — check at least one entry has locked price
-  var hasLocked = false;
-  var hasAnyData = false;
+  // 2. Prices locked
+  var hasLocked = false, hasAnyData = false;
   outerLoop:
   for (var d2 = 0; d2 < nd; d2++) {
     for (var di = 0; di < DEPT_KEYS.length; di++) {
@@ -17187,27 +17190,48 @@ function getEomStatus(y, m) {
       }
     }
   }
-  var pricesLocked = hasAnyData ? hasLocked : true;
+  var pricesLocked = !hasAnyData || hasLocked;
 
-  // 3. Has monthly price version
-  var monthlyPricesSet = hasMonthlyPrices(y, m);
+  // 3. Monthly prices set — for past months, treat as N/A (always pass)
+  // If the month used year prices at entry time, that was correct then — don't penalise
+  var monthlyPricesSet = isPast ? true : hasMonthlyPrices(y, m);
 
-  // 4. Backup saved this month
+  // 4. Finance posted (manual tick)
+  var financePosted = manual.financePosted || false;
+
+  // 5. Backup saved — for past months: any backup EVER is fine (can't re-do past backups)
+  //                   for current month: needs a backup saved THIS month
   var backupSaved = false;
   try {
     var idx2 = JSON.parse(_STORE.getItem('pearl_backup_index') || '[]');
     if (Array.isArray(idx2) && idx2.length > 0) {
-      var latestBackup = new Date(idx2[0].savedAt);
-      backupSaved = latestBackup.getFullYear() === y && latestBackup.getMonth()+1 === m;
+      if (isPast) {
+        // Past month: any backup that existed AFTER that month is fine
+        var monthEndDate = new Date(y, m, 0); // last day of month
+        backupSaved = idx2.some(function(v) {
+          return v.savedAt && new Date(v.savedAt) >= monthEndDate;
+        });
+        // Also pass if there's any backup at all — data was protected at some point
+        if (!backupSaved && idx2.length > 0) backupSaved = true;
+      } else {
+        // Current month: needs backup this month
+        var latestBackup = new Date(idx2[0].savedAt);
+        backupSaved = latestBackup.getFullYear() === y && latestBackup.getMonth()+1 === m;
+      }
     }
   } catch(e) {}
 
+  // For past months: backup label reflects the relaxed check
+  var backupDetail = backupSaved
+    ? (isPast ? 'Data was backed up' : 'Backup saved this month')
+    : (isPast ? 'No backup found — save one now to protect data' : 'No backup saved this month');
+
   return {
-    allDaysEntered:   { done: allDaysEntered,    label: 'All days entered',          detail: allDaysEntered ? 'No missing data' : missingDays + ' dept/day combination(s) missing', action: function(){ showTab("entry"); } },
-    pricesLocked:     { done: pricesLocked,       label: 'Prices locked',             detail: pricesLocked ? 'All entries frozen' : 'Some entries not locked', action: function(){ showTab("prices"); setTimeout(openMonthlyPriceManager, 300); } },
-    monthlyPricesSet: { done: monthlyPricesSet,   label: 'Monthly prices set',        detail: monthlyPricesSet ? 'Price table exists for this month' : 'Using year prices', action: function(){ showTab("prices"); setTimeout(openMonthlyPriceManager, 300); } },
-    financePosted:    { done: manual.financePosted, label: 'Finance posted',          detail: manual.financePosted ? 'Marked as done' : 'Tick when posted', manual: true },
-    backupSaved:      { done: backupSaved,         label: 'Cloud backup saved',        detail: backupSaved ? 'Backup exists for this month' : 'No backup saved this month', action: function(){ showTab("backup"); } }
+    allDaysEntered:   { done: allDaysEntered,    label: 'All days entered',     detail: allDaysEntered ? 'No missing data' : missingDays + ' dept/day combination(s) missing', action: function(){ showTab('entry'); } },
+    pricesLocked:     { done: pricesLocked,       label: 'Prices locked',        detail: pricesLocked ? 'All entries frozen' : 'Some entries not locked — lock before changing prices', action: function(){ showTab('prices'); setTimeout(openMonthlyPriceManager, 300); } },
+    monthlyPricesSet: { done: monthlyPricesSet,   label: isPast ? 'Prices (historical)' : 'Monthly prices set', detail: isPast ? 'Historical month — prices recorded at entry time' : (monthlyPricesSet ? 'Price table exists' : 'Using year prices'), action: isPast ? null : function(){ showTab('prices'); setTimeout(openMonthlyPriceManager, 300); } },
+    financePosted:    { done: financePosted,       label: 'Finance posted',       detail: financePosted ? 'Marked as done' : 'Tick when posted to finance system', manual: true },
+    backupSaved:      { done: backupSaved,         label: 'Cloud backup',         detail: backupDetail, action: backupSaved ? null : function(){ showTab('backup'); } }
   };
 }
 
