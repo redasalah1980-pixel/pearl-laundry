@@ -10393,6 +10393,142 @@ function stepTarget(delta) {
   setTimeout(function(){ inp.style.borderColor = '#c9a84c'; }, 600);
 }
 
+function renderTargetBar(totalRev, m) {
+  var target = loadTarget(CY, m);
+  var bar    = document.getElementById('dash-target-bar');
+  if (!bar) return;
+
+  var tgt = target ? target.revenue : 0;
+  var pct = tgt > 0 ? Math.min(100, totalRev / tgt * 100) : 0;
+  var col = pct >= 100 ? '#16a34a' : pct >= 75 ? '#d97706' : '#dc2626';
+  var bg  = pct >= 100 ? '#f0fdf4' : pct >= 75 ? '#fffbeb' : '#fff5f5';
+  var bdr = pct >= 100 ? '#86efac' : pct >= 75 ? '#fde68a' : '#fecaca';
+  var lbl = pct >= 100 ? 'Target reached!' : pct >= 75 ? 'On track' : pct > 0 ? 'Below target' : '';
+
+  var today        = new Date();
+  var daysLeft     = (today.getMonth()+1 === m && today.getFullYear() === CY) ? dim(CY,m) - today.getDate() + 1 : dim(CY,m);
+  var remaining    = tgt > 0 ? Math.max(0, tgt - totalRev) : 0;
+  var neededPerDay = daysLeft > 0 && remaining > 0 ? remaining / daysLeft : 0;
+  var urgency      = daysLeft <= 5 ? '#dc2626' : daysLeft <= 10 ? '#d97706' : '#64748b';
+
+  bar.innerHTML = '';
+  var card = document.createElement('div');
+  card.style.cssText = 'background:#fff;border:1.5px solid ' + (tgt>0?bdr:'#e2e8f0') + ';border-radius:14px;padding:16px 20px';
+
+  // Header row
+  var topRow = document.createElement('div');
+  topRow.style.cssText = 'display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:12px';
+
+  var titleWrap = document.createElement('div');
+  titleWrap.style.cssText = 'display:flex;align-items:center;gap:10px';
+  titleWrap.innerHTML =
+    '<div style="width:36px;height:36px;background:' + (tgt>0?bg:'#f8fafc') + ';border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px">' + String.fromCodePoint(0x1F3AF) + '</div>' +
+    '<div><div style="font-size:13px;font-weight:800;color:#0d1b2e">Revenue Target \u2014 ' + MONTH_NAMES[m-1] + ' ' + CY + '</div>' +
+    '<div style="font-size:11px;color:#64748b;margin-top:1px">Monthly budget progress</div></div>';
+  topRow.appendChild(titleWrap);
+
+  var numWrap = document.createElement('div');
+  numWrap.style.cssText = 'display:flex;align-items:center;gap:14px;flex-wrap:wrap';
+
+  // Actual
+  var actualDiv = document.createElement('div');
+  actualDiv.style.cssText = 'text-align:right';
+  actualDiv.innerHTML = '<div style="font-size:20px;font-weight:900;color:#0d1b2e">' + fmtMoney(totalRev) + '</div><div style="font-size:9px;color:#64748b;font-weight:700;letter-spacing:.8px">ACTUAL</div>';
+  numWrap.appendChild(actualDiv);
+
+  var divEl = document.createElement('div');
+  divEl.style.cssText = 'font-size:20px;color:#e2e8f0;font-weight:300';
+  divEl.textContent = '/';
+  numWrap.appendChild(divEl);
+
+  // Target input
+  var tgtDiv = document.createElement('div');
+  tgtDiv.style.cssText = 'text-align:right';
+  var tgtInp = document.createElement('input');
+  tgtInp.type = 'text';
+  tgtInp.id   = 'dash-target';
+  tgtInp.inputMode = 'numeric';
+  tgtInp.placeholder = 'Set target';
+  tgtInp.value = tgt > 0 ? tgt.toLocaleString() : '';
+  tgtInp.style.cssText = 'width:130px;padding:4px 8px;border:1.5px solid ' + (tgt>0?'#c9a84c':'#e2e8f0') + ';border-radius:8px;font-size:18px;font-weight:900;color:' + (tgt>0?'#0d1b2e':'#94a3b8') + ';text-align:right;background:' + (tgt>0?'#fffbeb':'#f8fafc') + ';outline:none;cursor:pointer';
+  tgtInp.addEventListener('focus', function(){ this.value = this.value.replace(/,/g,''); this.select(); this.style.borderColor='#c9a84c'; this.style.background='#fffbeb'; });
+  tgtInp.addEventListener('blur',  function(){ formatTargetInputDisplay(this); saveDashTarget(); });
+  tgtInp.addEventListener('keydown', function(e){ if(e.key==='Enter') this.blur(); });
+  var tgtLbl = document.createElement('div');
+  tgtLbl.style.cssText = 'font-size:9px;color:#94a3b8;font-weight:700;letter-spacing:.8px;margin-top:2px;text-align:right';
+  tgtLbl.textContent = 'TARGET \u2014 click to edit';
+  tgtDiv.appendChild(tgtInp);
+  tgtDiv.appendChild(tgtLbl);
+  numWrap.appendChild(tgtDiv);
+
+  if (tgt > 0) {
+    var badge = document.createElement('div');
+    badge.style.cssText = 'padding:6px 14px;background:' + bg + ';border:1.5px solid ' + bdr + ';border-radius:10px;text-align:center';
+    badge.innerHTML = '<div style="font-size:22px;font-weight:900;color:' + col + '">' + pct.toFixed(1) + '%</div><div style="font-size:9px;color:' + col + ';font-weight:700">' + lbl + '</div>';
+    numWrap.appendChild(badge);
+  }
+
+  topRow.appendChild(numWrap);
+  card.appendChild(topRow);
+
+  if (tgt > 0) {
+    // Progress bar
+    var barWrap = document.createElement('div');
+    barWrap.style.cssText = 'background:#f1f5f9;border-radius:20px;height:14px;overflow:hidden;margin-bottom:10px;position:relative';
+    var fill = document.createElement('div');
+    fill.style.cssText = 'background:linear-gradient(90deg,' + col + ',' + (pct>=100?'#22c55e':pct>=75?'#f59e0b':'#ef4444') + ');height:100%;width:' + pct + '%;border-radius:20px;transition:width .6s cubic-bezier(.22,1,.36,1)';
+    barWrap.appendChild(fill);
+    if (pct < 100) {
+      var pctLbl = document.createElement('div');
+      pctLbl.style.cssText = 'position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:9px;color:#94a3b8;font-weight:700';
+      pctLbl.textContent = (100-pct).toFixed(1) + '% to go';
+      barWrap.appendChild(pctLbl);
+    }
+    card.appendChild(barWrap);
+
+    // Footer: step buttons + remaining info
+    var footer = document.createElement('div');
+    footer.style.cssText = 'display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px';
+
+    var stepBtns = document.createElement('div');
+    stepBtns.style.cssText = 'display:flex;gap:6px;align-items:center;flex-wrap:wrap';
+    [[-5000,'-5k','#f1f5f9','#64748b','#e2e8f0'],[-1000,'-1k','#f1f5f9','#64748b','#e2e8f0'],[1000,'+1k','#f0fdf4','#16a34a','#86efac'],[5000,'+5k','#f0fdf4','#16a34a','#86efac'],[10000,'+10k','#eff6ff','#1d4ed8','#bfdbfe']].forEach(function(s) {
+      var b = document.createElement('button');
+      b.textContent = s[1];
+      b.style.cssText = 'padding:5px 9px;background:' + s[2] + ';color:' + s[3] + ';border:1px solid ' + s[4] + ';border-radius:6px;font-size:10px;font-weight:700;cursor:pointer';
+      b.onclick = (function(v){ return function(){ stepTarget(v); }; })(s[0]);
+      stepBtns.appendChild(b);
+    });
+    footer.appendChild(stepBtns);
+
+    if (pct < 100) {
+      var info = document.createElement('div');
+      info.style.cssText = 'display:flex;align-items:center;gap:8px;flex-wrap:wrap';
+      info.innerHTML =
+        '<span style="font-size:13px;font-weight:800;color:#dc2626">' + String.fromCodePoint(0x1F4C9) + ' ' + fmtMoney(remaining) + ' remaining</span>' +
+        '<span style="color:#e2e8f0">\xb7</span>' +
+        '<span style="font-size:12px;font-weight:700;color:' + urgency + '">' + daysLeft + ' days left</span>' +
+        '<span style="color:#e2e8f0">\xb7</span>' +
+        '<span style="font-size:12px;font-weight:800;color:' + urgency + '">need ' + fmtMoney(neededPerDay) + '/day</span>';
+      footer.appendChild(info);
+    } else {
+      var exc = document.createElement('div');
+      exc.style.cssText = 'display:flex;align-items:center;gap:6px';
+      exc.innerHTML = '<span style="font-size:14px">' + String.fromCodePoint(0x1F389) + '</span><span style="font-size:13px;font-weight:800;color:#16a34a">Exceeded by ' + fmtMoney(totalRev - tgt) + '</span>';
+      footer.appendChild(exc);
+    }
+    card.appendChild(footer);
+  } else {
+    var prompt = document.createElement('div');
+    prompt.style.cssText = 'text-align:center;font-size:12px;color:#94a3b8;padding:4px 0';
+    prompt.textContent = 'Click the target field above to set a monthly revenue goal';
+    card.appendChild(prompt);
+  }
+
+  bar.appendChild(card);
+}
+
+
 function renderDashOccQuick(m) {
   var el = document.getElementById('dash-occ-quick');
   if (!el) return;
