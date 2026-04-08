@@ -1422,6 +1422,49 @@ var _fbDB = null;
   </div>
   </div>
 
+
+  <!-- ══ ITEMS MANAGEMENT TAB ══════════════════════════════════════ -->
+  <div class="pg" id="tab-items">
+    <div class="ph" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <div>
+        <h1>📦 Departments &amp; Items</h1>
+        <p>Manage departments, items, prices and weights. Changes sync to all devices.</p>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
+        <button onclick="openAddDeptFull()" style="padding:9px 16px;background:linear-gradient(135deg,#7e22ce,#a855f7);color:#fff;border:none;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer">🏢 Add Department</button>
+      </div>
+    </div>
+
+    <!-- Department list -->
+    <div id="items-dept-list" style="margin-bottom:20px"></div>
+
+    <!-- Item editor panel (shows when dept selected) -->
+    <div id="items-editor-panel" style="display:none">
+      <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;overflow:hidden">
+        <div id="items-editor-header" style="background:#0d1b2e;padding:14px 18px;display:flex;align-items:center;justify-content:space-between">
+          <div id="items-editor-title" style="font-size:14px;font-weight:800;color:#c9a84c"></div>
+          <div style="display:flex;gap:8px">
+            <button onclick="openAddItemFull()" style="padding:7px 14px;background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.4);color:#c9a84c;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer">+ Add Item</button>
+            <button onclick="closeItemsEditor()" style="padding:7px 12px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:7px;font-size:11px;cursor:pointer">✕ Close</button>
+          </div>
+        </div>
+        <!-- Column headers -->
+        <div style="display:grid;grid-template-columns:40px 1fr 110px 90px 60px;gap:0;padding:8px 16px;background:#f8fafc;border-bottom:1.5px solid #e2e8f0">
+          <div style="font-size:10px;font-weight:700;color:#64748b;letter-spacing:.8px">#</div>
+          <div style="font-size:10px;font-weight:700;color:#64748b;letter-spacing:.8px">ITEM NAME</div>
+          <div style="font-size:10px;font-weight:700;color:#64748b;letter-spacing:.8px;text-align:right">PRICE (QR)</div>
+          <div style="font-size:10px;font-weight:700;color:#64748b;letter-spacing:.8px;text-align:right">WEIGHT (KG)</div>
+          <div style="font-size:10px;font-weight:700;color:#64748b;letter-spacing:.8px;text-align:center">ACTION</div>
+        </div>
+        <div id="items-editor-rows"></div>
+        <div style="padding:12px 16px;border-top:1px solid #f1f5f9;display:flex;justify-content:space-between;align-items:center">
+          <div id="items-editor-count" style="font-size:11px;color:#94a3b8"></div>
+          <button onclick="saveItemsEdits()" style="padding:9px 20px;background:linear-gradient(135deg,#0d1b2e,#1e3a5f);color:#c9a84c;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">💾 Save All Changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- DAILY ENTRY -->
   <div class="pg" id="tab-entry">
     <div class="ph"><h1>Daily Entry</h1><p>Enter quantities for each department each day</p></div>
@@ -1471,6 +1514,8 @@ var _fbDB = null;
       <span id="copy-day-badge-text"></span>
       <button onclick="clearDayClipboard()" style="margin-left:auto;background:none;border:none;font-size:12px;color:#6b7a8d;cursor:pointer;padding:2px 6px;border-radius:4px" onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='none'">✕ Clear</button>
     </div>
+    <!-- Daily Department Summary -->
+    <div id="daily-dept-summary" style="margin-bottom:14px"></div>
     <div class="dept-tabs" id="dept-tabs"></div>
     <div id="entry-wrap"></div>
 
@@ -4222,7 +4267,7 @@ function exportMonthlyExcel() {
       }
       subPcs += tot; subQR += tot * pr;
       html += '<tr><td>' + dk + '</td><td>' + nm + '</td>' + cells +
-        '<td><b>' + (tot||'') + '</b></td><td>' + (tot ? (tot*pr).toFixed(2) : '') + '</td></tr>';
+        '<td><b>' + (tot||'') + '</b></td><td>' + (tot ? (tot*pr).toFixed(4) : '') + '</td></tr>';
     });
     html += '<tr class="tot"><td colspan="2"><b>Subtotal — ' + dk + '</b></td>';
     subDay.forEach(function(v){ html += '<td><b>' + (v||'') + '</b></td>'; });
@@ -4265,7 +4310,7 @@ function exportMonthlyCSV() {
         var v = getVal(CY, mVal, dk, ii, dd - 1);
         row.push(v || 0); tot += v;
       }
-      row.push(tot, (tot * pr).toFixed(2));
+      row.push(tot, (tot * pr).toFixed(4));
       lines.push(row.join(','));
     });
   });
@@ -4311,7 +4356,7 @@ function exportMonthlyPDF() {
       }
       subPcs += tot; subQR += tot * pr;
       tableHtml += '<tr><td>' + dk + '</td><td>' + nm + '</td>' + cells +
-        '<td><b>' + (tot||'') + '</b></td><td>' + (tot ? (tot*pr).toFixed(2) : '') + '</td></tr>';
+        '<td><b>' + (tot||'') + '</b></td><td>' + (tot ? (tot*pr).toFixed(4) : '') + '</td></tr>';
     });
     tableHtml += '<tr class="sub-row"><td colspan="2"><b>Subtotal — ' + dk + '</b></td>';
     subDay.forEach(function(v){ tableHtml += '<td><b>' + (v||'') + '</b></td>'; });
@@ -4615,6 +4660,7 @@ var ALL_TABS = [
   {id:'finance',   label:'🏦 Finance Posting', locked: false},
   {id:'benchmark', label:'🎯 Benchmark',       locked: false},
   {id:'prices',    label:'⚙️ Prices',          locked: false},
+  {id:'items',     label:'📦 Items',           locked: false},
   {id:'analytics', label:'📈 Analytics',       locked: false},
   {id:'forecast',  label:'🔮 Forecast',        locked: false},
   {id:'guide',     label:'💡 Help Center',     locked: false},
@@ -5633,6 +5679,7 @@ function refreshTab() {
   else if (curTab === 'analytics') { renderAnalytics(); showAnalyticsTab('charts'); }
   else if (curTab === 'forecast') renderForecast();
   else if (curTab === 'guide') renderGuide();
+  else if (curTab === 'items') { renderItemsDeptList(); closeItemsEditor(); }
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -5891,6 +5938,126 @@ function onEntDeptChange() {
   updateEntStats(m, day);
 }
 
+function renderDailyDeptSummary(m, day) {
+  var wrap = document.getElementById('daily-dept-summary');
+  if (!wrap) return;
+
+  var _pr  = hasMonthlyPrices(CY, m) ? loadPRM(CY, m) : PRICES;
+  var dn   = DAY_NAMES[new Date(CY, m-1, day).getDay()];
+  var totQR = 0, totKG = 0, totPCS = 0;
+
+  // Build dept data
+  var deptData = DEPT_KEYS.map(function(dept) {
+    var dQR = 0, dKG = 0, dPCS = 0;
+    MASTER[dept].forEach(function(_, i) {
+      // Use live DOM values for active dept, saved for others
+      var v;
+      if (dept === entDept) {
+        var inp = document.getElementById('qi_' + i);
+        v = (inp && inp.closest('#entry-wrap')) ? (Math.max(0, parseInt(inp.value) || 0)) : getVal(CY, m, dept, i, day-1);
+      } else {
+        v = getVal(CY, m, dept, i, day-1);
+      }
+      var pr = getPriceForCalc(dept, i, CY, m, day);
+      var kg = getKgForCalc(dept, i, CY, m, day);
+      dQR  += v * pr;
+      dKG  += v * kg;
+      dPCS += v;
+    });
+    totQR  += dQR;
+    totKG  += dKG;
+    totPCS += dPCS;
+    return { dept: dept, qr: dQR, kg: dKG, pcs: dPCS };
+  });
+
+  // Don't render if no data at all
+  if (totQR === 0 && totPCS === 0) {
+    wrap.innerHTML = '';
+    return;
+  }
+
+  wrap.innerHTML = '';
+  var card = document.createElement('div');
+  card.style.cssText = 'background:#fff;border:1.5px solid #e2e8f0;border-radius:13px;overflow:hidden';
+
+  // Header
+  var hdr = document.createElement('div');
+  hdr.style.cssText = 'background:#0d1b2e;padding:11px 16px;display:flex;align-items:center;justify-content:space-between';
+  hdr.innerHTML =
+    '<div style="font-size:12px;font-weight:800;color:#c9a84c">📊 ' + dn + ' ' + day + ' ' + MONTH_NAMES[m-1] + ' — All Departments</div>' +
+    '<div style="font-size:11px;color:rgba(255,255,255,.5)">' + fmtMoney(totQR) + ' · ' + totKG.toFixed(2) + ' kg</div>';
+  card.appendChild(hdr);
+
+  // Dept rows
+  var table = document.createElement('div');
+  deptData.forEach(function(d, idx) {
+    var isActive = d.dept === entDept;
+    var pct      = totQR > 0 ? (d.qr / totQR * 100) : 0;
+    var row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid #f1f5f9;cursor:pointer;' +
+      (isActive ? 'background:#fffbeb;' : (idx%2===0?'background:#fff;':'background:#f8fafc;'));
+    row.onclick = (function(dept){ return function(){ mobSetEntDept ? mobSetEntDept(dept) : setEntDept(dept); }; })(d.dept);
+
+    // Icon + name
+    var nameDiv = document.createElement('div');
+    nameDiv.style.cssText = 'width:160px;min-width:120px;display:flex;align-items:center;gap:6px';
+    nameDiv.innerHTML =
+      '<span style="font-size:14px">' + (DEPT_ICONS[d.dept]||'📦') + '</span>' +
+      '<span style="font-size:12px;font-weight:' + (isActive?'800':'600') + ';color:#0d1b2e">' + d.dept + '</span>' +
+      (isActive ? '<span style="font-size:9px;background:#c9a84c;color:#0d1b2e;padding:1px 6px;border-radius:8px;font-weight:700">ACTIVE</span>' : '');
+    row.appendChild(nameDiv);
+
+    // Progress bar
+    var barWrap = document.createElement('div');
+    barWrap.style.cssText = 'flex:1;background:#f1f5f9;border-radius:4px;height:6px;overflow:hidden';
+    var fill = document.createElement('div');
+    fill.style.cssText = 'background:' + (isActive?'#c9a84c':'#0d1b2e') + ';height:100%;width:' + pct.toFixed(1) + '%;border-radius:4px;transition:width .3s';
+    barWrap.appendChild(fill);
+    row.appendChild(barWrap);
+
+    // Revenue
+    var revDiv = document.createElement('div');
+    revDiv.style.cssText = 'width:120px;text-align:right;font-size:13px;font-weight:' + (d.qr>0?'800':'400') + ';color:' + (d.qr>0?'#0d1b2e':'#94a3b8');
+    revDiv.textContent = d.qr > 0 ? fmtMoney(d.qr) : '—';
+    row.appendChild(revDiv);
+
+    // KG
+    var kgDiv = document.createElement('div');
+    kgDiv.style.cssText = 'width:80px;text-align:right;font-size:11px;color:#64748b';
+    kgDiv.textContent = d.kg > 0 ? d.kg.toFixed(2) + ' kg' : '';
+    row.appendChild(kgDiv);
+
+    // Pcs
+    var pcsDiv = document.createElement('div');
+    pcsDiv.style.cssText = 'width:60px;text-align:right;font-size:11px;color:#94a3b8';
+    pcsDiv.textContent = d.pcs > 0 ? d.pcs + ' pcs' : '';
+    row.appendChild(pcsDiv);
+
+    table.appendChild(row);
+  });
+
+  // Total row
+  var totRow = document.createElement('div');
+  totRow.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 16px;background:#0d1b2e';
+  totRow.innerHTML =
+    '<div style="width:160px;min-width:120px;font-size:12px;font-weight:800;color:#c9a84c">TOTAL</div>' +
+    '<div style="flex:1"></div>' +
+    '<div style="width:120px;text-align:right;font-size:14px;font-weight:900;color:#c9a84c">' + fmtMoney(totQR) + '</div>' +
+    '<div style="width:80px;text-align:right;font-size:11px;color:rgba(255,255,255,.6)">' + totKG.toFixed(2) + ' kg</div>' +
+    '<div style="width:60px;text-align:right;font-size:11px;color:rgba(255,255,255,.5)">' + totPCS + ' pcs</div>';
+  table.appendChild(totRow);
+
+  card.appendChild(table);
+  wrap.appendChild(card);
+}
+
+// Helper to switch dept from summary panel click
+function setEntDept(dept) {
+  var sel = document.getElementById('ent-dept');
+  if (sel) { sel.value = dept; onEntDeptChange(); }
+}
+
+
 function renderEntry() {
   const m = parseInt(document.getElementById('ent-month')?.value || 1);
   const day = parseInt(document.getElementById('ent-day')?.value || 1);
@@ -5923,6 +6090,8 @@ function updateEntStats(m, day) {
     <div class="sc green"><div class="sc-lbl">Day KG</div><div class="sc-val">${dKG.toFixed(2)}<span>kg</span></div><div class="sc-sub">All departments</div></div>
     <div class="sc orange"><div class="sc-lbl">${DEPT_ICONS[entDept]} ${entDept} Revenue</div><div class="sc-val">${fmtMoney(depQR)}</div><div class="sc-sub">${depKG.toFixed(2)} kg</div></div>
     <div class="sc purple"><div class="sc-lbl">${DEPT_ICONS[entDept]} ${entDept} Pieces</div><div class="sc-val">${depPCS.toLocaleString()}<span>pcs</span></div><div class="sc-sub">Total items counted</div></div>`;
+  // Render daily department summary
+  renderDailyDeptSummary(m, day);
 }
 
 function renderEntryTable() {
@@ -5940,7 +6109,7 @@ function renderEntryTable() {
     const pr = _entPR[entDept]?.[i]?.[1] ?? MASTER[entDept][i][1];
     const kg = _entPR[entDept]?.[i]?.[2] ?? MASTER[entDept][i][2];
     const v = getVal(CY, m, entDept, i, day - 1);
-    const cost = v > 0 ? f2(v * pr) : '';
+    const cost = v > 0 ? (v * pr).toFixed(4) : '';
     const weight = v > 0 ? (v * kg).toFixed(3) : '';
     rows += `<tr class="${v>0?'hq':''}">
       <td>${i+1}</td><td>${nm}</td>
@@ -5973,7 +6142,7 @@ function onQI(i, m, day) {
   const _mqPR = hasMonthlyPrices(CY, m) ? loadPRM(CY, m) : PRICES;
   const pr = _mqPR[entDept]?.[i]?.[1] ?? MASTER[entDept][i][1];
   const kg = _mqPR[entDept]?.[i]?.[2] ?? MASTER[entDept][i][2];
-  const ct = document.getElementById('ct_' + i); if (ct) ct.textContent = v > 0 ? f2(v * pr) : '';
+  const ct = document.getElementById('ct_' + i); if (ct) ct.textContent = v > 0 ? (v * pr).toFixed(4) : '';
   const kt = document.getElementById('kt_' + i); if (kt) kt.textContent = v > 0 ? (v * kg).toFixed(3) : '';
   inp.closest('tr')?.classList.toggle('hq', v > 0);
   updateEntStats(m, day);
@@ -12336,6 +12505,95 @@ function renderGuide() {
     ],
 
 
+    // ── 43. DEPARTMENTS & ITEMS TAB ─────────────────────────────
+    ['📦 Departments & Items Tab',
+     'A dedicated tab in the main navigation for managing all departments and their items. Access it from the top nav bar: <strong>📦 Items</strong>.' +
+     '<br><br><strong>What you can do:</strong>' +
+     ul([
+       'View all departments with their item count',
+       'Edit any item — name, price, and weight — inline',
+       'Add new items to any department',
+       'Delete items (historical data is preserved)',
+       'Add entirely new departments',
+       'Rename custom departments',
+       'Delete custom departments you created'
+     ]) +
+     warn('Built-in departments (Rooms Linen, F&B, Spa & Pool, Uniform, Others, Dry Cleaning) cannot be renamed or deleted — only their items can be edited. This protects your historical data structure.') +
+     tip('All changes sync to Firebase automatically so every device sees the latest items immediately.')
+    ],
+
+    // ── 44. EDITING ITEMS ────────────────────────────────────────
+    ['✏️ Editing Items in a Department',
+     '<strong>How to edit items:</strong>' +
+     step([
+       'Go to <strong>📦 Items</strong> tab',
+       'Find the department you want to edit',
+       'Click <strong>Edit Items →</strong> on the department card',
+       'The item editor opens below — all items are shown in a table',
+       'Click any field to edit: name, price (QR), or weight (KG)',
+       'Changes are tracked automatically as you type',
+       'Click <strong>💾 Save All Changes</strong> when done'
+     ]) +
+     '<br><strong>Price field:</strong> 4 decimal places (e.g. 1.5525 QR). This is the base price — you can still override per month in the Price Manager.' +
+     '<br><strong>Weight field:</strong> 3 decimal places (e.g. 1.151 KG per item).' +
+     '<br><br><strong>Adding a new item:</strong>' +
+     step([
+       'Open the editor for the department',
+       'Click <strong>+ Add Item</strong>',
+       'Enter the name, price, and weight when prompted',
+       'The item appears at the bottom of the list',
+       'Click <strong>💾 Save All Changes</strong> to confirm'
+     ]) +
+     tip('Prices set here are the BASE prices. If you have a monthly price version set in the Price Manager, those take priority during entry.')
+    ],
+
+    // ── 45. ADDING A NEW DEPARTMENT ─────────────────────────────
+    ['🏢 Adding a New Department',
+     'You can create a new department for any new laundry category — for example if the hotel opens a new outlet or service.' +
+     '<br><br><strong>How to add a department:</strong>' +
+     step([
+       'Go to <strong>📦 Items</strong> tab',
+       'Click <strong>🏢 Add Department</strong> button in the top right',
+       'Enter the department name (e.g. "New Outlet")',
+       'Choose an emoji icon',
+       'Add items — one per line in the format: <code>Item Name, price, weight</code>',
+       'Example: <code>Bath Towel, 1.05, 0.756</code>',
+       'Click <strong>Add Department</strong>'
+     ]) +
+     '<br>The new department immediately appears in:' +
+     ul([
+       'Entry tab — department selector and tabs',
+       'Dashboard — department breakdown',
+       'Reports — all monthly and annual reports',
+       'Prices tab — price management',
+       'Finance Posting — department columns'
+     ]) +
+     warn('You must add at least one item to create a department. You can always add more items later through the Edit Items panel.')
+    ],
+
+    // ── 46. DELETING ITEMS & DEPARTMENTS ────────────────────────
+    ['🗑 Deleting Items and Departments',
+     '<strong>Deleting an item:</strong>' +
+     ul([
+       'Open the department editor (📦 Items → Edit Items →)',
+       'Click the 🗑 red button next to the item',
+       'Confirm the deletion',
+       'Click 💾 Save All Changes'
+     ]) +
+     warn('Deleting an item removes it from future data entry. All historical quantities and revenue for that item remain safe in your data — they are not deleted.') +
+     '<br><strong>Deleting a department:</strong>' +
+     ul([
+       'Only custom departments (ones you created) can be deleted',
+       'Built-in departments are protected',
+       'Click the 🗑 button on the department card',
+       'A warning shows the number of items that will be removed',
+       'Confirm to proceed'
+     ]) +
+     warn('Like items, deleting a department only removes it from future use. All historical data for that department is preserved in your backups and existing monthly records.') +
+     tip('If you just want to stop using a department temporarily, you can use Tab Access in Settings to hide it from the entry form without deleting it.')
+    ],
+
+
   ];
 
   var style = '<style>' +
@@ -13160,7 +13418,7 @@ function mobRenderEntry() {
       var item = items[i];
       var v    = getVal(CY, m, _mobEntDept, i, day-1);
       var pr   = mpr[_mobEntDept]?.[i]?.[1] ?? MASTER[_mobEntDept][i][1];
-      var cost = v > 0 ? f2(v * pr) : '';
+      var cost = v > 0 ? (v * pr).toFixed(4) : '';
 
       var row = document.createElement('div');
       row.style.cssText = 'display:flex;align-items:center;padding:12px 14px;border-bottom:1px solid #f8fafc;' + (v>0?'background:#f0fdf4;':'');
@@ -15594,6 +15852,16 @@ function applyCustomData() {
       MASTER[dept].forEach(function(it){ if (orderedNames.indexOf(it[0]) === -1) reordered.push(it); });
       MASTER[dept].length = 0;
       reordered.forEach(function(it){ MASTER[dept].push(it); });
+    });
+  }
+
+  // Apply item overrides for built-in depts
+  if (custom.overrides) {
+    Object.keys(custom.overrides).forEach(function(dept) {
+      if (MASTER[dept]) {
+        MASTER[dept].length = 0;
+        custom.overrides[dept].forEach(function(it){ MASTER[dept].push([it[0], it[1], it[2]]); });
+      }
     });
   }
 
@@ -19528,6 +19796,238 @@ function deptHasData(y, m, dept, day) {
 }
 
 // Returns array of {dept, day, label} for missing required dept/day combos
+
+// ════════════════════════════════════════════════════════════════
+//  ITEMS MANAGEMENT TAB
+//  Full CRUD for departments and items
+//  All changes persisted via saveCustom() + Firebase sync
+// ════════════════════════════════════════════════════════════════
+
+var _itemsEditDept = null;
+var _itemsEdits    = {}; // {dept: [[name,price,kg], ...]} — in-progress edits
+
+var ICON_OPTIONS = ['🛏️','🍽️','🏊','👔','📦','🧺','🏨','💆','🎯','🧴','👗','🧹','🍷','🎪','🛒','📋','⚙️','🏋️','🎨','💼'];
+
+
+function isCustomDept(dept) {
+  var custom = loadCustom();
+  if (!custom.depts) return false;
+  return custom.depts.some(function(d){ return d.name === dept; });
+}
+
+function openItemsEditor(dept) {
+  _itemsEditDept = dept;
+  // Deep copy current items for editing
+  _itemsEdits[dept] = MASTER[dept].map(function(it){ return [it[0], it[1], it[2]]; });
+
+  var panel = document.getElementById('items-editor-panel');
+  var title = document.getElementById('items-editor-title');
+  if (panel) panel.style.display = 'block';
+  if (title) title.textContent = (DEPT_ICONS[dept]||'📦') + '  ' + dept;
+  panel.scrollIntoView({ behavior:'smooth', block:'start' });
+  renderItemsEditorRows();
+}
+
+function closeItemsEditor() {
+  _itemsEditDept = null;
+  var panel = document.getElementById('items-editor-panel');
+  if (panel) panel.style.display = 'none';
+}
+
+function renderItemsEditorRows() {
+  var wrap = document.getElementById('items-editor-rows');
+  var countEl = document.getElementById('items-editor-count');
+  if (!wrap || !_itemsEditDept) return;
+  var items = _itemsEdits[_itemsEditDept] || [];
+  if (countEl) countEl.textContent = items.length + ' items';
+
+  wrap.innerHTML = '';
+  items.forEach(function(item, idx) {
+    var row = document.createElement('div');
+    row.style.cssText = 'display:grid;grid-template-columns:40px 1fr 110px 90px 60px;gap:0;padding:8px 16px;border-bottom:1px solid #f8fafc;align-items:center;' + (idx%2===0?'background:#fff;':'background:#f8fafc;');
+
+    // Index
+    var numDiv = document.createElement('div');
+    numDiv.style.cssText = 'font-size:11px;color:#94a3b8;font-weight:600';
+    numDiv.textContent = idx + 1;
+    row.appendChild(numDiv);
+
+    // Name input
+    var nameInp = document.createElement('input');
+    nameInp.type = 'text';
+    nameInp.value = item[0];
+    nameInp.style.cssText = 'width:100%;padding:6px 8px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:13px;color:#0d1b2e;outline:none;background:transparent';
+    nameInp.onfocus = function(){ this.style.borderColor='#c9a84c'; this.style.background='#fffbeb'; };
+    nameInp.onblur  = function(){ this.style.borderColor='#e2e8f0'; this.style.background='transparent'; };
+    nameInp.oninput = (function(i){ return function(){ _itemsEdits[_itemsEditDept][i][0] = this.value; }; })(idx);
+    row.appendChild(nameInp);
+
+    // Price input
+    var priceInp = document.createElement('input');
+    priceInp.type = 'number';
+    priceInp.value = item[1];
+    priceInp.step = '0.0001';
+    priceInp.min  = '0';
+    priceInp.style.cssText = 'width:100%;padding:6px 8px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:13px;color:#1d4ed8;outline:none;text-align:right;background:transparent';
+    priceInp.onfocus = function(){ this.style.borderColor='#3b82f6'; this.style.background='#eff6ff'; };
+    priceInp.onblur  = function(){ this.style.borderColor='#e2e8f0'; this.style.background='transparent'; };
+    priceInp.oninput = (function(i){ return function(){ _itemsEdits[_itemsEditDept][i][1] = parseFloat(this.value)||0; }; })(idx);
+    row.appendChild(priceInp);
+
+    // Weight input
+    var kgInp = document.createElement('input');
+    kgInp.type = 'number';
+    kgInp.value = item[2];
+    kgInp.step  = '0.001';
+    kgInp.min   = '0';
+    kgInp.style.cssText = 'width:100%;padding:6px 8px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:13px;color:#16a34a;outline:none;text-align:right;background:transparent';
+    kgInp.onfocus = function(){ this.style.borderColor='#16a34a'; this.style.background='#f0fdf4'; };
+    kgInp.onblur  = function(){ this.style.borderColor='#e2e8f0'; this.style.background='transparent'; };
+    kgInp.oninput = (function(i){ return function(){ _itemsEdits[_itemsEditDept][i][2] = parseFloat(this.value)||0; }; })(idx);
+    row.appendChild(kgInp);
+
+    // Delete button
+    var delBtn = document.createElement('button');
+    delBtn.textContent = '🗑';
+    delBtn.title = 'Delete this item';
+    delBtn.style.cssText = 'width:32px;height:32px;background:#fff5f5;border:1.5px solid #fca5a5;color:#dc2626;border-radius:7px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;margin:auto';
+    delBtn.onclick = (function(i){ return function(){ deleteItemFromEditor(i); }; })(idx);
+    row.appendChild(delBtn);
+
+    wrap.appendChild(row);
+  });
+}
+
+function deleteItemFromEditor(idx) {
+  if (!_itemsEditDept) return;
+  var items = _itemsEdits[_itemsEditDept];
+  var name = items[idx][0];
+  if (!confirm('Delete "' + name + '" from ' + _itemsEditDept + '?\n\nThis removes it from future entries. Historical data is not affected.')) return;
+  items.splice(idx, 1);
+  renderItemsEditorRows();
+  toast('🗑 "' + name + '" removed', 'ok');
+}
+
+function openAddItemFull() {
+  if (!_itemsEditDept) return;
+  var name  = prompt('Item name:');
+  if (!name || !name.trim()) return;
+  var price = parseFloat(prompt('Price (QR):') || '0') || 0;
+  var kg    = parseFloat(prompt('Weight (KG):') || '0') || 0;
+  _itemsEdits[_itemsEditDept].push([name.trim(), price, kg]);
+  renderItemsEditorRows();
+  toast('+ "' + name.trim() + '" added', 'ok');
+}
+
+function saveItemsEdits() {
+  if (!_itemsEditDept) return;
+  var dept  = _itemsEditDept;
+  var items = _itemsEdits[dept];
+
+  // Validate
+  var invalid = items.filter(function(it){ return !it[0] || !it[0].trim(); });
+  if (invalid.length > 0) { toast('⚠️ Some items have no name — please fill in or delete them', 'err'); return; }
+
+  // Update MASTER
+  MASTER[dept].length = 0;
+  items.forEach(function(it){ MASTER[dept].push([it[0], it[1], it[2]]); });
+
+  // Persist to custom storage
+  var custom = loadCustom();
+
+  if (isCustomDept(dept)) {
+    // Update custom dept
+    var cd = custom.depts.find(function(d){ return d.name === dept; });
+    if (cd) cd.items = items.map(function(it){ return [it[0], it[1], it[2]]; });
+  } else {
+    // Store overrides for built-in dept
+    if (!custom.overrides) custom.overrides = {};
+    custom.overrides[dept] = items.map(function(it){ return [it[0], it[1], it[2]]; });
+  }
+
+  saveCustom(custom);
+  if (window._fbSaveKey) window._fbSaveKey('pearl/custom', custom);
+
+  // Also update PRICES cache
+  PRICES[dept] = items.map(function(it){ return [it[0], it[1], it[2]]; });
+
+  renderItemsDeptList();
+  buildSelectors();
+  toast('✅ ' + dept + ' saved — ' + items.length + ' items', 'ok');
+  closeItemsEditor();
+}
+
+// ── Add Department (full version) ──────────────────────────────
+function openAddDeptFull() {
+  var modal = document.getElementById('add-dept-modal');
+  if (modal) {
+    document.getElementById('new-dept-name').value = '';
+    document.getElementById('new-dept-icon').value = '';
+    document.getElementById('new-dept-items').value = '';
+    modal.classList.remove('hidden');
+    setTimeout(function(){ document.getElementById('new-dept-name').focus(); }, 100);
+  }
+}
+
+// ── Rename Department ──────────────────────────────────────────
+function renameDept(dept) {
+  var newName = prompt('Rename "' + dept + '" to:', dept);
+  if (!newName || !newName.trim() || newName.trim() === dept) return;
+  newName = newName.trim();
+  if (MASTER[newName]) { toast('Department "' + newName + '" already exists', 'err'); return; }
+
+  // Rename in MASTER
+  MASTER[newName] = MASTER[dept];
+  delete MASTER[dept];
+  DEPT_ICONS[newName]  = DEPT_ICONS[dept];
+  DEPT_COLORS[newName] = DEPT_COLORS[dept];
+  delete DEPT_ICONS[dept];
+  delete DEPT_COLORS[dept];
+
+  // Update DEPT_KEYS
+  var idx = DEPT_KEYS.indexOf(dept);
+  if (idx !== -1) DEPT_KEYS[idx] = newName;
+
+  // Update custom storage
+  var custom = loadCustom();
+  if (custom.depts) {
+    var cd = custom.depts.find(function(d){ return d.name === dept; });
+    if (cd) cd.name = newName;
+  }
+  saveCustom(custom);
+  if (window._fbSaveKey) window._fbSaveKey('pearl/custom', custom);
+
+  buildSelectors();
+  renderItemsDeptList();
+  toast('✅ Renamed to "' + newName + '"', 'ok');
+}
+
+// ── Delete Department ──────────────────────────────────────────
+function deleteDept(dept) {
+  var cnt = MASTER[dept] ? MASTER[dept].length : 0;
+  if (!confirm('Delete department "' + dept + '"?\n\n' + cnt + ' items will be removed.\nHistorical data for this department will still be in your backups.\n\nThis cannot be undone.')) return;
+
+  delete MASTER[dept];
+  delete DEPT_ICONS[dept];
+  delete DEPT_COLORS[dept];
+  var idx = DEPT_KEYS.indexOf(dept);
+  if (idx !== -1) DEPT_KEYS.splice(idx, 1);
+
+  // Remove from custom storage
+  var custom = loadCustom();
+  if (custom.depts) {
+    custom.depts = custom.depts.filter(function(d){ return d.name !== dept; });
+  }
+  saveCustom(custom);
+  if (window._fbSaveKey) window._fbSaveKey('pearl/custom', custom);
+
+  buildSelectors();
+  renderItemsDeptList();
+  closeItemsEditor();
+  toast('🗑 "' + dept + '" deleted', 'ok');
+}
+
+// Wire renderItemsDeptList into showTab
 // ── Service Worker for offline support ──
 if ('serviceWorker' in navigator) {
   var swCode = `
