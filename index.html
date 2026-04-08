@@ -10393,6 +10393,79 @@ function stepTarget(delta) {
   setTimeout(function(){ inp.style.borderColor = '#c9a84c'; }, 600);
 }
 
+// ── Insight badge (stub — full system pending restore) ──────
+function generateInsights(m) {
+  var insights = [];
+  var nd  = dim(CY, m);
+  var qr  = monthTotals(CY, m).qr;
+  var tgt = loadTarget(CY, m);
+
+  // Below 50% of target warning
+  if (tgt && tgt.revenue > 0) {
+    var pct = qr / tgt.revenue * 100;
+    if (pct < 50) {
+      var today = new Date();
+      var daysLeft = (today.getMonth()+1 === m && today.getFullYear() === CY) ? nd - today.getDate() + 1 : 0;
+      if (daysLeft > 5) {
+        insights.push({ level:'warning', icon:'⚠️', msg:'Revenue below 50% of target', detail: qr.toFixed(0) + ' QR of ' + tgt.revenue.toFixed(0) + ' QR target (' + pct.toFixed(1) + '%)' });
+      }
+    }
+  }
+
+  // Missing days warning
+  var today2 = new Date();
+  if (today2.getFullYear() === CY && today2.getMonth()+1 === m) {
+    var missingCount = 0;
+    for (var d = 1; d < today2.getDate(); d++) {
+      if (dayTotals(CY, m, d).qr === 0) missingCount++;
+    }
+    if (missingCount > 0) {
+      insights.push({ level:'warning', icon:'📅', msg: missingCount + ' day' + (missingCount>1?'s':'') + ' missing data', detail: 'Check entry tab for missing days' });
+    }
+  }
+
+  return insights;
+}
+
+function renderInsightBadge(m) {
+  var el = document.getElementById('dash-insight-badge');
+  if (!el) return;
+  var insights = generateInsights(m);
+  if (!insights.length) { el.innerHTML = ''; return; }
+  var warnings  = insights.filter(function(i){ return i.level === 'warning'; }).length;
+  var positives = insights.filter(function(i){ return i.level === 'positive'; }).length;
+  var col = warnings > 0 ? '#dc2626' : positives > 0 ? '#16a34a' : '#0284c7';
+  var bg  = warnings > 0 ? '#fee2e2' : positives > 0 ? '#f0fdf4' : '#eff6ff';
+  var bdr = warnings > 0 ? '#fca5a5' : positives > 0 ? '#86efac' : '#bfdbfe';
+
+  var badge = document.createElement('div');
+  badge.style.cssText = 'position:relative;cursor:pointer';
+  badge.innerHTML = '<div style="padding:5px 12px;background:' + bg + ';border:1.5px solid ' + bdr + ';border-radius:20px;font-size:11px;font-weight:700;color:' + col + '">' +
+    insights.length + ' insight' + (insights.length>1?'s':'') + ' this month</div>';
+  badge.onclick = function(){
+    var popup = document.getElementById('_insight_popup');
+    if (popup) { popup.remove(); return; }
+    var p = document.createElement('div');
+    p.id = '_insight_popup';
+    p.style.cssText = 'position:absolute;top:calc(100% + 8px);right:0;background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.15);z-index:600;min-width:280px;max-width:380px;overflow:hidden';
+    var rows = insights.map(function(ins) {
+      var lc = ins.level==='warning'?'#dc2626':'#16a34a';
+      return '<div style="padding:12px 14px;border-bottom:1px solid #f1f5f9;display:flex;gap:10px;align-items:flex-start">' +
+        '<span style="font-size:18px">' + ins.icon + '</span>' +
+        '<div><div style="font-size:12px;font-weight:700;color:' + lc + '">' + ins.msg + '</div>' +
+        '<div style="font-size:11px;color:#64748b;margin-top:2px">' + ins.detail + '</div></div></div>';
+    }).join('');
+    p.innerHTML = '<div style="background:#0d1b2e;padding:10px 14px;font-size:11px;font-weight:800;color:#c9a84c">🧠 Insights — ' + MONTH_NAMES[m-1] + ' ' + CY + '</div>' + rows;
+    badge.appendChild(p);
+    setTimeout(function(){
+      document.addEventListener('click', function h(e){ if(!badge.contains(e.target)){p.remove();document.removeEventListener('click',h);} });
+    }, 10);
+  };
+  el.innerHTML = '';
+  el.appendChild(badge);
+}
+
+
 function renderTargetBar(totalRev, m) {
   var target = loadTarget(CY, m);
   var bar    = document.getElementById('dash-target-bar');
