@@ -17226,8 +17226,23 @@ function getEomStatus(y, m) {
     ? (isPast ? 'Data was backed up' : 'Backup saved this month')
     : (isPast ? 'No backup found — save one now to protect data' : 'No backup saved this month');
 
+  // Pre-compute detail message for allDaysEntered
+  var _allDaysDetail = allDaysEntered ? 'No missing data' : (function() {
+    var depts = [];
+    required.forEach(function(dept) {
+      var hasMiss = false;
+      for (var _d = 0; _d < nd; _d++) {
+        if (!MASTER[dept].some(function(_, i) { return (db[m+'-'+dept+'-'+i+'-'+_d]||0)>0; })) {
+          hasMiss = true; break;
+        }
+      }
+      if (hasMiss) depts.push(dept);
+    });
+    return depts.length > 0 ? 'Missing: ' + depts.join(', ') : missingDays + ' combinations';
+  })();
+
   return {
-    allDaysEntered:   { done: allDaysEntered,    label: 'All days entered',     detail: allDaysEntered ? 'No missing data' : missingDays + ' dept/day combination(s) missing', action: function(){ showTab('entry'); } },
+    allDaysEntered:   { done: allDaysEntered,    label: 'All days entered',     detail: _allDaysDetail, action: function(){ showTab('entry'); setTimeout(function(){ var sel=document.getElementById('ent-month'); if(sel){sel.value=String(m);renderEntry();} },300); } },
     pricesLocked:     { done: pricesLocked,       label: 'Prices locked',        detail: pricesLocked ? 'All entries frozen' : 'Some entries not locked — lock before changing prices', action: function(){ showTab('prices'); setTimeout(openMonthlyPriceManager, 300); } },
     monthlyPricesSet: { done: monthlyPricesSet,   label: isPast ? 'Prices (historical)' : 'Monthly prices set', detail: isPast ? 'Historical month — prices recorded at entry time' : (monthlyPricesSet ? 'Price table exists' : 'Using year prices'), action: isPast ? null : function(){ showTab('prices'); setTimeout(openMonthlyPriceManager, 300); } },
     financePosted:    { done: financePosted,       label: 'Finance posted',       detail: financePosted ? 'Marked as done' : 'Tick when posted to finance system', manual: true },
@@ -18648,14 +18663,13 @@ function runMissingDeptCheck() {
     return;
   }
 
-  // Don't re-show if already dismissed today
+  // Don't re-show if already dismissed today by clicking X
   var dismissedAt = parseInt(_STORE.getItem('_dept_alert_dismissed') || '0');
   var todayStart  = new Date(); todayStart.setHours(0,0,0,0);
   if (dismissedAt >= todayStart.getTime()) return;
 
-  // Don't re-animate if banner already visible — just update content silently
-  var existing = document.getElementById('_dept_alert');
-  if (existing) return; // already showing — don't flash
+  // Already visible — no need to re-create (prevents flash on re-render)
+  if (document.getElementById('_dept_alert')) return;
 
   _showMissingDeptAlert(missing, todayM);
 }
