@@ -18888,13 +18888,29 @@ function ackMissingDay(y, m, dept) {
   if (!ack[dept]) ack[dept] = [];
   // Acknowledge all currently missing days for this dept
   var missing = getSmartMissingDays(y, m, dim(y,m));
-  missing.forEach(function(item) { if (item.dept === dept && ack[dept].indexOf(item.day) === -1) ack[dept].push(item.day); });
+  missing.forEach(function(item) {
+    if (item.dept === dept && ack[dept].indexOf(item.day) === -1) ack[dept].push(item.day);
+  });
   try { _STORE.setItem(_ackKey(y,m), JSON.stringify(ack)); } catch(e) {}
   if (window._fbSaveKey) window._fbSaveKey('pearl/settings/ack_' + y + '_' + m, ack);
-  // Re-render checklist
+
+  // Re-render immediately — no logout needed
   var modal = document.getElementById('_month_checklist_modal');
-  if (modal) { modal.remove(); openMonthChecklist(m); }
-  else { var eomInfo = shouldShowEomChecklist(); if (eomInfo.show) renderEomChecklist(eomInfo.y, eomInfo.m); renderYearHealth(); }
+  if (modal) {
+    // Refresh the modal in place with updated status
+    modal.remove();
+    openMonthChecklist(m); // openMonthChecklist uses current year internally
+  }
+  // Always refresh year health panels (desktop + mobile)
+  if (typeof renderYearHealth === 'function') renderYearHealth();
+  if (typeof mobRenderYearHealth === 'function') mobRenderYearHealth();
+  // Refresh dashboard checklist if showing
+  var eomInfo = shouldShowEomChecklist();
+  if (eomInfo.show && document.getElementById('eom-checklist-container')) {
+    renderEomChecklist(eomInfo.y, eomInfo.m);
+  }
+  // Show toast confirmation
+  toast('✓ Marked OK — ' + dept, 'ok');
 }
 
 // Smart missing days: only flag if the day was active for other depts
