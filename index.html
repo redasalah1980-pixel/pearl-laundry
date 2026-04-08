@@ -1411,6 +1411,11 @@ var _fbDB = null;
       <div id="eom-checklist-wrap"></div>
     </div>
 
+    <!-- Year Health Panel — always visible -->
+    <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:16px;margin-bottom:18px">
+      <div id="year-health-wrap"></div>
+    </div>
+
     <div class="two-col">
       <div class="cal-wrap">
         <div class="cal-head"><div class="cal-title">📅 Monthly Calendar
@@ -5667,6 +5672,8 @@ function renderDash() {
       _eomContainer.style.display = 'none';
     }
   }
+  // Always render year health panel
+  renderYearHealth();
 
   const m = parseInt(document.getElementById('dash-month')?.value || new Date().getMonth() + 1);
   const {qr, kg, pcs, byDept} = monthTotals(CY, m);
@@ -18607,13 +18614,9 @@ function runMissingDeptCheck() {
   var todayD = today.getDate();
   var hour   = today.getHours();
 
-  // Morning check: check yesterday + any earlier days this month
-  // Evening check (after 8pm): also check today
   var checkUpTo = (hour >= 20) ? todayD : todayD - 1;
-  if (checkUpTo < 1) return; // nothing to check yet (1st of month at morning)
-
-  // Only check current month
-  if (CY !== todayY || checkUpTo < 1) return;
+  if (checkUpTo < 1) return;
+  if (CY !== todayY) return;
 
   var missing = getMissingDeptDays(todayY, todayM, checkUpTo);
   if (missing.length === 0) {
@@ -18621,13 +18624,21 @@ function runMissingDeptCheck() {
     return;
   }
 
+  // Don't re-show if already dismissed today
+  var dismissedAt = parseInt(_STORE.getItem('_dept_alert_dismissed') || '0');
+  var todayStart  = new Date(); todayStart.setHours(0,0,0,0);
+  if (dismissedAt >= todayStart.getTime()) return;
+
+  // Don't re-animate if banner already visible — just update content silently
+  var existing = document.getElementById('_dept_alert');
+  if (existing) return; // already showing — don't flash
+
   _showMissingDeptAlert(missing, todayM);
 }
 
 function _showMissingDeptAlert(missing, m) {
-  // Remove existing
-  var existing = document.getElementById('_dept_alert');
-  if (existing) existing.remove();
+  // If already showing — don't re-create (prevents flash)
+  if (document.getElementById('_dept_alert')) return;
 
   // Group by dept for compact display
   var byDept = {};
@@ -19195,6 +19206,179 @@ function checkFxRateReminder() {
   }, 20000);
 }
 
+
+
+// ════════════════════════════════════════════════════════════════
+//  YEAR HEALTH PANEL
+//  Shows all 12 months with completion status on dashboard
+//  Click any month to see full checklist details
+// ════════════════════════════════════════════════════════════════
+
+function renderYearHealth() {
+  var wrap = document.getElementById('year-health-wrap');
+  if (!wrap) return;
+
+  var today = new Date();
+  var curM  = today.getMonth() + 1;
+  var curY  = today.getFullYear();
+  var MNS   = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var keys  = ['allDaysEntered','pricesLocked','monthlyPricesSet','financePosted','backupSaved'];
+
+  // Build month cards
+  var html = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">' +
+    '<div style="font-size:13px;font-weight:800;color:#0d1b2e">📋 ' + curY + ' Month Health</div>' +
+    '<button onclick="openYearHealthDetail()" style="padding:5px 12px;background:#f8fafc;border:1.5px solid #e2e8f0;color:#64748b;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer">View All →</button>' +
+  '</div>';
+
+  html += '<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px">';
+
+  for (var mi = 1; mi <= 12; mi++) {
+    var isFuture  = mi > curM;
+    var isCurrent = mi === curM;
+
+    if (isFuture) {
+      html += '<div style="padding:8px 6px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:9px;text-align:center;opacity:.5">' +
+        '<div style="font-size:12px;font-weight:700;color:#94a3b8">' + MNS[mi-1] + '</div>' +
+        '<div style="font-size:16px;margin:3px 0">—</div>' +
+        '<div style="font-size:9px;color:#94a3b8">Future</div>' +
+      '</div>';
+      continue;
+    }
+
+    var status    = getEomStatus(curY, mi);
+    var doneCount = keys.filter(function(k){ return status[k].done; }).length;
+    var total     = keys.length;
+    var pct       = Math.round(doneCount / total * 100);
+
+    var bg, bdr, icon, statusTxt;
+    if (doneCount === total) {
+      bg = '#f0fdf4'; bdr = '#86efac'; icon = '✅'; statusTxt = '5/5';
+    } else if (doneCount >= 3) {
+      bg = '#fffbeb'; bdr = '#fde68a'; icon = '⚠️'; statusTxt = doneCount + '/5';
+    } else {
+      bg = '#fef2f2'; bdr = '#fca5a5'; icon = '🔴'; statusTxt = doneCount + '/5';
+    }
+
+    if (isCurrent) { bdr = '#c9a84c'; }
+
+    html += '<div onclick="openMonthChecklist(' + mi + ')" ' +
+      'style="padding:8px 6px;background:' + bg + ';border:2px solid ' + bdr + ';border-radius:9px;text-align:center;cursor:pointer;transition:all .15s" ' +
+      'onmouseover="this.style.opacity=.8" onmouseout="this.style.opacity=1">' +
+      '<div style="font-size:12px;font-weight:800;color:#0d1b2e">' + MNS[mi-1] + (isCurrent?' ◀':'') + '</div>' +
+      '<div style="font-size:18px;margin:3px 0">' + icon + '</div>' +
+      '<div style="font-size:10px;font-weight:700;color:#64748b">' + statusTxt + '</div>' +
+    '</div>';
+  }
+
+  html += '</div>';
+  wrap.innerHTML = html;
+}
+
+function openMonthChecklist(m) {
+  var existing = document.getElementById('_month_checklist_modal');
+  if (existing) existing.remove();
+
+  var modal = document.createElement('div');
+  modal.id = '_month_checklist_modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9800;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)';
+
+  var curY = new Date().getFullYear();
+  var MNF  = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var keys = ['allDaysEntered','pricesLocked','monthlyPricesSet','financePosted','backupSaved'];
+  var status = getEomStatus(curY, m);
+  var doneCount = keys.filter(function(k){ return status[k].done; }).length;
+  var allDone   = doneCount === keys.length;
+
+  var inner = document.createElement('div');
+  inner.style.cssText = 'background:#fff;border-radius:16px;width:460px;max-width:96vw;overflow:hidden';
+
+  // Header
+  var hdr = document.createElement('div');
+  hdr.style.cssText = 'background:linear-gradient(135deg,#0d1b2e,#1e3a5f);padding:16px 20px;display:flex;align-items:center;justify-content:space-between';
+  hdr.innerHTML =
+    '<div>' +
+      '<div style="font-size:15px;font-weight:800;color:#c9a84c">📋 ' + MNF[m-1] + ' ' + curY + ' Checklist</div>' +
+      '<div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:2px">' + doneCount + ' of ' + keys.length + ' items complete</div>' +
+    '</div>' +
+    '<div style="background:' + (allDone?'#16a34a':'#c9a84c') + ';color:' + (allDone?'#fff':'#0d1b2e') + ';border-radius:20px;padding:4px 12px;font-size:13px;font-weight:800">' + doneCount + '/' + keys.length + '</div>';
+  inner.appendChild(hdr);
+
+  // Items
+  var body = document.createElement('div');
+  body.style.cssText = 'padding:14px 16px;display:flex;flex-direction:column;gap:8px';
+
+  keys.forEach(function(k) {
+    var item     = status[k];
+    var rowBg    = item.done ? '#f0fdf4' : '#fff';
+    var rowBdr   = item.done ? '#86efac' : '#e2e8f0';
+    var checkBg  = item.done ? '#16a34a' : '#e2e8f0';
+    var checkClr = item.done ? '#fff'    : '#94a3b8';
+
+    var row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 12px;background:' + rowBg + ';border:1.5px solid ' + rowBdr + ';border-radius:9px';
+
+    // Tick / checkbox
+    if (item.manual) {
+      var cb = document.createElement('button');
+      cb.style.cssText = 'width:26px;height:26px;border-radius:7px;border:2px solid ' + (item.done?'#16a34a':'#d1d5db') + ';background:' + checkBg + ';cursor:pointer;flex-shrink:0;font-size:14px;color:' + checkClr + ';display:flex;align-items:center;justify-content:center';
+      cb.textContent = item.done ? '✓' : '';
+      cb.onclick = (function(ky, mi){ return function(){ _eomTick(curY, mi, ky); setTimeout(function(){ openMonthChecklist(mi); }, 100); }; })(k, m);
+      row.appendChild(cb);
+    } else {
+      var dot = document.createElement('div');
+      dot.style.cssText = 'width:26px;height:26px;border-radius:7px;background:' + checkBg + ';flex-shrink:0;font-size:14px;color:' + checkClr + ';display:flex;align-items:center;justify-content:center';
+      dot.textContent = item.done ? '✓' : '○';
+      row.appendChild(dot);
+    }
+
+    // Label
+    var info = document.createElement('div');
+    info.style.cssText = 'flex:1;min-width:0';
+    info.innerHTML =
+      '<div style="font-size:13px;font-weight:700;color:#0d1b2e' + (item.done?';text-decoration:line-through;opacity:.6':'') + '">' + item.label + '</div>' +
+      '<div style="font-size:11px;color:#94a3b8;margin-top:1px">' + item.detail + '</div>';
+    row.appendChild(info);
+
+    // Fix button
+    if (!item.done && item.action) {
+      var btn = document.createElement('button');
+      btn.textContent = 'Fix →';
+      btn.style.cssText = 'padding:6px 10px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0';
+      btn.onclick = function(){ modal.remove(); item.action(); };
+      row.appendChild(btn);
+    }
+
+    body.appendChild(row);
+  });
+
+  inner.appendChild(body);
+
+  // Footer
+  var footer = document.createElement('div');
+  footer.style.cssText = 'padding:12px 16px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center';
+  footer.innerHTML =
+    '<div style="font-size:10px;color:#94a3b8">Auto-items update automatically · Finance posted requires manual tick</div>';
+  var closeBtn = document.createElement('button');
+  closeBtn.textContent = 'Close';
+  closeBtn.style.cssText = 'padding:8px 18px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer';
+  closeBtn.onclick = function(){ modal.remove(); };
+  footer.appendChild(closeBtn);
+  inner.appendChild(footer);
+
+  modal.appendChild(inner);
+  modal.onclick = function(e){ if(e.target===modal) modal.remove(); };
+  document.body.appendChild(modal);
+
+  // Refresh year health when modal closes
+  modal.addEventListener('click', function(e){
+    if (e.target === modal) renderYearHealth();
+  });
+}
+
+function openYearHealthDetail() {
+  // Open checklist for current month by default
+  openMonthChecklist(new Date().getMonth() + 1);
+}
 
 // ── Service Worker for offline support ──
 if ('serviceWorker' in navigator) {
