@@ -802,6 +802,16 @@ table.price-t tr:hover td{background:var(--grey3)}
   }
   .card { box-shadow:none!important; border:none!important; padding:0!important }
 }
+
+    /* Mobile nav items */
+    .mbn-item { display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 12px;cursor:pointer;border-radius:10px;min-width:56px;transition:all .15s; }
+    .mbn-item.active { background:rgba(201,168,76,.12); }
+    .mbn-lbl { font-size:9px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;color:rgba(255,255,255,.4); }
+    .mbn-item.active .mbn-lbl { color:#c9a84c; }
+    .mob-more-item { display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;background:rgba(255,255,255,.06);border-radius:10px;cursor:pointer;color:rgba(255,255,255,.7);font-size:11px;font-weight:700;text-align:center; }
+    .mob-more-item span { font-size:22px; }
+    .mob-more-item:active { background:rgba(255,255,255,.15); }
+    .mob-pg { display:none; }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -1134,172 +1144,162 @@ var _fbDB = null;
   <!-- ══════════════════════════════════════════════════════════
        MOBILE APP — completely separate layout, phone only
   ══════════════════════════════════════════════════════════ -->
-  <div id="mob-app" style="display:none;flex-direction:column;min-height:100vh;background:#f1f5f9">
+  <div id="mob-app" style="display:none;flex-direction:column;min-height:100vh;background:#f0f4f8">
 
-    <!-- Mobile Top Bar -->
-    <div id="mob-topbar" style="background:#0d1b2e;padding:0 14px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;box-shadow:0 2px 12px rgba(0,0,0,.3)">
-      <div style="display:flex;align-items:center;gap:8px">
-        <div style="width:30px;height:30px;background:#c9a84c;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#0d1b2e">RS</div>
+    <!-- ── Mobile Top Bar ── -->
+    <div style="background:#0d1b2e;padding:0 16px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;box-shadow:0 2px 16px rgba(0,0,0,.4)">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:34px;height:34px;background:#c9a84c;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:#0d1b2e">RS</div>
         <div>
-          <div style="font-size:13px;font-weight:800;color:#fff;line-height:1">RS · Pearl</div>
-          <div id="mob-live-status" style="font-size:9px;color:#86efac;font-weight:600">● LIVE</div>
+          <div style="font-size:14px;font-weight:800;color:#fff;line-height:1.1">RS · Pearl</div>
+          <div id="mob-live-status" style="font-size:9px;color:#86efac;font-weight:700">● LIVE</div>
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
-        <select id="mob-year-sel" onchange="mobChangeYear(this.value)" style="background:rgba(255,255,255,.1);border:1px solid rgba(201,168,76,.3);color:#fff;font-size:12px;font-weight:700;padding:4px 8px;border-radius:6px;cursor:pointer"></select>
-        <button onclick="openSettings()" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.8);border-radius:6px;padding:5px 8px;font-size:12px;cursor:pointer">⚙️</button>
-        <button onclick="doLogout()" style="background:rgba(220,38,38,.2);border:1px solid rgba(220,38,38,.4);color:#fca5a5;border-radius:6px;padding:5px 8px;font-size:11px;font-weight:700;cursor:pointer">Logout</button>
+        <select id="mob-year-sel" onchange="mobChangeYear(this.value)" style="background:rgba(255,255,255,.1);border:1px solid rgba(201,168,76,.3);color:#fff;font-size:12px;font-weight:700;padding:5px 8px;border-radius:7px;cursor:pointer"></select>
+        <button onclick="doLogout()" style="background:rgba(220,38,38,.2);border:1px solid rgba(220,38,38,.4);color:#fca5a5;border-radius:7px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer">Logout</button>
       </div>
     </div>
 
-    <!-- Mobile Pages Container -->
-    <div style="flex:1;overflow-y:auto;padding-bottom:70px" id="mob-pages">
+    <!-- ── Mobile Pages ── -->
+    <div style="flex:1;overflow-y:auto;padding-bottom:72px" id="mob-pages">
 
-      <!-- ── MOB DASHBOARD ── -->
-      <div id="mob-tab-dashboard" class="mob-pg" style="display:block;padding:12px">
-        <!-- Month selector + notif -->
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
-          <select id="mob-dash-month" onchange="mobRenderDash()" style="flex:1;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:14px;font-weight:700;color:#0d1b2e;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.06)"></select>
-          <div id="mob-dash-notif" style="font-size:18px"></div>
+      <!-- ═══ DASHBOARD ═══ -->
+      <div id="mob-tab-dashboard" class="mob-pg" style="display:block;padding:14px">
+        <!-- Month selector -->
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+          <select id="mob-dash-month" onchange="mobRenderDash()" style="flex:1;padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:11px;font-size:15px;font-weight:700;color:#0d1b2e;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.06)"></select>
+          <button onclick="mobOpenFxConverter()" style="padding:10px 14px;background:linear-gradient(135deg,#0d1b2e,#1e3a5f);color:#c9a84c;border:none;border-radius:11px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">💱 FX</button>
         </div>
-        <!-- Stat cards 2x2 -->
-        <div id="mob-dash-cards" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px"></div>
+        <!-- Stat cards -->
+        <div id="mob-dash-cards" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px"></div>
         <!-- Target bar -->
-        <div id="mob-target-bar" style="margin-bottom:12px"></div>
+        <div id="mob-target-bar" style="margin-bottom:14px"></div>
         <!-- Target input -->
-        <div style="background:#fff;border-radius:12px;padding:12px;margin-bottom:12px;box-shadow:0 1px 6px rgba(0,0,0,.06)">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-            <div style="font-size:10px;font-weight:800;color:#64748b;letter-spacing:1px">🎯 TARGET</div>
+        <div style="background:#fff;border-radius:13px;padding:14px;margin-bottom:14px;box-shadow:0 1px 6px rgba(0,0,0,.06)">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <div style="font-size:10px;font-weight:800;color:#64748b;letter-spacing:1px">🎯 MONTHLY TARGET</div>
             <div id="mob-target-month-label" style="font-size:10px;font-weight:700;color:#c9a84c"></div>
           </div>
           <div style="display:flex;gap:8px">
-            <input type="text" id="mob-dash-target" placeholder="e.g. 80,000" inputmode="numeric"
-              style="flex:1;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;font-weight:600;color:#0d1b2e;outline:none"
+            <input type="text" id="mob-dash-target" placeholder="e.g. 100,000" inputmode="numeric"
+              style="flex:1;padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:9px;font-size:15px;font-weight:700;color:#0d1b2e;outline:none"
               onfocus="this.value=this.value.replace(/,/g,'')"
               onblur="formatTargetInputDisplay(this)">
-            <button onclick="mobSaveTarget()" style="padding:9px 16px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">Set</button>
+            <button onclick="mobSaveTarget()" style="padding:10px 18px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer">Set</button>
           </div>
-          <div style="font-size:10px;color:#94a3b8;margin-top:4px">Each month has its own separate target</div>
+        </div>
+        <!-- Year Health -->
+        <div style="background:#fff;border-radius:13px;padding:14px;margin-bottom:14px;box-shadow:0 1px 6px rgba(0,0,0,.06)">
+          <div id="mob-year-health-wrap"></div>
         </div>
         <!-- Dept breakdown -->
-        <div style="background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.06)">
-          <div style="background:#0d1b2e;padding:12px 14px;font-size:12px;font-weight:800;color:#c9a84c">🏢 Department Breakdown</div>
+        <div style="background:#fff;border-radius:13px;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.06)">
+          <div style="background:#0d1b2e;padding:13px 15px;font-size:12px;font-weight:800;color:#c9a84c">🏢 Department Breakdown</div>
           <div id="mob-dept-table" style="padding:0"></div>
         </div>
       </div>
 
-      <!-- ── MOB ENTRY ── -->
-      <div id="mob-tab-entry" class="mob-pg" style="display:none;padding:12px">
+      <!-- ═══ QUICK ENTRY ═══ -->
+      <div id="mob-tab-entry" class="mob-pg" style="display:none;padding:14px">
         <!-- Controls -->
-        <div style="background:#fff;border-radius:12px;padding:12px;margin-bottom:10px;box-shadow:0 1px 6px rgba(0,0,0,.06)">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+        <div style="background:#fff;border-radius:13px;padding:14px;margin-bottom:12px;box-shadow:0 1px 6px rgba(0,0,0,.06)">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
             <div>
-              <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">MONTH</div>
-              <select id="mob-ent-month" onchange="mobOnMonthChange()" style="width:100%;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-weight:600;color:#0d1b2e;background:#fff"></select>
+              <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:5px;letter-spacing:.8px">MONTH</div>
+              <select id="mob-ent-month" onchange="mobOnMonthChange()" style="width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:9px;font-size:14px;font-weight:700;color:#0d1b2e;background:#fff"></select>
             </div>
             <div>
-              <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px;letter-spacing:.8px">DAY</div>
-              <select id="mob-ent-day" onchange="mobRenderEntry()" style="width:100%;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-weight:600;color:#0d1b2e;background:#fff"></select>
+              <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:5px;letter-spacing:.8px">DAY</div>
+              <select id="mob-ent-day" onchange="mobRenderEntry()" style="width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:9px;font-size:14px;font-weight:700;color:#0d1b2e;background:#fff"></select>
             </div>
           </div>
           <!-- Dept tabs -->
           <div id="mob-dept-tabs" style="display:flex;flex-wrap:wrap;gap:6px"></div>
         </div>
-        <!-- Stats row -->
-        <div id="mob-ent-stats" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px"></div>
-        <!-- Entry table -->
-        <div style="background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.06);margin-bottom:10px">
-          <div id="mob-ent-header" style="background:#0d1b2e;padding:12px 14px;display:flex;align-items:center;justify-content:space-between">
+        <!-- Day total bar -->
+        <div id="mob-ent-stats" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px"></div>
+        <!-- Item list with +/- buttons -->
+        <div style="background:#fff;border-radius:13px;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.06);margin-bottom:12px">
+          <div id="mob-ent-header" style="background:#0d1b2e;padding:13px 15px;display:flex;align-items:center;justify-content:space-between">
             <div id="mob-ent-dept-label" style="font-size:13px;font-weight:800;color:#c9a84c"></div>
-            <div id="mob-ent-date-label" style="font-size:11px;color:rgba(255,255,255,.6)"></div>
+            <div id="mob-ent-date-label" style="font-size:11px;color:rgba(255,255,255,.55)"></div>
           </div>
           <div id="mob-ent-table" style="padding:0"></div>
+          <!-- Show more button -->
+          <div id="mob-ent-more-wrap" style="display:none;padding:10px 14px;border-top:1px solid #f1f5f9">
+            <button onclick="mobShowAllItems()" style="width:100%;padding:10px;background:#f8fafc;border:1.5px dashed #e2e8f0;border-radius:8px;font-size:12px;font-weight:700;color:#64748b;cursor:pointer">▾ Show all items</button>
+          </div>
         </div>
-        <!-- Action buttons -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-          <button onclick="mobSaveDay()" style="padding:14px;background:#16a34a;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 4px 12px rgba(22,163,74,.3)">💾 Save Day</button>
-          <button onclick="mobCopyDay()" id="mob-btn-copy" style="padding:14px;background:#fff;color:#d97706;border:2px solid #d97706;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer">📋 Copy Day</button>
+        <!-- Save buttons -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+          <button onclick="mobSaveDay()" style="padding:16px;background:#16a34a;color:#fff;border:none;border-radius:13px;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(22,163,74,.35)">💾 Save</button>
+          <button onclick="mobCopyDay()" id="mob-btn-copy" style="padding:16px;background:#fff;color:#d97706;border:2px solid #d97706;border-radius:13px;font-size:14px;font-weight:700;cursor:pointer">📋 Copy</button>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <button onclick="mobPasteDay()" id="mob-btn-paste" style="padding:12px;background:#fff;color:#94a3b8;border:1.5px solid #e2e8f0;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer">📌 Paste Day</button>
-          <button onclick="mobClearDay()" style="padding:12px;background:#fff5f5;color:#dc2626;border:1.5px solid #fca5a5;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer">🗑 Clear Day</button>
-        </div>
-      </div>
-
-      <!-- ── MOB FINANCE ── -->
-      <div id="mob-tab-finance" class="mob-pg" style="display:none;padding:12px">
-        <div style="background:#fff;border-radius:12px;padding:12px;margin-bottom:10px;box-shadow:0 1px 6px rgba(0,0,0,.06)">
-          <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:6px;letter-spacing:.8px">MONTH</div>
-          <select id="mob-fin-month" onchange="mobRenderFinance()" style="width:100%;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;font-weight:700;color:#0d1b2e"></select>
-        </div>
-        <div id="mob-fin-cards" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px"></div>
-        <div style="background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.06)">
-          <div style="background:#0d1b2e;padding:12px 14px;font-size:12px;font-weight:800;color:#c9a84c">📋 Daily Finance Log</div>
-          <div id="mob-fin-table" style="overflow-x:auto"></div>
-        </div>
-      </div>
-
-      <!-- ── MOB MORE ── -->
-      <div id="mob-tab-more" class="mob-pg" style="display:none;padding:12px">
-        <div style="font-size:12px;font-weight:800;color:#64748b;letter-spacing:1px;margin-bottom:12px">MORE FEATURES</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-          <div onclick="mobGoto('monthly')" style="background:#fff;border-radius:14px;padding:18px;text-align:center;box-shadow:0 1px 6px rgba(0,0,0,.06);cursor:pointer;border:1.5px solid #e2e8f0">
-            <div style="font-size:28px;margin-bottom:6px">📅</div>
-            <div style="font-size:13px;font-weight:700;color:#0d1b2e">Monthly</div>
-            <div style="font-size:11px;color:#94a3b8;margin-top:2px">Full month report</div>
+          <button onclick="mobPasteDay()" id="mob-btn-paste" style="padding:13px;background:#fff;color:#94a3b8;border:1.5px solid #e2e8f0;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer">📌 Paste</button>
+          <button onclick="mobClearDay()" style="padding:13px;background:#fff5f5;color:#dc2626;border:1.5px solid #fca5a5;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer">🗑 Clear</button>
+        </div>
+      </div>
+
+      <!-- ═══ CHECKLIST ═══ -->
+      <div id="mob-tab-checklist" class="mob-pg" style="display:none;padding:14px">
+        <div style="font-size:14px;font-weight:800;color:#0d1b2e;margin-bottom:14px">📋 Year Health — <span id="mob-checklist-year"></span></div>
+        <div id="mob-checklist-wrap"></div>
+      </div>
+
+      <!-- ═══ FX CONVERTER ═══ -->
+      <div id="mob-tab-fx" class="mob-pg" style="display:none;padding:14px">
+        <div style="font-size:14px;font-weight:800;color:#0d1b2e;margin-bottom:14px">💱 Currency Converter</div>
+        <div style="background:#fff;border-radius:13px;padding:14px;margin-bottom:14px;box-shadow:0 1px 6px rgba(0,0,0,.06)">
+          <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:8px;letter-spacing:.8px">AMOUNT (QAR)</div>
+          <input type="number" id="mob-fx-amount" placeholder="Enter QAR amount"
+            style="width:100%;padding:12px 14px;border:1.5px solid #e2e8f0;border-radius:9px;font-size:16px;font-weight:700;color:#0d1b2e;outline:none;box-sizing:border-box"
+            oninput="mobRenderFx()">
+          <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+            <button onclick="mobFxSetMonth()" style="padding:8px 14px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer">Use Month Total</button>
+            <button onclick="mobFxSetYear()" style="padding:8px 14px;background:#f8fafc;color:#64748b;border:1.5px solid #e2e8f0;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer">Use Year Total</button>
           </div>
-          <div onclick="mobGoto('report')" style="background:#fff;border-radius:14px;padding:18px;text-align:center;box-shadow:0 1px 6px rgba(0,0,0,.06);cursor:pointer;border:1.5px solid #e2e8f0">
-            <div style="font-size:28px;margin-bottom:6px">📄</div>
-            <div style="font-size:13px;font-weight:700;color:#0d1b2e">Report</div>
-            <div style="font-size:11px;color:#94a3b8;margin-top:2px">Export & print</div>
-          </div>
-          <div onclick="mobGoto('benchmark')" style="background:#fff;border-radius:14px;padding:18px;text-align:center;box-shadow:0 1px 6px rgba(0,0,0,.06);cursor:pointer;border:1.5px solid #e2e8f0">
-            <div style="font-size:28px;margin-bottom:6px">🎯</div>
-            <div style="font-size:13px;font-weight:700;color:#0d1b2e">Benchmark</div>
-            <div style="font-size:11px;color:#94a3b8;margin-top:2px">Occupancy vs revenue</div>
-          </div>
-          <div onclick="mobGoto('analytics')" style="background:#fff;border-radius:14px;padding:18px;text-align:center;box-shadow:0 1px 6px rgba(0,0,0,.06);cursor:pointer;border:1.5px solid #e2e8f0">
-            <div style="font-size:28px;margin-bottom:6px">📈</div>
-            <div style="font-size:13px;font-weight:700;color:#0d1b2e">Analytics</div>
-            <div style="font-size:11px;color:#94a3b8;margin-top:2px">Charts & trends</div>
-          </div>
-          <div onclick="mobGoto('prices')" style="background:#fff;border-radius:14px;padding:18px;text-align:center;box-shadow:0 1px 6px rgba(0,0,0,.06);cursor:pointer;border:1.5px solid #e2e8f0">
-            <div style="font-size:28px;margin-bottom:6px">⚙️</div>
-            <div style="font-size:13px;font-weight:700;color:#0d1b2e">Prices</div>
-            <div style="font-size:11px;color:#94a3b8;margin-top:2px">Manage prices</div>
-          </div>
-          <div onclick="mobGoto('backup')" style="background:#fff;border-radius:14px;padding:18px;text-align:center;box-shadow:0 1px 6px rgba(0,0,0,.06);cursor:pointer;border:1.5px solid #e2e8f0;border-color:#c9a84c">
-            <div style="font-size:28px;margin-bottom:6px">🛡️</div>
-            <div style="font-size:13px;font-weight:700;color:#0d1b2e">Backup</div>
-            <div style="font-size:11px;color:#94a3b8;margin-top:2px">Cloud & local</div>
-          </div>
-          <div onclick="mobGoto('guide')" style="background:#fff;border-radius:14px;padding:18px;text-align:center;box-shadow:0 1px 6px rgba(0,0,0,.06);cursor:pointer;border:1.5px solid #e2e8f0">
-            <div style="font-size:28px;margin-bottom:6px">📖</div>
-            <div style="font-size:13px;font-weight:700;color:#0d1b2e">Guide</div>
-            <div style="font-size:11px;color:#94a3b8;margin-top:2px">How to use</div>
-          </div>
+        </div>
+        <div id="mob-fx-results" style="display:flex;flex-direction:column;gap:10px"></div>
+        <div style="margin-top:16px;padding:12px 14px;background:#fffbeb;border-radius:10px;font-size:11px;color:#92400e">
+          ⚙️ Update exchange rates in Settings → Currency on desktop.
         </div>
       </div>
 
     </div><!-- /mob-pages -->
 
-    <!-- Mobile Bottom Nav -->
-    <div style="position:fixed;bottom:0;left:0;right:0;height:62px;background:#0d1b2e;border-top:1px solid rgba(201,168,76,.2);display:flex;align-items:center;justify-content:space-around;z-index:300;box-shadow:0 -4px 20px rgba(0,0,0,.3)">
-      <div id="mbn-dashboard" onclick="mobShowTab('dashboard')" style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 12px;cursor:pointer;border-radius:10px;background:rgba(201,168,76,.12);min-width:60px">
-        <span style="font-size:20px">📊</span>
-        <span style="font-size:9px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;color:#c9a84c">Dash</span>
+    <!-- ── Bottom Nav ── -->
+    <div style="position:fixed;bottom:0;left:0;right:0;height:64px;background:#0d1b2e;border-top:1px solid rgba(201,168,76,.2);display:flex;align-items:center;justify-content:space-around;z-index:300;box-shadow:0 -4px 20px rgba(0,0,0,.3)">
+      <div id="mbn-dashboard" onclick="mobShowTab('dashboard')" class="mbn-item active">
+        <span style="font-size:22px">📊</span>
+        <span class="mbn-lbl" style="color:#c9a84c">Dash</span>
       </div>
-      <div id="mbn-entry" onclick="mobShowTab('entry')" style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 12px;cursor:pointer;border-radius:10px;min-width:60px">
-        <span style="font-size:20px">✏️</span>
-        <span style="font-size:9px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;color:rgba(255,255,255,.45)">Entry</span>
+      <div id="mbn-entry" onclick="mobShowTab('entry')" class="mbn-item">
+        <span style="font-size:22px">✏️</span>
+        <span class="mbn-lbl">Entry</span>
       </div>
-      <div id="mbn-finance" onclick="mobShowTab('finance')" style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 12px;cursor:pointer;border-radius:10px;min-width:60px">
-        <span style="font-size:20px">🏦</span>
-        <span style="font-size:9px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;color:rgba(255,255,255,.45)">Finance</span>
+      <div id="mbn-checklist" onclick="mobShowTab('checklist')" class="mbn-item">
+        <span style="font-size:22px">📋</span>
+        <span class="mbn-lbl">Check</span>
       </div>
-      <div id="mbn-more" onclick="mobShowTab('more')" style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 12px;cursor:pointer;border-radius:10px;min-width:60px">
-        <span style="font-size:20px">⋯</span>
-        <span style="font-size:9px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;color:rgba(255,255,255,.45)">More</span>
+      <div id="mbn-fx" onclick="mobShowTab('fx')" class="mbn-item">
+        <span style="font-size:22px">💱</span>
+        <span class="mbn-lbl">FX</span>
+      </div>
+      <div id="mbn-more" onclick="mobShowTab('more')" class="mbn-item">
+        <span style="font-size:22px">⋯</span>
+        <span class="mbn-lbl">More</span>
+      </div>
+    </div>
+
+    <!-- More menu overlay -->
+    <div id="mob-more-overlay" style="display:none;position:fixed;bottom:64px;left:0;right:0;background:#0d1b2e;border-top:1px solid rgba(201,168,76,.2);z-index:299;padding:12px">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+        <div onclick="mobGoto('monthly')" class="mob-more-item"><span>📅</span>Monthly</div>
+        <div onclick="mobGoto('report')" class="mob-more-item"><span>📊</span>Annual</div>
+        <div onclick="mobGoto('backup');document.getElementById('mob-more-overlay').style.display='none'" class="mob-more-item" style="color:#c9a84c"><span>☁️</span>Backup</div>
+        <div onclick="mobGoto('guide')" class="mob-more-item"><span>📖</span>Guide</div>
       </div>
     </div>
 
@@ -13013,21 +13013,40 @@ function mobChangeYear(y) {
 
 function mobShowTab(name) {
   _mobTab = name;
+  // Hide more overlay
+  var overlay = document.getElementById('mob-more-overlay');
+  if (overlay && name !== 'more') overlay.style.display = 'none';
+
   document.querySelectorAll('.mob-pg').forEach(function(el){ el.style.display = 'none'; });
   var pg = document.getElementById('mob-tab-' + name);
   if (pg) pg.style.display = 'block';
+
   // Update bottom nav
-  ['dashboard','entry','finance','more'].forEach(function(t) {
+  ['dashboard','entry','checklist','fx','more'].forEach(function(t) {
     var btn = document.getElementById('mbn-' + t);
     if (!btn) return;
     var isActive = t === name;
-    btn.style.background = isActive ? 'rgba(201,168,76,.12)' : 'transparent';
-    btn.querySelector('span:last-child').style.color = isActive ? '#c9a84c' : 'rgba(255,255,255,.45)';
+    if (isActive) btn.classList.add('active'); else btn.classList.remove('active');
   });
-  if (name === 'dashboard') mobRenderDash();
-  if (name === 'entry') mobRenderEntry();
-  if (name === 'finance') mobRenderFinance();
+
+  if (name === 'dashboard')  mobRenderDash();
+  if (name === 'entry')      mobRenderEntry();
+  if (name === 'checklist')  mobRenderChecklist();
+  if (name === 'fx')         mobRenderFx();
+  if (name === 'more') {
+    var ov = document.getElementById('mob-more-overlay');
+    if (ov) ov.style.display = ov.style.display === 'none' ? 'block' : 'none';
+    // Don't hide current page
+    if (pg) pg.style.display = 'none';
+    var cur = document.getElementById('mob-tab-' + (_mobPrevTab || 'dashboard'));
+    if (cur) cur.style.display = 'block';
+    _mobTab = _mobPrevTab || 'dashboard';
+    return;
+  }
+  _mobPrevTab = name;
 }
+
+var _mobPrevTab = 'dashboard';
 
 function mobGoto(tabName) {
   // Switch to desktop tab (for tabs not in mobile layout)
@@ -13053,10 +13072,162 @@ function mobGoto(tabName) {
   }
 }
 
-// ── Mobile Dashboard ──────────────────────────────────────────
+
+// ── Mobile Checklist Tab ──────────────────────────────────────
+function mobRenderChecklist() {
+  var wrap = document.getElementById('mob-checklist-wrap');
+  var yearEl = document.getElementById('mob-checklist-year');
+  if (!wrap) return;
+  var curY = new Date().getFullYear();
+  if (yearEl) yearEl.textContent = curY;
+
+  var MNS  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var keys = ['allDaysEntered','pricesLocked','monthlyPricesSet','financePosted','backupSaved'];
+  var curM = new Date().getMonth() + 1;
+
+  wrap.innerHTML = '';
+  for (var mi = 1; mi <= 12; mi++) {
+    var isFuture = mi > curM;
+    var row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:#fff;border-radius:11px;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,.06);cursor:pointer';
+
+    if (isFuture) {
+      row.innerHTML = '<div style="font-size:13px;font-weight:700;color:#94a3b8">' + MNS[mi-1] + '</div><div style="font-size:11px;color:#94a3b8">Future</div>';
+    } else {
+      var status    = getEomStatus(curY, mi);
+      var doneCount = keys.filter(function(k){ return status[k].done; }).length;
+      var icon = doneCount === keys.length ? '✅' : (doneCount >= 3 ? '⚠️' : '🔴');
+      var pct  = Math.round(doneCount / keys.length * 100);
+      var isCur = mi === curM;
+
+      row.style.borderLeft = '4px solid ' + (doneCount===keys.length ? '#16a34a' : doneCount>=3 ? '#f59e0b' : '#dc2626');
+      row.innerHTML =
+        '<div style="display:flex;align-items:center;gap:10px">' +
+          '<div style="font-size:13px;font-weight:800;color:#0d1b2e">' + MNS[mi-1] + (isCur ? ' ◀' : '') + '</div>' +
+          '<span style="font-size:16px">' + icon + '</span>' +
+        '</div>' +
+        '<div style="display:flex;align-items:center;gap:8px">' +
+          '<div style="font-size:12px;font-weight:700;color:#64748b">' + doneCount + '/' + keys.length + '</div>' +
+          '<div style="font-size:11px;color:#94a3b8">›</div>' +
+        '</div>';
+
+      row.onclick = (function(m){ return function(){ openMonthChecklist(m); }; })(mi);
+    }
+    wrap.appendChild(row);
+  }
+}
+
+// ── Mobile FX Tab ─────────────────────────────────────────────
+function mobRenderFx() {
+  var amtEl = document.getElementById('mob-fx-amount');
+  var wrap  = document.getElementById('mob-fx-results');
+  if (!wrap) return;
+  var qar = amtEl ? (parseFloat(amtEl.value) || 0) : 0;
+  if (qar <= 0) {
+    wrap.innerHTML = '<div style="text-align:center;color:#94a3b8;font-size:13px;padding:20px">Enter an amount or use a quick button above</div>';
+    return;
+  }
+  if (!_FX_RATES || Object.keys(_FX_RATES).length === 0) {
+    _FX_RATES = JSON.parse(JSON.stringify(_FX_DEFAULT));
+  }
+  wrap.innerHTML = '';
+  Object.keys(_FX_RATES).forEach(function(code) {
+    var converted = convertFromQAR(qar, code);
+    if (converted === null) return;
+    var fx  = _FX_RATES[code];
+    var row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#fff;border-radius:11px;box-shadow:0 1px 4px rgba(0,0,0,.06)';
+    row.innerHTML =
+      '<div style="display:flex;align-items:center;gap:10px">' +
+        '<div style="width:42px;height:34px;background:#0d1b2e;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#c9a84c">' + code + '</div>' +
+        '<span style="font-size:12px;color:#64748b">' + fx.name + '</span>' +
+      '</div>' +
+      '<div style="font-size:17px;font-weight:800;color:#0d1b2e">' + fmtFX(converted, code) + '</div>';
+    wrap.appendChild(row);
+  });
+}
+
+function mobFxSetMonth() {
+  var m   = parseInt(document.getElementById('mob-dash-month')?.value || new Date().getMonth()+1);
+  var qar = monthTotals(CY, m).qr;
+  var inp = document.getElementById('mob-fx-amount');
+  if (inp) { inp.value = qar.toFixed(2); mobRenderFx(); }
+}
+
+function mobFxSetYear() {
+  var total = 0;
+  for (var mi = 1; mi <= 12; mi++) total += monthTotals(CY, mi).qr;
+  var inp = document.getElementById('mob-fx-amount');
+  if (inp) { inp.value = total.toFixed(2); mobRenderFx(); }
+}
+
+function mobOpenFxConverter() {
+  var m   = parseInt(document.getElementById('mob-dash-month')?.value || new Date().getMonth()+1);
+  var qar = monthTotals(CY, m).qr;
+  mobShowTab('fx');
+  setTimeout(function(){
+    var inp = document.getElementById('mob-fx-amount');
+    if (inp) { inp.value = qar.toFixed(2); mobRenderFx(); }
+  }, 100);
+}
+
+// ── Mobile Year Health (compact) ─────────────────────────────
+
+function _mobGoChecklist() { mobShowTab('checklist'); }
+function _mobGoEntry()     { mobShowTab('entry'); }
+
+function mobRenderYearHealth() {
+  var wrap = document.getElementById('mob-year-health-wrap');
+  if (!wrap) return;
+  var curY = new Date().getFullYear();
+  var curM = new Date().getMonth() + 1;
+  var MNS  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var keys = ['allDaysEntered','pricesLocked','monthlyPricesSet','financePosted','backupSaved'];
+
+  wrap.innerHTML = '';
+
+  // Header row
+  var hdr = document.createElement('div');
+  hdr.style.cssText = 'display:flex;align-items:center;justify-content:space-between;margin-bottom:10px';
+  var title = document.createElement('div');
+  title.style.cssText = 'font-size:12px;font-weight:800;color:#0d1b2e';
+  title.textContent = String.fromCodePoint(0x1F4CB) + ' ' + curY + ' Month Health';
+  var allBtn = document.createElement('button');
+  allBtn.textContent = 'All >';
+  allBtn.style.cssText = 'padding:4px 10px;background:#f8fafc;border:1.5px solid #e2e8f0;color:#64748b;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer';
+  allBtn.onclick = function(){ mobShowTab('checklist'); };
+  hdr.appendChild(title);
+  hdr.appendChild(allBtn);
+  wrap.appendChild(hdr);
+
+  // Grid
+  var grid = document.createElement('div');
+  grid.style.cssText = 'display:grid;grid-template-columns:repeat(4,1fr);gap:6px';
+
+  for (var mi = 1; mi <= Math.min(curM, 8); mi++) {
+    var status    = getEomStatus(curY, mi);
+    var doneCount = keys.filter(function(k){ return status[k].done; }).length;
+    var icon  = doneCount === keys.length ? '\u2705' : (doneCount >= 3 ? '\u26a0\ufe0f' : '\ud83d\udd34');
+    var isCur = mi === curM;
+    var bg    = doneCount === keys.length ? '#f0fdf4' : (doneCount >= 3 ? '#fffbeb' : '#fef2f2');
+    var bdr   = isCur ? '#c9a84c' : (doneCount === keys.length ? '#86efac' : (doneCount >= 3 ? '#fde68a' : '#fca5a5'));
+
+    var card = document.createElement('div');
+    card.style.cssText = 'padding:8px 4px;background:' + bg + ';border:1.5px solid ' + bdr + ';border-radius:8px;text-align:center;cursor:pointer';
+    card.innerHTML = '<div style="font-size:10px;font-weight:800;color:#0d1b2e">' + MNS[mi-1] + '</div>' +
+      '<div style="font-size:14px;margin:2px 0">' + icon + '</div>' +
+      '<div style="font-size:9px;color:#64748b">' + doneCount + '/5</div>';
+    card.onclick = (function(m){ return function(){ openMonthChecklist(m); }; })(mi);
+    grid.appendChild(card);
+  }
+  wrap.appendChild(grid);
+}
+
+
 function mobRenderDash() {
   try {
   var m = parseInt(document.getElementById('mob-dash-month')?.value || new Date().getMonth()+1);
+  mobRenderYearHealth();
   // Update target month label
   var tML = document.getElementById('mob-target-month-label');
   if (tML) tML.textContent = MONTH_NAMES[m-1] + ' ' + CY;
@@ -13207,29 +13378,94 @@ function mobRenderEntry() {
   if (hdr) hdr.textContent = (DEPT_ICONS[_mobEntDept]||'') + ' ' + _mobEntDept;
   if (datelbl) datelbl.textContent = DAY_NAMES[new Date(CY,m-1,day).getDay()] + ' ' + day + ' ' + MONTH_NAMES[m-1] + ' ' + CY;
 
-  // Entry table
+  // Entry table — active items first, rest collapsed (Option B)
   var tbl = document.getElementById('mob-ent-table');
+  var moreWrap = document.getElementById('mob-ent-more-wrap');
   if (tbl && MASTER[_mobEntDept]) {
-    var html = '';
-    MASTER[_mobEntDept].forEach(function(item, i) {
+    var mpr = hasMonthlyPrices(CY, m) ? loadPRM(CY, m) : PRICES;
+    var items   = MASTER[_mobEntDept];
+    var active  = [];  // items with qty > 0
+    var inactive = []; // items with qty = 0
+    items.forEach(function(item, i) {
       var v = getVal(CY, m, _mobEntDept, i, day-1);
-      var pr = PRICES[_mobEntDept]?.[i]?.[1] ?? MASTER[_mobEntDept][i][1];
-      var cost = (v * pr).toFixed(2);
-      html += '<div style="display:flex;align-items:center;padding:11px 14px;border-bottom:1px solid #f8fafc">' +
-        '<div style="flex:1;min-width:0">' +
-          '<div style="font-size:13px;font-weight:600;color:#0d1b2e">' + item[0] + '</div>' +
-          '<div style="font-size:10px;color:#94a3b8;margin-top:1px">' + pr.toFixed(4) + ' QR' + (v>0?' · '+cost+' QR':'') + '</div>' +
-        '</div>' +
-        '<input type="number" id="mob-qi-'+i+'" value="'+(v||'')+'" min="0" placeholder="0" ' +
-          'style="width:72px;padding:8px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:16px;font-weight:700;text-align:center;color:#0d1b2e;background:#fff;outline:none" ' +
-          'oninput="mobUpdateStats('+m+','+day+')" ' +
-          'onfocus="this.select()">' +
-      '</div>';
+      if (v > 0) active.push(i); else inactive.push(i);
     });
-    tbl.innerHTML = html || '<div style="padding:16px;text-align:center;color:#94a3b8">No items</div>';
+
+    // Show active items + first 5 inactive; rest hidden unless expanded
+    var showAll  = tbl.dataset.showAll === '1';
+    var visible  = active.concat(showAll ? inactive : inactive.slice(0, 5));
+    var hasMore  = !showAll && inactive.length > 5;
+
+    tbl.innerHTML = '';
+    visible.forEach(function(i) {
+      var item = items[i];
+      var v    = getVal(CY, m, _mobEntDept, i, day-1);
+      var pr   = mpr[_mobEntDept]?.[i]?.[1] ?? MASTER[_mobEntDept][i][1];
+      var cost = v > 0 ? f2(v * pr) : '';
+
+      var row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;padding:12px 14px;border-bottom:1px solid #f8fafc;' + (v>0?'background:#f0fdf4;':'');
+
+      // Item name + price
+      var info = document.createElement('div');
+      info.style.cssText = 'flex:1;min-width:0;margin-right:10px';
+      info.innerHTML =
+        '<div style="font-size:13px;font-weight:' + (v>0?'700':'600') + ';color:#0d1b2e">' + item[0] + '</div>' +
+        '<div style="font-size:10px;color:#94a3b8;margin-top:1px">' + pr.toFixed(4) + ' QR' + (cost?' · ' + cost + ' QR':'') + '</div>';
+      row.appendChild(info);
+
+      // − button
+      var btnMinus = document.createElement('button');
+      btnMinus.textContent = '−';
+      btnMinus.style.cssText = 'width:36px;height:36px;border-radius:9px;border:1.5px solid #e2e8f0;background:#fff;font-size:20px;font-weight:300;cursor:pointer;color:#64748b;flex-shrink:0;display:flex;align-items:center;justify-content:center;line-height:1';
+      btnMinus.onclick = (function(idx){ return function(){ mobStepQty(idx, -1, m, day); }; })(i);
+      row.appendChild(btnMinus);
+
+      // Input
+      var inp = document.createElement('input');
+      inp.type = 'number';
+      inp.id   = 'mob-qi-' + i;
+      inp.value = v || '';
+      inp.min   = '0';
+      inp.placeholder = '0';
+      inp.style.cssText = 'width:56px;padding:8px 4px;border:1.5px solid ' + (v>0?'#86efac':'#e2e8f0') + ';border-radius:9px;font-size:17px;font-weight:800;text-align:center;color:#0d1b2e;background:#fff;outline:none;margin:0 6px;flex-shrink:0';
+      inp.addEventListener('input', function(){ mobUpdateStats(m, day); });
+      inp.addEventListener('focus', function(){ this.select(); });
+      row.appendChild(inp);
+
+      // + button
+      var btnPlus = document.createElement('button');
+      btnPlus.textContent = '+';
+      btnPlus.style.cssText = 'width:36px;height:36px;border-radius:9px;border:none;background:#0d1b2e;font-size:20px;font-weight:700;cursor:pointer;color:#c9a84c;flex-shrink:0;display:flex;align-items:center;justify-content:center;line-height:1';
+      btnPlus.onclick = (function(idx){ return function(){ mobStepQty(idx, 1, m, day); }; })(i);
+      row.appendChild(btnPlus);
+
+      tbl.appendChild(row);
+    });
+
+    if (moreWrap) moreWrap.style.display = hasMore ? 'block' : 'none';
   }
 
   try { mobUpdateStats(m, day); } catch(e) {}
+}
+
+
+function mobStepQty(i, delta, m, day) {
+  var inp = document.getElementById('mob-qi-' + i);
+  if (!inp) return;
+  var v = Math.max(0, (parseInt(inp.value) || 0) + delta);
+  inp.value = v || '';
+  inp.style.borderColor = v > 0 ? '#86efac' : '#e2e8f0';
+  inp.style.fontWeight  = v > 0 ? '800' : '400';
+  // Update row background
+  var row = inp.closest('div[style*="border-bottom"]');
+  if (row) row.style.background = v > 0 ? '#f0fdf4' : '';
+  mobUpdateStats(m, day);
+}
+
+function mobShowAllItems() {
+  var tbl = document.getElementById('mob-ent-table');
+  if (tbl) { tbl.dataset.showAll = '1'; mobRenderEntry(); }
 }
 
 function mobSetDept(dept) {
@@ -17162,18 +17398,10 @@ function getEomStatus(y, m) {
   var curM   = today.getMonth() + 1;
   var isPast = (y < curY) || (y === curY && m < curM);
 
-  // 1. All days entered
+  // 1. All days entered — smart check (ignores rest days, dry cleaning, acknowledged)
   var required    = getRequiredDepts();
-  var missingDays = 0;
-  for (var d = 0; d < nd; d++) {
-    required.forEach(function(dept) {
-      var hasData = MASTER[dept].some(function(_, i) {
-        return (db[m + '-' + dept + '-' + i + '-' + d] || 0) > 0;
-      });
-      if (!hasData) missingDays++;
-    });
-  }
-  var allDaysEntered = missingDays === 0;
+  var smartMissing = getSmartMissingDays(y, m, nd);
+  var allDaysEntered = smartMissing.length === 0;
 
   // 2. Prices locked
   var hasLocked = false, hasAnyData = false;
@@ -17226,23 +17454,30 @@ function getEomStatus(y, m) {
     ? (isPast ? 'Data was backed up' : 'Backup saved this month')
     : (isPast ? 'No backup found — save one now to protect data' : 'No backup saved this month');
 
-  // Pre-compute detail message for allDaysEntered
-  var _allDaysDetail = allDaysEntered ? 'No missing data' : (function() {
-    var depts = [];
-    required.forEach(function(dept) {
-      var hasMiss = false;
-      for (var _d = 0; _d < nd; _d++) {
-        if (!MASTER[dept].some(function(_, i) { return (db[m+'-'+dept+'-'+i+'-'+_d]||0)>0; })) {
-          hasMiss = true; break;
-        }
-      }
-      if (hasMiss) depts.push(dept);
+  // Pre-compute detail message — smart, shows exact dept + days
+  var _allDaysDetail = (function() {
+    if (allDaysEntered) return 'No missing data';
+    // Group by dept
+    var byDept = {};
+    smartMissing.forEach(function(item) {
+      if (!byDept[item.dept]) byDept[item.dept] = [];
+      byDept[item.dept].push(item.day);
     });
-    return depts.length > 0 ? 'Missing: ' + depts.join(', ') : missingDays + ' combinations';
+    return Object.keys(byDept).map(function(dept) {
+      var days = byDept[dept];
+      return dept + ': day' + (days.length > 1 ? 's ' : ' ') + days.join(', ');
+    }).join(' | ');
+  })();
+
+  // Build action with Mark OK buttons for each missing dept
+  var _missingDepts = (function() {
+    var d = {};
+    smartMissing.forEach(function(item) { d[item.dept] = true; });
+    return Object.keys(d);
   })();
 
   return {
-    allDaysEntered:   { done: allDaysEntered,    label: 'All days entered',     detail: _allDaysDetail, action: function(){ showTab('entry'); setTimeout(function(){ var sel=document.getElementById('ent-month'); if(sel){sel.value=String(m);renderEntry();} },300); } },
+    allDaysEntered:   { done: allDaysEntered, label: 'All days entered', detail: _allDaysDetail, missingDepts: _missingDepts, ackFn: function(dept){ ackMissingDay(y,m,dept); }, action: function(){ showTab('entry'); setTimeout(function(){ var sel=document.getElementById('ent-month'); if(sel){sel.value=String(m);renderEntry();} },300); } },
     pricesLocked:     { done: pricesLocked,       label: 'Prices locked',        detail: pricesLocked ? 'All entries frozen' : 'Some entries not locked — lock before changing prices', action: function(){ showTab('prices'); setTimeout(openMonthlyPriceManager, 300); } },
     monthlyPricesSet: { done: monthlyPricesSet,   label: isPast ? 'Prices (historical)' : 'Monthly prices set', detail: isPast ? 'Historical month — prices recorded at entry time' : (monthlyPricesSet ? 'Price table exists' : 'Using year prices'), action: isPast ? null : function(){ showTab('prices'); setTimeout(openMonthlyPriceManager, 300); } },
     financePosted:    { done: financePosted,       label: 'Finance posted',       detail: financePosted ? 'Marked as done' : 'Tick when posted to finance system', manual: true },
@@ -17319,13 +17554,28 @@ function renderEomChecklist(y, m) {
       '<div style="font-size:10px;color:#94a3b8;margin-top:1px">' + item.detail + '</div>';
     row.appendChild(info);
 
-    // Fix button
-    if (!item.done && item.action) {
-      var btn = document.createElement('button');
-      btn.textContent = 'Fix →';
-      btn.style.cssText = 'padding:5px 10px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;flex-shrink:0';
-      btn.onclick = item.action;
-      row.appendChild(btn);
+    // Fix button + Mark OK for missing days (dashboard version)
+    if (!item.done) {
+      var bw = document.createElement('div');
+      bw.style.cssText = 'display:flex;flex-direction:column;gap:5px;flex-shrink:0;align-items:flex-end';
+      if (item.action) {
+        var fb = document.createElement('button');
+        fb.textContent = 'Fix →';
+        fb.style.cssText = 'padding:5px 10px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer';
+        fb.onclick = item.action;
+        bw.appendChild(fb);
+      }
+      if (item.missingDepts && item.missingDepts.length > 0) {
+        item.missingDepts.forEach(function(dept) {
+          var ab = document.createElement('button');
+          ab.textContent = '✓ OK: ' + dept.split(' ')[0];
+          ab.title = 'Acknowledge — intentional or posted next day';
+          ab.style.cssText = 'padding:4px 8px;background:#f0fdf4;color:#16a34a;border:1.5px solid #86efac;border-radius:6px;font-size:9px;font-weight:700;cursor:pointer';
+          ab.onclick = (function(d){ return function(){ item.ackFn(d); }; })(dept);
+          bw.appendChild(ab);
+        });
+      }
+      if (bw.children.length > 0) row.appendChild(bw);
     }
 
     body.appendChild(row);
@@ -18625,24 +18875,68 @@ function deptHasData(y, m, dept, day) {
 }
 
 // Returns array of {dept, day, label} for missing required dept/day combos
-function getMissingDeptDays(y, m, upToDay) {
-  var required = getRequiredDepts();
-  var missing  = [];
+// Departments that are irregular by nature — never flag as missing
+var _IRREGULAR_DEPTS = ['Dry Cleaning'];
+
+// Key for acknowledged missing days: pearl_ack_YYYY_MM
+function _ackKey(y, m) { return 'pearl_ack_' + y + '_' + m; }
+function loadAckDays(y, m) {
+  try { return JSON.parse(_STORE.getItem(_ackKey(y,m)) || '{}'); } catch(e) { return {}; }
+}
+function ackMissingDay(y, m, dept) {
+  var ack = loadAckDays(y, m);
+  if (!ack[dept]) ack[dept] = [];
+  // Acknowledge all currently missing days for this dept
+  var missing = getSmartMissingDays(y, m, dim(y,m));
+  missing.forEach(function(item) { if (item.dept === dept && ack[dept].indexOf(item.day) === -1) ack[dept].push(item.day); });
+  try { _STORE.setItem(_ackKey(y,m), JSON.stringify(ack)); } catch(e) {}
+  if (window._fbSaveKey) window._fbSaveKey('pearl/settings/ack_' + y + '_' + m, ack);
+  // Re-render checklist
+  var modal = document.getElementById('_month_checklist_modal');
+  if (modal) { modal.remove(); openMonthChecklist(m); }
+  else { var eomInfo = shouldShowEomChecklist(); if (eomInfo.show) renderEomChecklist(eomInfo.y, eomInfo.m); renderYearHealth(); }
+}
+
+// Smart missing days: only flag if the day was active for other depts
+function getSmartMissingDays(y, m, upToDay) {
+  var required = getRequiredDepts().filter(function(d) { return _IRREGULAR_DEPTS.indexOf(d) === -1; });
+  var ack      = loadAckDays(y, m);
   var today    = new Date();
-  for (var day = 1; day <= upToDay; day++) {
+  var nd       = dim(y, m);
+  var missing  = [];
+  var dows     = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+  // Don't check last 2 days of current month (might not be entered yet)
+  var curY = today.getFullYear(), curM = today.getMonth()+1, curD = today.getDate();
+  var isCurrentMonth = (y === curY && m === curM);
+  var checkLimit = isCurrentMonth ? Math.min(upToDay, nd - 2) : upToDay;
+
+  for (var day = 1; day <= checkLimit; day++) {
+    // Count how many required depts have data this day
+    var deptsWithData = required.filter(function(d) { return deptHasData(y, m, d, day); });
+    var totalActive   = deptsWithData.length;
+
+    // Skip day if NO departments had data — genuine rest day
+    if (totalActive === 0) continue;
+
+    // Skip day if only 1 dept active AND it's Uniform — could be weekly batch entry
+    if (totalActive === 1 && deptsWithData[0] === 'Uniform') continue;
+
+    // Now check for missing depts
     required.forEach(function(dept) {
-      if (!deptHasData(y, m, dept, day)) {
-        var dt   = new Date(y, m - 1, day);
-        var dows = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-        missing.push({
-          dept: dept,
-          day: day,
-          label: dows[dt.getDay()] + ' ' + day + ' — ' + dept
-        });
-      }
+      if (deptHasData(y, m, dept, day)) return; // has data, fine
+      if (ack[dept] && ack[dept].indexOf(day) !== -1) return; // acknowledged
+
+      var dt = new Date(y, m-1, day);
+      missing.push({ dept: dept, day: day, label: dows[dt.getDay()] + ' ' + day });
     });
   }
   return missing;
+}
+
+// Legacy wrapper used by runMissingDeptCheck
+function getMissingDeptDays(y, m, upToDay) {
+  return getSmartMissingDays(y, m, upToDay);
 }
 
 // ── Main check: run on boot (morning) and at 8pm ──
@@ -19377,13 +19671,28 @@ function openMonthChecklist(m) {
       '<div style="font-size:11px;color:#94a3b8;margin-top:1px">' + item.detail + '</div>';
     row.appendChild(info);
 
-    // Fix button
-    if (!item.done && item.action) {
-      var btn = document.createElement('button');
-      btn.textContent = 'Fix →';
-      btn.style.cssText = 'padding:6px 10px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0';
-      btn.onclick = function(){ modal.remove(); item.action(); };
-      row.appendChild(btn);
+    // Fix + Mark OK buttons
+    if (!item.done) {
+      var btnWrap = document.createElement('div');
+      btnWrap.style.cssText = 'display:flex;flex-direction:column;gap:6px;flex-shrink:0;align-items:flex-end';
+      if (item.action) {
+        var fixBtn = document.createElement('button');
+        fixBtn.textContent = 'Fix →';
+        fixBtn.style.cssText = 'padding:6px 10px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer';
+        fixBtn.onclick = (function(fn){ return function(){ modal.remove(); fn(); }; })(item.action);
+        btnWrap.appendChild(fixBtn);
+      }
+      if (item.missingDepts && item.missingDepts.length > 0) {
+        item.missingDepts.forEach(function(dept) {
+          var ackBtn = document.createElement('button');
+          ackBtn.textContent = '✓ Mark OK: ' + dept.split(' ')[0];
+          ackBtn.title = 'Intentional zero or posted next day';
+          ackBtn.style.cssText = 'padding:5px 8px;background:#f0fdf4;color:#16a34a;border:1.5px solid #86efac;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap';
+          ackBtn.onclick = (function(d, fn){ return function(){ fn(d); }; })(dept, item.ackFn);
+          btnWrap.appendChild(ackBtn);
+        });
+      }
+      if (btnWrap.children.length > 0) row.appendChild(btnWrap);
     }
 
     body.appendChild(row);
