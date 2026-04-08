@@ -1354,66 +1354,44 @@ var _fbDB = null;
 
   <!-- DASHBOARD -->
   <div class="pg on" id="tab-dashboard">
-    <div class="ph" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px">
-      <div><h1>Dashboard</h1><p>Live overview — Laundry Management System</p></div>
-      <button onclick="openFxConverter(monthTotals(CY,parseInt(document.getElementById('dash-month')?.value||new Date().getMonth()+1)).qr)"
-        style="padding:9px 16px;background:linear-gradient(135deg,#0d1b2e,#1e3a5f);color:#c9a84c;border:none;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;margin-top:4px;flex-shrink:0"
-        title="Convert this month total to other currencies">💱 Convert Revenue</button>
-    </div>
-    <div class="ctrl" style="flex-wrap:wrap;gap:10px;align-items:flex-end">
-      <div class="ctrl-group"><div class="ctrl-label">Month</div>
-        <select id="dash-month" onchange="renderDash()"></select></div>
-      <!-- Monthly Target Widget -->
-      <div style="display:flex;align-items:flex-end;gap:0;background:#fff;border:1.5px solid #e2e8f0;border-radius:10px;padding:8px 12px;gap:10px">
-        <div style="display:flex;flex-direction:column;gap:3px">
-          <div style="font-size:9px;font-weight:800;color:#94a3b8;letter-spacing:1.5px;text-transform:uppercase">Monthly Target · <span id="dash-target-month-lbl" style="color:#c9a84c"></span></div>
-          <div style="display:flex;align-items:center;gap:6px">
-            <!-- Step down buttons -->
-            <div style="display:flex;flex-direction:column;gap:2px">
-              <button onclick="stepTarget(-1000)" title="-1,000" style="width:22px;height:18px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;font-size:9px;cursor:pointer;color:#64748b;font-weight:700;line-height:1">-1k</button>
-              <button onclick="stepTarget(-5000)" title="-5,000" style="width:22px;height:18px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;font-size:9px;cursor:pointer;color:#64748b;font-weight:700;line-height:1">-5k</button>
-            </div>
-            <!-- Input -->
-            <input type="text" id="dash-target" placeholder="0" inputmode="numeric"
-              style="padding:6px 10px;border:1.5px solid #c9a84c;border-radius:8px;font-size:15px;font-weight:800;color:#0d1b2e;width:130px;outline:none;text-align:center;background:#fffbeb"
-              onchange="saveDashTarget()"
-              onfocus="this.select();this.value=this.value.replace(/,/g,'')"
-              onblur="formatTargetInputDisplay(this)">
-            <!-- Step up buttons -->
-            <div style="display:flex;flex-direction:column;gap:2px">
-              <button onclick="stepTarget(1000)" title="+1,000" style="width:22px;height:18px;background:#f0fdf4;border:1px solid #86efac;border-radius:4px;font-size:9px;cursor:pointer;color:#15803d;font-weight:700;line-height:1">+1k</button>
-              <button onclick="stepTarget(5000)" title="+5,000" style="width:22px;height:18px;background:#f0fdf4;border:1px solid #86efac;border-radius:4px;font-size:9px;cursor:pointer;color:#15803d;font-weight:700;line-height:1">+5k</button>
-            </div>
-          </div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:3px">
-          <div style="font-size:9px;font-weight:800;color:#94a3b8;letter-spacing:1.5px;text-transform:uppercase">&nbsp;</div>
-          <div style="display:flex;gap:4px;align-items:center">
-            <button onclick="stepTarget(10000)" title="+10,000"
-              style="padding:5px 8px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;color:#1d4ed8">+10k</button>
-            <button onclick="saveDashTarget()"
-              style="padding:6px 14px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer">💾 Save</button>
-          </div>
-        </div>
+    <!-- ── Compact top bar ── -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:200px">
+        <h1 style="margin:0;font-size:20px;font-weight:900;color:#0d1b2e">Dashboard</h1>
+        <select id="dash-month" onchange="renderDash()"
+          style="padding:6px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-weight:700;color:#0d1b2e;background:#fff;cursor:pointer"></select>
       </div>
-      <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+      <div style="display:flex;align-items:center;gap:8px">
         <div id="dash-insight-badge"></div>
         <div id="dash-notif"></div>
+        <button onclick="toggleYearHealth()"
+          style="padding:8px 14px;background:#fff;border:1.5px solid #e2e8f0;color:#64748b;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer"
+          id="btn-year-health" title="View year health">📋 Health</button>
+        <button onclick="openFxConverter(monthTotals(CY,parseInt(document.getElementById('dash-month')?.value||new Date().getMonth()+1)).qr)"
+          style="padding:8px 14px;background:linear-gradient(135deg,#0d1b2e,#1e3a5f);color:#c9a84c;border:none;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer"
+          title="Convert revenue to other currencies">💱 FX</button>
       </div>
     </div>
-    <div class="stats" id="dash-stats"></div>
-    <div id="dash-target-bar" style="margin-bottom:14px"></div>
-    <div id="dash-occ-quick" style="margin-bottom:10px"></div>
-    <div id="dash-occ-strip" style="margin-bottom:14px"></div>
 
-    <!-- End-of-Month Checklist (shows last 3 days + first 3 days next month) -->
-    <div id="eom-checklist-container" style="margin-bottom:18px;display:none">
-      <div id="eom-checklist-wrap"></div>
+    <!-- Stats -->
+    <div class="stats" id="dash-stats" style="margin-bottom:14px"></div>
+
+    <!-- Combined Target Bar (includes inline editing) -->
+    <div id="dash-target-bar" style="margin-bottom:14px"></div>
+
+    <!-- Compact Occupancy Row -->
+    <div id="dash-occ-quick" style="margin-bottom:14px"></div>
+
+    <!-- Year Health Panel — hidden by default, toggles -->
+    <div id="year-health-panel" style="display:none;margin-bottom:14px">
+      <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:16px">
+        <div id="year-health-wrap"></div>
+      </div>
     </div>
 
-    <!-- Year Health Panel — always visible -->
-    <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:16px;margin-bottom:18px">
-      <div id="year-health-wrap"></div>
+    <!-- EOM Checklist (last 3 days + first 3 days next month) -->
+    <div id="eom-checklist-container" style="margin-bottom:14px;display:none">
+      <div id="eom-checklist-wrap"></div>
     </div>
 
     <div class="two-col">
@@ -10418,641 +10396,135 @@ function stepTarget(delta) {
 function renderDashOccQuick(m) {
   var el = document.getElementById('dash-occ-quick');
   if (!el) return;
+  var today       = new Date();
+  var todayD      = today.getDate();
+  var todayM      = today.getMonth() + 1;
+  var todayY      = today.getFullYear();
+  var totalRooms  = _TOTAL_ROOMS || 161;
+  var isCurrentM  = (CY === todayY && m === todayM);
+  var displayDay  = isCurrentM ? todayD : dim(CY, m);
+  var occ         = loadDayOcc(CY, m, displayDay);
+  var rooms       = occ ? occ.rooms : null;
+  var pct         = rooms !== null ? (rooms / totalRooms * 100).toFixed(1) : null;
+  var dayName     = DAY_NAMES[new Date(CY, m-1, displayDay).getDay()];
+  var dayLabel    = dayName + ' ' + displayDay + ' ' + MONTH_NAMES[m-1];
 
-  var today         = new Date();
-  var todayD        = today.getDate();
-  var todayM        = today.getMonth() + 1;
-  var todayY        = today.getFullYear();
-  var totalRoomsNow = _TOTAL_ROOMS || 161;
-  var nd            = dim(CY, m);
+  // Color based on occupancy
+  var occCol = pct !== null ? (pct >= 80 ? '#16a34a' : pct >= 60 ? '#d97706' : '#dc2626') : '#94a3b8';
+  var occBg  = pct !== null ? (pct >= 80 ? '#f0fdf4' : pct >= 60 ? '#fffbeb' : '#fff5f5') : '#f8fafc';
 
-  // Default selected day
-  if (!window._dqSelectedDay || window._dqSelectedMonth !== m) {
-    window._dqSelectedDay   = (CY === todayY && m === todayM) ? todayD : nd;
-    window._dqSelectedMonth = m;
-  }
-  var selDay = window._dqSelectedDay;
+  el.innerHTML = '';
+  var row = document.createElement('div');
+  row.style.cssText = 'background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap';
 
-  var occ      = loadBenchOcc(CY, m);
-  var savedPct = occ[selDay] !== undefined ? occ[selDay] : '';
-  var savedRooms = savedPct !== '' ? Math.round(totalRoomsNow * parseFloat(savedPct) / 100) : '';
+  // Icon + label
+  var left = document.createElement('div');
+  left.style.cssText = 'display:flex;align-items:center;gap:8px';
+  left.innerHTML =
+    '<div style="width:32px;height:32px;background:#f0f4ff;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px">🏨</div>' +
+    '<div>' +
+      '<div style="font-size:11px;font-weight:800;color:#64748b;letter-spacing:.5px">OCCUPANCY · ' + dayLabel.toUpperCase() + '</div>' +
+      (pct !== null
+        ? '<div style="font-size:15px;font-weight:800;color:' + occCol + '">' + rooms + ' / ' + totalRooms + ' rooms &nbsp;·&nbsp; ' + pct + '%</div>'
+        : '<div style="font-size:13px;color:#94a3b8;font-style:italic">Not entered yet</div>'
+      ) +
+    '</div>';
+  row.appendChild(left);
 
-  // Previous day
-  var prevDay = selDay - 1;
-  var prevPct = (prevDay >= 1 && occ[prevDay] !== undefined) ? parseFloat(occ[prevDay]) : null;
+  // Spacer
+  var spacer = document.createElement('div');
+  spacer.style.cssText = 'flex:1';
+  row.appendChild(spacer);
 
-  // Month average
-  var occSum = 0, occCount = 0;
-  for (var d = 1; d <= nd; d++) {
-    if (occ[d] !== undefined && occ[d] !== '') {
-      var p = parseFloat(occ[d]);
-      if (p > 0) { occSum += p; occCount++; }
-    }
-  }
-  var monthAvg = occCount > 0 ? occSum / occCount : 0;
-
-  function occCol(pct) { return pct>=80?'#16a34a':pct>=60?'#d97706':'#dc2626'; }
-  function occBg(pct)  { return pct>=80?'#f0fdf4':pct>=60?'#fffbeb':'#fee2e2'; }
-
-  var curPct   = savedPct !== '' ? parseFloat(savedPct) : 0;
-  var DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-
-  // Build day dropdown options
-  var dayOpts = '';
-  var isToday = (CY === todayY && m === todayM);
-  for (var dd = 1; dd <= nd; dd++) {
-    var dt    = new Date(CY, m-1, dd);
-    var dow   = DAY_NAMES[dt.getDay()];
-    var hasDat = occ[dd] !== undefined && occ[dd] !== '';
-    var label = dow + ' ' + dd + (hasDat ? ' ✓' : '') +
-                (isToday && dd === todayD ? ' (Today)' : '') +
-                (isToday && dd === todayD-1 ? ' (Yesterday)' : '');
-    dayOpts += '<option value="' + dd + '"' + (dd === selDay ? ' selected' : '') + '>' + label + '</option>';
+  // Mini progress bar
+  if (pct !== null) {
+    var miniBar = document.createElement('div');
+    miniBar.style.cssText = 'width:100px;background:#f1f5f9;border-radius:10px;height:8px;overflow:hidden';
+    var miniFill = document.createElement('div');
+    miniFill.style.cssText = 'background:' + occCol + ';height:100%;width:' + pct + '%;border-radius:10px';
+    miniBar.appendChild(miniFill);
+    row.appendChild(miniBar);
   }
 
-  var selDt  = new Date(CY, m-1, selDay);
-  var selDow = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][selDt.getDay()];
-  var isSelToday = isToday && selDay === todayD;
-  var isSelYest  = isToday && selDay === todayD - 1;
-  var dayLabel   = selDow + ' ' + selDay + ' ' + MONTH_NAMES[m-1] + ' ' + CY +
-    (isSelToday ? ' — Today' : isSelYest ? ' — Yesterday' : '');
+  // Edit button — opens inline form
+  var editBtn = document.createElement('button');
+  editBtn.textContent = pct !== null ? '✏️ Edit' : '+ Enter';
+  editBtn.style.cssText = 'padding:7px 14px;background:' + occBg + ';border:1.5px solid ' + (pct!==null?occCol:'#e2e8f0') + ';color:' + occCol + ';border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap';
+  editBtn.onclick = function(){ toggleOccEdit(m, displayDay, totalRooms); };
+  row.appendChild(editBtn);
 
-  el.innerHTML =
-    '<div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;padding:14px 18px">' +
+  el.appendChild(row);
 
-      // ── Header row ──
-      '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px">' +
-        '<div style="display:flex;align-items:center;gap:10px">' +
-          '<div style="width:40px;height:40px;background:linear-gradient(135deg,#0d1b2e,#1e3a5f);border-radius:10px;' +
-            'display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🏨</div>' +
-          '<div>' +
-            '<div style="font-size:13px;font-weight:800;color:#0d1b2e">Occupancy Entry</div>' +
-            '<div style="font-size:11px;color:#64748b;margin-top:1px">' + totalRoomsNow + ' total rooms · ' + MONTH_NAMES[m-1] + ' ' + CY + '</div>' +
-          '</div>' +
-        '</div>' +
-
-        // Day selector
-        '<div style="display:flex;flex-direction:column;gap:2px">' +
-          '<div style="font-size:9px;font-weight:700;color:#94a3b8;letter-spacing:.8px">SELECT DAY</div>' +
-          '<select id="dq-day-sel" onchange="dqDayChanged(this.value,' + m + ')" ' +
-            'style="padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:12px;' +
-            'font-weight:700;color:#0d1b2e;background:#f8fafc;cursor:pointer;outline:none">' +
-            dayOpts +
-          '</select>' +
-        '</div>' +
+  // Inline edit form (hidden by default)
+  var form = document.createElement('div');
+  form.id = 'occ-edit-form';
+  form.style.cssText = 'display:none;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:12px;padding:14px 16px;margin-top:8px';
+  form.innerHTML =
+    '<div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:10px;letter-spacing:.5px">EDIT OCCUPANCY — ' + dayLabel.toUpperCase() + '</div>' +
+    '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">' +
+      '<div>' +
+        '<div style="font-size:10px;color:#94a3b8;margin-bottom:4px">Rooms Occupied</div>' +
+        '<input type="number" id="occ-rooms-inp" min="0" max="' + totalRooms + '" value="' + (rooms||'') + '" placeholder="0"' +
+          ' style="width:100px;padding:8px 12px;border:1.5px solid #c9a84c;border-radius:8px;font-size:16px;font-weight:700;color:#0d1b2e;outline:none;text-align:center"' +
+          ' oninput="_occInputChange(parseInt(this.value)||0,_TOTAL_ROOMS||161)">' +
       '</div>' +
-
-      // ── Selected day label ──
-      '<div style="font-size:12px;font-weight:700;color:' + (isSelToday?'#16a34a':isSelYest?'#d97706':'#0d1b2e') + ';' +
-        'margin-bottom:10px;padding:6px 12px;background:' + (isSelToday?'#f0fdf4':isSelYest?'#fffbeb':'#f8fafc') + ';' +
-        'border-radius:8px;display:inline-block">' +
-        (isSelToday?'📅 ':'📆 ') + dayLabel +
+      '<div style="font-size:20px;color:#94a3b8">/</div>' +
+      '<div>' +
+        '<div style="font-size:10px;color:#94a3b8;margin-bottom:4px">Total Rooms</div>' +
+        '<div style="font-size:16px;font-weight:800;color:#0d1b2e;padding:8px 12px">' + totalRooms + '</div>' +
       '</div>' +
-
-      // ── Input row ──
-      '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">' +
-
-        // Rooms
-        '<div style="display:flex;flex-direction:column;align-items:center;gap:2px">' +
-          '<div style="font-size:9px;font-weight:700;color:#94a3b8;letter-spacing:.8px">OCCUPIED ROOMS</div>' +
-          '<input id="dq-rooms" type="number" min="0" max="' + totalRoomsNow + '" ' +
-            'value="' + savedRooms + '" placeholder="e.g. 120" oninput="dqRoomsChanged()" ' +
-            'style="width:80px;padding:8px;border:2px solid #3b82f6;border-radius:8px;' +
-            'font-size:16px;font-weight:800;color:#0d1b2e;text-align:center;outline:none;background:#eff6ff">' +
-        '</div>' +
-
-        '<div style="font-size:18px;color:#94a3b8;margin-top:14px">⇄</div>' +
-
-        // Pct
-        '<div style="display:flex;flex-direction:column;align-items:center;gap:2px">' +
-          '<div style="font-size:9px;font-weight:700;color:#94a3b8;letter-spacing:.8px">OCCUPANCY %</div>' +
-          '<input id="dq-pct" type="number" min="0" max="100" step="0.1" ' +
-            'value="' + savedPct + '" placeholder="e.g. 74.5" oninput="dqPctChanged()" ' +
-            'style="width:80px;padding:8px;border:2px solid #16a34a;border-radius:8px;' +
-            'font-size:16px;font-weight:800;color:#0d1b2e;text-align:center;outline:none;background:#f0fdf4">' +
-        '</div>' +
-
-        // Live dot
-        '<div style="display:flex;flex-direction:column;align-items:center;gap:3px;margin-top:14px">' +
-          '<div id="dq-dot" style="width:14px;height:14px;border-radius:50%;background:' + (curPct>0?occCol(curPct):'#e2e8f0') + '"></div>' +
-          '<div id="dq-pct-label" style="font-size:9px;font-weight:700;color:' + (curPct>0?occCol(curPct):'#94a3b8') + '">' +
-            (curPct > 0 ? curPct.toFixed(1)+'%' : '—') +
-          '</div>' +
-        '</div>' +
-
-        // Save + Clear
-        '<div style="display:flex;gap:6px;margin-top:14px">' +
-          '<button onclick="dqSave(' + selDay + ',' + m + ')" ' +
-            'style="padding:9px 18px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:8px;' +
-            'font-size:12px;font-weight:800;cursor:pointer">💾 Save</button>' +
-          '<button onclick="dqClear(' + selDay + ',' + m + ')" ' +
-            'style="padding:9px 12px;background:#fff5f5;border:1.5px solid #fca5a5;color:#dc2626;' +
-            'border-radius:8px;font-size:12px;cursor:pointer" title="Clear this day">🗑</button>' +
-        '</div>' +
+      '<div style="padding:8px 14px;background:#fffbeb;border-radius:8px;text-align:center">' +
+        '<div id="occ-pct-display" style="font-size:18px;font-weight:900;color:#d97706">' + (pct||'—') + (pct?'%':'') + '</div>' +
+        '<div style="font-size:9px;color:#94a3b8">OCCUPANCY</div>' +
       '</div>' +
-
-      // ── Stats row ──
-      '<div style="display:flex;gap:8px;margin-top:12px;padding-top:10px;border-top:1px solid #f1f5f9;flex-wrap:wrap;align-items:center">' +
-        (curPct > 0 ?
-          '<div style="padding:5px 12px;background:' + occBg(curPct) + ';border-radius:8px;' +
-            'font-size:11px;font-weight:700;color:' + occCol(curPct) + '">' +
-            'Day ' + selDay + ': ' + curPct.toFixed(1) + '% · ' + Math.round(totalRoomsNow*curPct/100) + ' rooms' +
-          '</div>'
-        : '<div style="font-size:11px;color:#94a3b8">No data for day ' + selDay + '</div>') +
-
-        (prevPct !== null ?
-          '<div style="padding:5px 12px;background:#f8fafc;border-radius:8px;font-size:11px;color:#64748b">' +
-            'Day ' + prevDay + ': <strong style="color:#0d1b2e">' + prevPct.toFixed(1) + '%</strong>' +
-            (curPct > 0 ? ' <span style="color:' + (curPct>=prevPct?'#16a34a':'#dc2626') + ';font-weight:700">' +
-              (curPct>=prevPct?'▲':'▼') + Math.abs(curPct-prevPct).toFixed(1) + 'pp</span>' : '') +
-          '</div>' : '') +
-
-        (monthAvg > 0 ?
-          '<div style="padding:5px 12px;background:#f8fafc;border-radius:8px;font-size:11px;color:#64748b">' +
-            'Month avg: <strong style="color:#0d1b2e">' + monthAvg.toFixed(1) + '%</strong>' +
-          '</div>' : '') +
-
-        '<div id="dq-saved-msg" style="display:none;padding:5px 12px;background:#f0fdf4;' +
-          'border-radius:8px;font-size:11px;color:#16a34a;font-weight:700">✅ Saved!</div>' +
+      '<div style="display:flex;gap:8px">' +
+        '<button onclick="saveOccFromCompact(' + m + ',' + displayDay + ',' + totalRooms + ')" style="padding:10px 18px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">💾 Save</button>' +
+        '<button onclick="document._closeOccEdit()" style="padding:10px 14px;background:#f1f5f9;color:#64748b;border:none;border-radius:8px;font-size:13px;cursor:pointer">Cancel</button>' +
       '</div>' +
     '</div>';
-
-  window._dqTargetDay = selDay;
-  window._dqMonth     = m;
-}
-
-// ── Day selector changed ──
-function dqDayChanged(day, m) {
-  window._dqSelectedDay   = parseInt(day);
-  window._dqSelectedMonth = m;
-  renderDashOccQuick(m);
+  el.appendChild(form);
 }
 
 
-function dqRoomsChanged() {
-  var totalRoomsNow = _TOTAL_ROOMS || 161;
-  var rInp = document.getElementById('dq-rooms');
-  var pInp = document.getElementById('dq-pct');
-  if (!rInp || !pInp) return;
-  var rooms = parseFloat(rInp.value);
-  if (!isNaN(rooms) && totalRoomsNow > 0) {
-    pInp.value = Math.min(100, rooms / totalRoomsNow * 100).toFixed(1);
-  }
-  dqUpdateIndicator();
+
+function _closeOccEdit() {
+  var f = document.getElementById('occ-edit-form');
+  if (f) f.style.display = 'none';
 }
 
-function dqPctChanged() {
-  var totalRoomsNow = _TOTAL_ROOMS || 161;
-  var rInp = document.getElementById('dq-rooms');
-  var pInp = document.getElementById('dq-pct');
-  if (!rInp || !pInp) return;
-  var pct = parseFloat(pInp.value);
-  if (!isNaN(pct) && totalRoomsNow > 0) {
-    rInp.value = Math.round(totalRoomsNow * Math.min(100, pct) / 100);
-  }
-  dqUpdateIndicator();
+function _occInputChange(rooms, totalRooms) {
+  var pct = (rooms / totalRooms * 100).toFixed(1);
+  var el  = document.getElementById('occ-pct-display');
+  if (el) el.textContent = pct + '%';
 }
 
-function dqUpdateIndicator() {
-  var pInp = document.getElementById('dq-pct');
-  var dot  = document.getElementById('dq-dot');
-  var lbl  = document.getElementById('dq-pct-label');
-  if (!pInp) return;
-  var pct = parseFloat(pInp.value) || 0;
-  var col = pct >= 80 ? '#16a34a' : pct >= 60 ? '#d97706' : pct > 0 ? '#dc2626' : '#e2e8f0';
-  if (dot) dot.style.background = col;
-  if (lbl) {
-    lbl.style.color = col;
-    lbl.textContent = pct > 0 ? pct.toFixed(1) + '%' : '—';
+function toggleOccEdit(m, day, totalRooms) {
+  var form = document.getElementById('occ-edit-form');
+  if (!form) return;
+  form.style.display = form.style.display === 'none' ? 'block' : 'none';
+  if (form.style.display === 'block') {
+    setTimeout(function(){ var inp = document.getElementById('occ-rooms-inp'); if(inp){ inp.focus(); inp.select(); } }, 100);
   }
 }
 
-function dqSave(day, m) {
-  var pInp = document.getElementById('dq-pct');
-  var rInp = document.getElementById('dq-rooms');
-  if (!pInp) return;
-  var pct   = parseFloat(pInp.value);
-  var rooms = parseFloat(rInp?.value);
-  if (isNaN(pct) || pct < 0 || pct > 100) {
-    toast('⚠️ Enter a valid occupancy % (0-100)', 'err'); return;
-  }
-
-  // Save to benchmark store (pearl/benchmark)
-  var occ = loadBenchOcc(CY, m);
-  occ[day] = pct;
-  saveBenchOccData(CY, m, occ);
-  // ALSO save to pearl/occupancy path so autoSync and diagnostics find it
-  saveDayOcc(CY, m, day, isNaN(rooms) ? Math.round((_TOTAL_ROOMS||161)*pct/100) : rooms, pct);
-
-  // Sync benchmark grid if visible
-  var bInp   = document.getElementById('bocc_' + day);
-  var bRooms = document.getElementById('bocc_rooms_' + day);
-  if (bInp) bInp.value = pct;
-  if (bRooms && !isNaN(rooms)) bRooms.value = rooms;
-
-  // Show saved message
-  var msg = document.getElementById('dq-saved-msg');
-  if (msg) { msg.style.display = 'block'; setTimeout(function(){ msg.style.display='none'; }, 2500); }
-
-  toast('🏨 Day ' + day + ' saved: ' + pct.toFixed(1) + '% · ' + (isNaN(rooms)?'':rooms+' rooms'), 'ok');
-  renderOccStrip(m);
-  setTimeout(function(){ renderDashOccQuick(m); }, 300);
+function saveOccFromCompact(m, day, totalRooms) {
+  var inp = document.getElementById('occ-rooms-inp');
+  if (!inp) return;
+  var rooms = parseInt(inp.value) || 0;
+  var pct   = totalRooms > 0 ? parseFloat((rooms / totalRooms * 100).toFixed(2)) : 0;
+  saveDayOcc(CY, m, day, rooms, pct);
+  document.getElementById('occ-edit-form').style.display = 'none';
+  renderDash();
+  toast('🏨 Occupancy saved: ' + rooms + ' rooms (' + pct.toFixed(1) + '%)', 'ok');
 }
 
-function dqClear(day, m) {
-  if (!confirm('Clear occupancy data for day ' + day + '?')) return;
-  var occ = loadBenchOcc(CY, m);
-  delete occ[day];
-  saveBenchOccData(CY, m, occ);
-  var bInp   = document.getElementById('bocc_' + day);
-  var bRooms = document.getElementById('bocc_rooms_' + day);
-  if (bInp)   bInp.value   = '';
-  if (bRooms) bRooms.value = '';
-  toast('🗑 Day ' + day + ' occupancy cleared', 'ok');
-  renderOccStrip(m);
-  setTimeout(function(){ renderDashOccQuick(m); }, 300);
-}
 
 function renderOccStrip(m) {
+  // Removed from dashboard — occupancy strip now shown in Benchmark tab only
   var el = document.getElementById('dash-occ-strip');
-  if (!el) return;
-  var nd = dim(CY, m);
-  var occ = loadBenchOcc(CY, m);
-  var totalRoomsNow = _TOTAL_ROOMS || 161;
-
-  // Calculate stats
-  var occDays = [], totalOccPct = 0, occCount = 0;
-  var bestDay = 0, bestPct = 0, worstDay = 0, worstPct = 100;
-  var totalOccRooms = 0;
-
-  for (var d = 1; d <= nd; d++) {
-    var pct = parseFloat(occ[d]) || 0;
-    occDays.push(pct);
-    if (pct > 0) {
-      totalOccPct += pct; occCount++;
-      totalOccRooms += Math.round(totalRoomsNow * pct / 100);
-      if (pct > bestPct) { bestPct = pct; bestDay = d; }
-      if (pct < worstPct) { worstPct = pct; worstDay = d; }
-    }
-  }
-
-  var avgOcc = occCount > 0 ? totalOccPct / occCount : 0;
-  var avgOccRooms = occCount > 0 ? Math.round(totalOccRooms / occCount) : 0;
-
-  if (occCount === 0) {
-    el.innerHTML = '<div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">' +
-      '<div style="display:flex;align-items:center;gap:10px">' +
-        '<div style="font-size:18px">🏨</div>' +
-        '<div>' +
-          '<div style="font-size:13px;font-weight:800;color:#0d1b2e">Occupancy — ' + MONTH_NAMES[m-1] + ' ' + CY + '</div>' +
-          '<div style="font-size:11px;color:#94a3b8">No occupancy data entered yet</div>' +
-        '</div>' +
-      '</div>' +
-      '<button onclick="showTab(\'benchmark\')" style="padding:7px 14px;background:#eff6ff;border:1.5px solid #bfdbfe;color:#1d4ed8;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer">✏️ Enter Occupancy →</button>' +
-    '</div>';
-    return;
-  }
-
-  // Mini bar chart — one bar per day
-  var bars = '';
-  for (var d2 = 1; d2 <= nd; d2++) {
-    var p = occDays[d2-1];
-    var col = p >= 80 ? '#16a34a' : p >= 60 ? '#d97706' : p > 0 ? '#dc2626' : '#e2e8f0';
-    var h = p > 0 ? Math.max(4, Math.round(p * 0.36)) : 2;
-    bars += '<div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:38px;cursor:pointer" title="Day ' + d2 + ': ' + (p > 0 ? p.toFixed(0)+'%' : 'No data') + '">' +
-      '<div style="width:100%;background:' + col + ';border-radius:2px 2px 0 0;height:' + h + 'px;min-height:' + (p>0?'4':'2') + 'px;transition:height .2s"></div>' +
-    '</div>';
-  }
-
-  var avgCol = avgOcc >= 80 ? '#16a34a' : avgOcc >= 60 ? '#d97706' : '#dc2626';
-  var avgBg  = avgOcc >= 80 ? '#f0fdf4' : avgOcc >= 60 ? '#fffbeb' : '#fee2e2';
-
-  el.innerHTML =
-    '<div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;padding:14px 18px">' +
-      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">' +
-        '<div style="display:flex;align-items:center;gap:10px">' +
-          '<div style="font-size:18px">🏨</div>' +
-          '<div>' +
-            '<div style="font-size:13px;font-weight:800;color:#0d1b2e">Occupancy — ' + MONTH_NAMES[m-1] + ' ' + CY + '</div>' +
-            '<div style="font-size:11px;color:#94a3b8">' + totalRoomsNow + ' total rooms · ' + occCount + ' days tracked</div>' +
-          '</div>' +
-        '</div>' +
-        '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">' +
-          '<div style="text-align:center;padding:6px 14px;background:' + avgBg + ';border-radius:8px">' +
-            '<div style="font-size:18px;font-weight:900;color:' + avgCol + '">' + avgOcc.toFixed(1) + '%</div>' +
-            '<div style="font-size:9px;color:#64748b;font-weight:600">AVG OCC</div>' +
-          '</div>' +
-          '<div style="text-align:center;padding:6px 14px;background:#f8fafc;border-radius:8px">' +
-            '<div style="font-size:18px;font-weight:900;color:#0d1b2e">' + avgOccRooms + '</div>' +
-            '<div style="font-size:9px;color:#64748b;font-weight:600">AVG ROOMS</div>' +
-          '</div>' +
-          (bestDay > 0 ? '<div style="text-align:center;padding:6px 14px;background:#f0fdf4;border-radius:8px">' +
-            '<div style="font-size:14px;font-weight:900;color:#16a34a">Day ' + bestDay + ' · ' + bestPct.toFixed(0) + '%</div>' +
-            '<div style="font-size:9px;color:#64748b;font-weight:600">BEST DAY</div>' +
-          '</div>' : '') +
-          '<button onclick="showTab(\'benchmark\')" style="padding:6px 12px;background:#eff6ff;border:1.5px solid #bfdbfe;color:#1d4ed8;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer">✏️ Edit →</button>' +
-        '</div>' +
-      '</div>' +
-      // Mini bar chart
-      '<div style="display:grid;grid-template-columns:repeat(' + nd + ',1fr);gap:2px;align-items:flex-end;padding:0 2px">' +
-        bars +
-      '</div>' +
-      // Legend
-      '<div style="display:flex;gap:12px;margin-top:6px">' +
-        '<div style="display:flex;align-items:center;gap:4px"><div style="width:8px;height:8px;border-radius:2px;background:#16a34a"></div><span style="font-size:9px;color:#64748b">≥80%</span></div>' +
-        '<div style="display:flex;align-items:center;gap:4px"><div style="width:8px;height:8px;border-radius:2px;background:#d97706"></div><span style="font-size:9px;color:#64748b">60-79%</span></div>' +
-        '<div style="display:flex;align-items:center;gap:4px"><div style="width:8px;height:8px;border-radius:2px;background:#dc2626"></div><span style="font-size:9px;color:#64748b"><60%</span></div>' +
-        '<div style="display:flex;align-items:center;gap:4px"><div style="width:8px;height:8px;border-radius:2px;background:#e2e8f0"></div><span style="font-size:9px;color:#64748b">No data</span></div>' +
-      '</div>' +
-    '</div>';
+  if (el) el.innerHTML = '';
 }
 
-function renderTargetBar(totalRev, m) {
-  var target = loadTarget(CY, m);
-  var bar = document.getElementById('dash-target-bar');
-  if (!bar) return;
-  if (!target || !target.revenue) {
-    bar.innerHTML = '<div style="background:#fffbeb;border:1.5px dashed #fde68a;border-radius:12px;padding:12px 18px;display:flex;align-items:center;gap:10px">' +
-      '<span style="font-size:18px">🎯</span>' +
-      '<span style="font-size:12px;color:#92400e;font-weight:600">No monthly target set — use the target input above to set one for ' + MONTH_NAMES[m-1] + '</span>' +
-    '</div>';
-    return;
-  }
-  var tgt = target.revenue;
-  var pct = Math.min(100, (totalRev / tgt * 100));
-  var col   = pct >= 100 ? '#16a34a' : pct >= 75 ? '#d97706' : '#dc2626';
-  var bg    = pct >= 100 ? '#f0fdf4' : pct >= 75 ? '#fffbeb' : '#fff5f5';
-  var bdr   = pct >= 100 ? '#86efac' : pct >= 75 ? '#fde68a' : '#fecaca';
-  var label = pct >= 100 ? '🎉 Target reached!' : pct >= 75 ? '⚡ On track' : '⚠️ Below target';
-  bar.innerHTML =
-    '<div style="background:#fff;border:1.5px solid ' + bdr + ';border-radius:12px;padding:16px 20px">' +
-
-    // Header row — title + status badge + numbers
-    '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px">' +
-      '<div style="display:flex;align-items:center;gap:10px">' +
-        '<div style="width:36px;height:36px;background:' + bg + ';border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px">🎯</div>' +
-        '<div>' +
-          '<div style="font-size:13px;font-weight:800;color:#0d1b2e">Revenue Target — ' + MONTH_NAMES[m-1] + ' ' + CY + '</div>' +
-          '<div style="font-size:11px;color:#64748b;margin-top:1px">Monthly budget progress</div>' +
-        '</div>' +
-      '</div>' +
-      '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">' +
-        // Actual
-        '<div style="text-align:right">' +
-          '<div style="font-size:18px;font-weight:900;color:#0d1b2e">' + fmtMoney(totalRev) + '</div>' +
-          '<div style="font-size:9px;color:#64748b;font-weight:700;letter-spacing:.8px">ACTUAL</div>' +
-        '</div>' +
-        '<div style="font-size:18px;color:#e2e8f0;font-weight:300">/</div>' +
-        // Target
-        '<div style="text-align:right">' +
-          '<div style="font-size:18px;font-weight:900;color:#94a3b8">' + fmtMoney(tgt) + '</div>' +
-          '<div style="font-size:9px;color:#94a3b8;font-weight:700;letter-spacing:.8px">TARGET</div>' +
-        '</div>' +
-        // % badge
-        '<div style="padding:6px 14px;background:' + bg + ';border:1.5px solid ' + bdr + ';border-radius:10px;text-align:center">' +
-          '<div style="font-size:20px;font-weight:900;color:' + col + '">' + pct.toFixed(1) + '%</div>' +
-          '<div style="font-size:9px;color:' + col + ';font-weight:700">' + label + '</div>' +
-        '</div>' +
-      '</div>' +
-    '</div>' +
-
-    // Progress bar
-    '<div style="background:#f1f5f9;border-radius:20px;height:12px;overflow:hidden;margin-bottom:8px;position:relative">' +
-      '<div style="background:linear-gradient(90deg,' + col + ',' + (pct>=100?'#22c55e':pct>=75?'#f59e0b':'#ef4444') + ');height:100%;width:' + pct + '%;border-radius:20px;transition:width .6s cubic-bezier(.22,1,.36,1)"></div>' +
-      (pct < 100 ? '<div style="position:absolute;right:4px;top:50%;transform:translateY(-50%);font-size:9px;color:#94a3b8;font-weight:700">' + (100-pct).toFixed(1) + '% to go</div>' : '') +
-    '</div>' +
-    // Remaining / exceeded section
-    (function(){
-      if (pct >= 100) {
-        var exceeded = totalRev - tgt;
-        return '<div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:12px;padding:10px 16px;background:rgba(22,163,74,.1);border-radius:8px">' +
-          '<span style="font-size:16px">🎉</span>' +
-          '<span style="font-size:13px;font-weight:800;color:#16a34a">Exceeded by ' + fmtMoney(exceeded) + '</span>' +
-        '</div>';
-      }
-      var remaining = tgt - totalRev;
-      var today = new Date();
-      var daysLeft = (today.getMonth()+1 === m && today.getFullYear() === CY)
-        ? dim(CY, m) - today.getDate() + 1
-        : dim(CY, m);
-      var neededPerDay = daysLeft > 0 ? remaining / daysLeft : remaining;
-      var urgency = daysLeft <= 5 ? '#dc2626' : daysLeft <= 10 ? '#d97706' : '#64748b';
-      return '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding:10px 16px;background:rgba(0,0,0,.04);border-radius:8px;flex-wrap:wrap;gap:8px">' +
-        '<div style="display:flex;align-items:center;gap:6px">' +
-          '<span style="font-size:15px">📉</span>' +
-          '<span style="font-size:13px;font-weight:800;color:#dc2626">' + fmtMoney(remaining) + ' remaining</span>' +
-        '</div>' +
-        '<div style="display:flex;align-items:center;gap:6px">' +
-          '<span style="font-size:12px;color:' + urgency + ';font-weight:700">' + daysLeft + ' days left</span>' +
-          '<span style="color:#94a3b8;font-size:11px">·</span>' +
-          '<span style="font-size:12px;font-weight:800;color:' + urgency + '">need ' + fmtMoney(neededPerDay) + '/day</span>' +
-        '</div>' +
-      '</div>';
-    })() +
-    '</div>';
-}
-
-function showMissingDaysPopup(m, missingList) {
-  var existing = document.getElementById('missing-days-popup');
-  if (existing) { existing.remove(); return; }
-  var popup = document.createElement('div');
-  popup.id = 'missing-days-popup';
-  popup.style.cssText = 'position:absolute;top:calc(100% + 8px);right:0;background:#fff;border:1.5px solid #fca5a5;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.15);z-index:600;min-width:240px;overflow:hidden';
-  var html = '<div style="background:#dc2626;padding:10px 14px;font-size:11px;font-weight:800;color:#fff;letter-spacing:.5px">⚠️ MISSING DATA — ' + missingList.length + ' DAY(S)</div>';
-  html += '<div style="max-height:260px;overflow-y:auto">';
-  missingList.forEach(function(d) {
-    var dayName = DAY_NAMES[new Date(CY, m-1, d).getDay()];
-    html += '<div onclick="goToDay(' + m + ',' + d + ');var mp=document.getElementById(\"missing-days-popup\");if(mp)mp.remove()" ' +
-      'style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid #f1f5f9;cursor:pointer;transition:background .1s" ' +
-      'onmouseover="this.style.background=\"#fff5f5\"" onmouseout="this.style.background=\"#fff\"">' +
-      '<div>' +
-        '<div style="font-size:13px;font-weight:700;color:#0d1b2e">' + dayName + ' ' + d + ' ' + MONTH_NAMES[m-1] + '</div>' +
-        '<div style="font-size:10px;color:#94a3b8;margin-top:1px">No data entered</div>' +
-      '</div>' +
-      '<span style="font-size:11px;color:#dc2626;font-weight:700">Enter →</span>' +
-    '</div>';
-  });
-  html += '</div>';
-  html += '<div style="padding:8px 14px;background:#f8fafc;font-size:10px;color:#94a3b8">Click a day to go to entry</div>';
-  popup.innerHTML = html;
-  // Close on outside click
-  setTimeout(function() {
-    document.addEventListener('click', function closePopup(e) {
-      if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', closePopup); }
-    });
-  }, 10);
-  return popup;
-}
-
-function generateInsights(m) {
-  // Returns array of insight objects {level, icon, msg, detail}
-  var insights = [];
-  var nd = dim(CY, m);
-  var prevM = m === 1 ? 12 : m - 1;
-  var prevY = m === 1 ? CY - 1 : CY;
-
-  // Gather data
-  var curQR = 0, curKG = 0, actDays = 0, dailyRevs = [];
-  for (var d = 1; d <= nd; d++) {
-    var dt = dayTotals(CY, m, d);
-    curQR += dt.qr; curKG += dt.kg;
-    dailyRevs.push(dt.qr);
-    if (dt.qr > 0) actDays++;
-  }
-  var avgRev = actDays > 0 ? curQR / actDays : 0;
-
-  var prevQR = 0, prevActs = 0;
-  for (var d2 = 1; d2 <= dim(prevY, prevM); d2++) {
-    var pd = dayTotals(prevY, prevM, d2);
-    prevQR += pd.qr;
-    if (pd.qr > 0) prevActs++;
-  }
-  var prevAvg = prevActs > 0 ? prevQR / prevActs : 0;
-
-  var lyQR = 0;
-  for (var d3 = 1; d3 <= dim(CY-1, m); d3++) { lyQR += dayTotals(CY-1, m, d3).qr; }
-
-  var target = loadTarget(CY, m)?.revenue || 0;
-
-  // ── Insight 1: MoM trend ──
-  if (prevQR > 0 && curQR > 0) {
-    var momPct = (avgRev - prevAvg) / prevAvg * 100;
-    if (Math.abs(momPct) > 5) {
-      insights.push({
-        level: momPct > 0 ? 'positive' : 'warning',
-        icon: momPct > 0 ? '📈' : '📉',
-        msg: 'Daily avg ' + (momPct > 0 ? 'up' : 'down') + ' ' + Math.abs(momPct).toFixed(1) + '% vs ' + MONTH_NAMES[prevM-1],
-        detail: fmtMoney(avgRev) + '/day this month vs ' + fmtMoney(prevAvg) + '/day last month'
-      });
-    }
-  }
-
-  // ── Insight 2: YoY comparison ──
-  if (lyQR > 0 && curQR > 0) {
-    var yoyPct = (curQR - lyQR) / lyQR * 100;
-    insights.push({
-      level: yoyPct > 0 ? 'positive' : 'watch',
-      icon: yoyPct > 0 ? '🏆' : '⚡',
-      msg: (yoyPct > 0 ? 'Ahead' : 'Behind') + ' same month last year by ' + Math.abs(yoyPct).toFixed(1) + '%',
-      detail: fmtMoney(curQR) + ' this year vs ' + fmtMoney(lyQR) + ' in ' + (CY-1)
-    });
-  }
-
-  // ── Insight 3: Target pace ──
-  if (target > 0 && actDays > 0) {
-    var daysLeft = nd - actDays;
-    var needed = (target - curQR) / Math.max(daysLeft, 1);
-    var estClose = avgRev * nd;
-    var estPct = estClose / target * 100;
-    if (estPct >= 100) {
-      insights.push({ level: 'positive', icon: '🎯', msg: 'On track to exceed target — projected ' + estPct.toFixed(0) + '% of goal', detail: 'Est. ' + fmtMoney(estClose) + ' vs target ' + fmtMoney(target) });
-    } else if (estPct < 80) {
-      insights.push({ level: 'warning', icon: '⚠️', msg: 'Behind target — need ' + fmtMoney(needed) + '/day to hit goal', detail: 'Projected ' + estPct.toFixed(0) + '% of ' + fmtMoney(target) + ' target' });
-    }
-  }
-
-  // ── Insight 4: Spike / anomaly detection ──
-  if (avgRev > 0) {
-    var maxDay = 0, maxVal = 0, minDay = 0, minVal = Infinity;
-    for (var dx = 1; dx <= nd; dx++) {
-      var rv = dailyRevs[dx-1];
-      if (rv > 0 && rv > maxVal) { maxVal = rv; maxDay = dx; }
-      if (rv > 0 && rv < minVal) { minVal = rv; minDay = dx; }
-    }
-    if (maxVal > avgRev * 2.2) {
-      insights.push({ level: 'info', icon: '⚡', msg: 'Day ' + maxDay + ' was unusually high — ' + (maxVal/avgRev).toFixed(1) + 'x the daily average', detail: fmtMoney(maxVal) + ' vs avg ' + fmtMoney(avgRev) + ' — verify entry' });
-    }
-    if (minVal > 0 && minVal < avgRev * 0.3 && actDays > 5) {
-      insights.push({ level: 'watch', icon: '🔍', msg: 'Day ' + minDay + ' was unusually low — only ' + fmtMoney(minVal), detail: 'Only ' + (minVal/avgRev*100).toFixed(0) + '% of daily average — check if complete' });
-    }
-  }
-
-  // ── Insight 5: Best performing department ──
-  var deptRevs = {};
-  DEPT_KEYS.forEach(function(dept) {
-    var qr = 0;
-    MASTER[dept].forEach(function(_, i) {
-      for (var d4 = 1; d4 <= nd; d4++) qr += getVal(CY, m, dept, i, d4-1) * getP(dept, i);
-    });
-    deptRevs[dept] = qr;
-  });
-  var topDept = Object.keys(deptRevs).sort(function(a,b){ return deptRevs[b]-deptRevs[a]; })[0];
-  var topPct = curQR > 0 ? deptRevs[topDept]/curQR*100 : 0;
-  if (topDept && deptRevs[topDept] > 0) {
-    insights.push({ level: 'info', icon: '🥇', msg: topDept + ' is the top department at ' + topPct.toFixed(1) + '% of revenue', detail: fmtMoney(deptRevs[topDept]) + ' from ' + topDept });
-  }
-
-  // ── Insight 6: Silent department ──
-  var silentDepts = DEPT_KEYS.filter(function(dept){ return deptRevs[dept] === 0; });
-  if (silentDepts.length > 0) {
-    insights.push({ level: 'warning', icon: '🔴', msg: silentDepts.length + ' department' + (silentDepts.length>1?'s have':' has') + ' no revenue this month', detail: silentDepts.join(', ') });
-  }
-
-  // ── Insight 7: Best day of week ──
-  var dowTotals = {0:0,1:0,2:0,3:0,4:0,5:0,6:0}, dowCounts = {0:0,1:0,2:0,3:0,4:0,5:0,6:0};
-  var dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  for (var dw = 1; dw <= nd; dw++) {
-    var rv2 = dailyRevs[dw-1];
-    if (rv2 > 0) {
-      var dow = new Date(CY, m-1, dw).getDay();
-      dowTotals[dow] += rv2; dowCounts[dow]++;
-    }
-  }
-  var bestDow = -1, bestDowAvg = 0;
-  for (var w = 0; w < 7; w++) {
-    if (dowCounts[w] > 1) {
-      var avg2 = dowTotals[w] / dowCounts[w];
-      if (avg2 > bestDowAvg) { bestDowAvg = avg2; bestDow = w; }
-    }
-  }
-  if (bestDow >= 0) {
-    insights.push({ level: 'info', icon: '📅', msg: dayNames[bestDow] + ' is the strongest day — avg ' + fmtMoney(bestDowAvg), detail: 'Based on ' + dowCounts[bestDow] + ' ' + dayNames[bestDow] + 's this month' });
-  }
-
-  return insights;
-}
-
-function getTopBottomItems(m) {
-  var nd = dim(CY, m);
-  var items = [];
-  DEPT_KEYS.forEach(function(dept) {
-    MASTER[dept].forEach(function(row, i) {
-      var qr = 0, kg = 0, pcs = 0;
-      for (var d = 1; d <= nd; d++) {
-        var v = getVal(CY, m, dept, i, d-1);
-        qr  += v * getP(dept, i);
-        kg  += v * getK(dept, i);
-        pcs += v;
-      }
-      if (qr > 0) { // exclude zero items
-        items.push({ name: row[0], dept: dept, qr: qr, kg: kg, pcs: pcs });
-      }
-    });
-  });
-  items.sort(function(a,b){ return b.qr - a.qr; });
-  var totalQR = items.reduce(function(s,i){ return s + i.qr; }, 0);
-  items.forEach(function(it){ it.pct = totalQR > 0 ? it.qr/totalQR*100 : 0; });
-  return { items: items, totalQR: totalQR };
-}
-
-function renderInsightBadge(m) {
-  var el = document.getElementById('dash-insight-badge');
-  if (!el) return;
-  var insights = generateInsights(m);
-  var warnings = insights.filter(function(i){ return i.level==='warning'; }).length;
-  var positives = insights.filter(function(i){ return i.level==='positive'; }).length;
-  var col = warnings > 0 ? '#dc2626' : positives > 0 ? '#16a34a' : '#0284c7';
-  var bg  = warnings > 0 ? '#fee2e2' : positives > 0 ? '#f0fdf4' : '#eff6ff';
-  var bdr = warnings > 0 ? '#fca5a5' : positives > 0 ? '#86efac' : '#bfdbfe';
-  var icon = warnings > 0 ? '⚠️' : positives > 0 ? '✅' : '💡';
-  el.innerHTML = '<div onclick="showTab(\'analytics\')" style="cursor:pointer;display:flex;align-items:center;gap:8px;background:' + bg + ';border:1.5px solid ' + bdr + ';border-radius:10px;padding:8px 14px;transition:all .2s" title="Click to view full insights in Analytics">' +
-    '<span style="font-size:14px">' + icon + '</span>' +
-    '<div>' +
-      '<div style="font-size:12px;font-weight:700;color:' + col + '">' + insights.length + ' insights this month</div>' +
-      '<div style="font-size:10px;color:#64748b">' + (warnings>0 ? warnings+' warning'+(warnings>1?'s':'') : positives+' positive') + ' · click to view →</div>' +
-    '</div>' +
-  '</div>';
-}
 
 function renderNotifications(m, totalRev, nd) {
   var el = document.getElementById('dash-notif');
@@ -17640,6 +17112,890 @@ function _dismissEomReminder() {
   if (el) el.remove();
 }
 
+
+// Departments that are irregular by nature — never flag as missing
+var _IRREGULAR_DEPTS = ['Dry Cleaning'];
+
+// Key for acknowledged missing days: pearl_ack_YYYY_MM
+function _ackKey(y, m) { return 'pearl_ack_' + y + '_' + m; }
+function loadAckDays(y, m) {
+  try { return JSON.parse(_STORE.getItem(_ackKey(y,m)) || '{}'); } catch(e) { return {}; }
+}
+function ackMissingDay(y, m, dept) {
+  var ack = loadAckDays(y, m);
+  if (!ack[dept]) ack[dept] = [];
+  // Acknowledge all currently missing days for this dept
+  var missing = getSmartMissingDays(y, m, dim(y,m));
+  missing.forEach(function(item) {
+    if (item.dept === dept && ack[dept].indexOf(item.day) === -1) ack[dept].push(item.day);
+  });
+  try { _STORE.setItem(_ackKey(y,m), JSON.stringify(ack)); } catch(e) {}
+  if (window._fbSaveKey) window._fbSaveKey('pearl/settings/ack_' + y + '_' + m, ack);
+
+  // Re-render immediately — no logout needed
+  var modal = document.getElementById('_month_checklist_modal');
+  if (modal) {
+    // Refresh the modal in place with updated status
+    modal.remove();
+    openMonthChecklist(m); // openMonthChecklist uses current year internally
+  }
+  // Always refresh year health panels (desktop + mobile)
+  if (typeof renderYearHealth === 'function') renderYearHealth();
+  if (typeof mobRenderYearHealth === 'function') mobRenderYearHealth();
+  // Refresh dashboard checklist if showing
+  var eomInfo = shouldShowEomChecklist();
+  if (eomInfo.show && document.getElementById('eom-checklist-container')) {
+    renderEomChecklist(eomInfo.y, eomInfo.m);
+  }
+  // Show toast confirmation
+  toast('✓ Marked OK — ' + dept, 'ok');
+}
+
+// Smart missing days: only flag if the day was active for other depts
+function getSmartMissingDays(y, m, upToDay) {
+  var required = getRequiredDepts().filter(function(d) { return _IRREGULAR_DEPTS.indexOf(d) === -1; });
+  var ack      = loadAckDays(y, m);
+  var today    = new Date();
+  var nd       = dim(y, m);
+  var missing  = [];
+  var dows     = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+  // Don't check last 2 days of current month (might not be entered yet)
+  var curY = today.getFullYear(), curM = today.getMonth()+1, curD = today.getDate();
+  var isCurrentMonth = (y === curY && m === curM);
+  var checkLimit = isCurrentMonth ? Math.min(upToDay, nd - 2) : upToDay;
+
+  for (var day = 1; day <= checkLimit; day++) {
+    // Count how many required depts have data this day
+    var deptsWithData = required.filter(function(d) { return deptHasData(y, m, d, day); });
+    var totalActive   = deptsWithData.length;
+
+    // Skip day if NO departments had data — genuine rest day
+    if (totalActive === 0) continue;
+
+    // Skip day if only 1 dept active AND it's Uniform — could be weekly batch entry
+    if (totalActive === 1 && deptsWithData[0] === 'Uniform') continue;
+
+    // Now check for missing depts
+    required.forEach(function(dept) {
+      if (deptHasData(y, m, dept, day)) return; // has data, fine
+      if (ack[dept] && ack[dept].indexOf(day) !== -1) return; // acknowledged
+
+      var dt = new Date(y, m-1, day);
+      missing.push({ dept: dept, day: day, label: dows[dt.getDay()] + ' ' + day });
+    });
+  }
+  return missing;
+}
+
+// Legacy wrapper used by runMissingDeptCheck
+function getMissingDeptDays(y, m, upToDay) {
+  return getSmartMissingDays(y, m, upToDay);
+}
+
+// ── Main check: run on boot (morning) and at 8pm ──
+function runMissingDeptCheck() {
+  var today  = new Date();
+  var todayY = today.getFullYear();
+  var todayM = today.getMonth() + 1;
+  var todayD = today.getDate();
+  var hour   = today.getHours();
+
+  var checkUpTo = (hour >= 20) ? todayD : todayD - 1;
+  if (checkUpTo < 1) return;
+  if (CY !== todayY) return;
+
+  var missing = getMissingDeptDays(todayY, todayM, checkUpTo);
+  if (missing.length === 0) {
+    _dismissMissingAlert();
+    return;
+  }
+
+  // Don't re-show if already dismissed today by clicking X
+  var dismissedAt = parseInt(_STORE.getItem('_dept_alert_dismissed') || '0');
+  var todayStart  = new Date(); todayStart.setHours(0,0,0,0);
+  if (dismissedAt >= todayStart.getTime()) return;
+
+  // Already visible — no need to re-create (prevents flash on re-render)
+  if (document.getElementById('_dept_alert')) return;
+
+  _showMissingDeptAlert(missing, todayM);
+}
+
+function _showMissingDeptAlert(missing, m) {
+  // If already showing — don't re-create (prevents flash)
+  if (document.getElementById('_dept_alert')) return;
+
+  // Group by dept for compact display
+  var byDept = {};
+  missing.forEach(function(item) {
+    if (!byDept[item.dept]) byDept[item.dept] = [];
+    byDept[item.dept].push(item.day);
+  });
+  var depts = Object.keys(byDept);
+
+  var banner = document.createElement('div');
+  banner.id  = '_dept_alert';
+  banner.style.cssText =
+    'position:fixed;top:60px;left:50%;z-index:8000;' +
+    'background:#fff;border:2px solid #fca5a5;border-radius:14px;' +
+    'box-shadow:0 8px 32px rgba(220,38,38,.15);max-width:560px;width:calc(100vw - 32px);' +
+    'animation:slideDown .4s cubic-bezier(.22,1,.36,1) forwards';
+
+  // Build content
+  var deptRows = depts.map(function(dept) {
+    var days = byDept[dept];
+    var dayStr = days.length <= 4
+      ? days.join(', ')
+      : days.slice(0,3).join(', ') + ' +' + (days.length - 3) + ' more';
+    return '<div style="display:flex;align-items:center;justify-content:space-between;' +
+      'padding:6px 0;border-bottom:1px solid #f1f5f9">' +
+      '<span style="font-size:12px;font-weight:700;color:#0d1b2e">' + dept + '</span>' +
+      '<span style="font-size:11px;color:#dc2626;font-weight:600">Days: ' + dayStr + '</span>' +
+      '</div>';
+  }).join('');
+
+  banner.innerHTML =
+    // Header
+    '<div style="display:flex;align-items:center;justify-content:space-between;' +
+      'padding:12px 16px;background:#fef2f2;border-radius:12px 12px 0 0;border-bottom:1px solid #fecaca">' +
+      '<div style="display:flex;align-items:center;gap:8px">' +
+        '<span style="font-size:18px">⚠️</span>' +
+        '<div>' +
+          '<div style="font-size:13px;font-weight:800;color:#dc2626">Missing Department Data</div>' +
+          '<div style="font-size:11px;color:#94a3b8;margin-top:1px">' + missing.length + ' dept/day combination(s) with no entries</div>' +
+        '</div>' +
+      '</div>' +
+            '<button onclick="_dismissMissingAlert();_STORE.setItem(\'_dept_alert_dismissed\',Date.now())" ' +
+        'style="background:none;border:none;font-size:18px;cursor:pointer;color:#94a3b8;padding:4px">✕</button>' +
+    '</div>' +
+    // Dept rows
+    '<div style="padding:10px 16px">' + deptRows + '</div>' +
+    // Action buttons
+    '<div style="padding:10px 16px;display:flex;gap:8px;flex-wrap:wrap">' +
+            '<button onclick="_goToEntryFromAlert()" ' +
+        'style="flex:1;padding:9px 14px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">✏️ Go to Entry</button>' +
+      '<button onclick="openMissingDeptSettings()" ' +
+        'style="padding:9px 14px;background:#f8fafc;color:#64748b;border:1.5px solid #e2e8f0;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">⚙️ Configure</button>' +
+    '</div>';
+
+  // Add slide-down animation
+  if (!document.getElementById('_dept_anim')) {
+    var s = document.createElement('style');
+    s.id = '_dept_anim';
+    s.textContent = '@keyframes slideDown{from{opacity:0;transform:translate(-50%,-20px)}to{opacity:1;transform:translate(-50%,0)}}';
+    document.head.appendChild(s);
+  }
+
+  document.body.appendChild(banner);
+
+  // Auto-dismiss after 30 seconds
+  setTimeout(function() {
+    var el = document.getElementById('_dept_alert');
+    if (el) { el.style.opacity='0'; el.style.transition='opacity .5s'; setTimeout(function(){ if(el.parentNode) el.remove(); }, 500); }
+  }, 30000);
+}
+
+
+
+function _closeDeptSettings() {
+  var el = document.getElementById('_dept_settings');
+  if (el) el.remove();
+}
+
+function _goToEntryFromAlert() {
+  _dismissMissingAlert();
+  showTab('entry');
+}
+
+function _dismissMissingAlert() {
+  var el = document.getElementById('_dept_alert');
+  if (el) el.remove();
+}
+
+// ── Settings popup to configure required depts ──
+function openMissingDeptSettings() {
+  var existing = document.getElementById('_dept_settings');
+  if (existing) { existing.remove(); return; }
+
+  var required = getRequiredDepts();
+  var box = document.createElement('div');
+  box.id = '_dept_settings';
+  box.style.cssText =
+    'position:fixed;bottom:80px;right:24px;z-index:99999;background:#fff;' +
+    'border:2px solid #e2e8f0;border-radius:14px;padding:18px 20px;' +
+    'box-shadow:0 8px 32px rgba(0,0,0,.18);max-width:300px;font-family:inherit';
+
+  var rows = DEPT_KEYS.map(function(dept) {
+    var checked = required.indexOf(dept) !== -1;
+    return '<label style="display:flex;align-items:center;gap:10px;padding:8px 0;' +
+      'border-bottom:1px solid #f1f5f9;cursor:pointer">' +
+      '<input type="checkbox" data-dept="' + dept + '" ' + (checked ? 'checked' : '') + ' ' +
+        'style="width:16px;height:16px;accent-color:#0d1b2e;cursor:pointer">' +
+      '<span style="font-size:13px;font-weight:600;color:#0d1b2e">' + dept + '</span>' +
+      '</label>';
+  }).join('');
+
+  box.innerHTML =
+    '<div style="font-size:13px;font-weight:800;color:#0d1b2e;margin-bottom:4px">⚙️ Required Departments</div>' +
+    '<div style="font-size:11px;color:#64748b;margin-bottom:12px">Tick departments that must have data every day</div>' +
+    '<div>' + rows + '</div>' +
+    '<div style="display:flex;gap:8px;margin-top:14px">' +
+      '<button id="_dept_save_btn" style="flex:1;padding:9px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">💾 Save</button>' +
+            '<button onclick="_closeDeptSettings()" style="padding:9px 14px;background:#f1f5f9;color:#64748b;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">Cancel</button>' +
+    '</div>';
+
+  document.body.appendChild(box);
+
+  document.getElementById('_dept_save_btn').onclick = function() {
+    var checked = [];
+    box.querySelectorAll('input[type=checkbox]:checked').forEach(function(inp) {
+      checked.push(inp.dataset.dept);
+    });
+    saveRequiredDepts(checked);
+    box.remove();
+    toast('✅ Required departments saved', 'ok');
+    runMissingDeptCheck(); // re-run immediately
+  };
+}
+
+// ── Schedule the 8pm check ──
+function scheduleMissingDeptCheck() {
+  var now  = new Date();
+  var eight = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 20, 0, 0);
+  var msUntil8pm = eight - now;
+  if (msUntil8pm < 0) msUntil8pm += 86400000; // already past 8pm — schedule for tomorrow
+  setTimeout(function() {
+    runMissingDeptCheck();
+    // Then check every 24h
+    setInterval(runMissingDeptCheck, 86400000);
+  }, msUntil8pm);
+}
+
+
+// ════════════════════════════════════════════════════════════════
+//  NEW MONTH LOCK REMINDER
+//  Fires once on the 1st of each month if previous month has
+//  unlocked data — reminds user to lock before entering new data
+// ════════════════════════════════════════════════════════════════
+
+function checkNewMonthLockReminder() {
+  var today  = new Date();
+  var day    = today.getDate();
+  var curM   = today.getMonth() + 1;  // 1-based
+  var curY   = today.getFullYear();
+  var prevM  = curM === 1 ? 12 : curM - 1;
+  var prevY  = curM === 1 ? curY - 1 : curY;
+
+  // Only run on days 1–7 of the month (grace window)
+  if (day > 7) return;
+
+  // Don't show more than once per month
+  var shownKey = 'pearl_lock_reminder_' + curY + '_' + String(curM).padStart(2,'0');
+  if (_STORE.getItem(shownKey)) return;
+
+  // Check if previous month has any data that is NOT locked
+  var db   = loadDB(prevY);
+  var nd   = dim(prevY, prevM);
+  var hasUnlocked = false;
+
+  outer:
+  for (var i_d = 0; i_d < nd; i_d++) {
+    for (var di = 0; di < DEPT_KEYS.length; di++) {
+      var dept = DEPT_KEYS[di];
+      for (var ii = 0; ii < MASTER[dept].length; ii++) {
+        var key = prevM + '-' + dept + '-' + ii + '-' + i_d;
+        if (db[key] && db[key] > 0 && !db[key + '-p']) {
+          hasUnlocked = true;
+          break outer;
+        }
+      }
+    }
+  }
+
+  if (!hasUnlocked) return; // previous month already locked or has no data
+
+  // Mark as shown for this month
+  try { _STORE.setItem(shownKey, '1'); } catch(e) {}
+
+  // Show the banner
+  _showLockReminderBanner(prevM, prevY, curM);
+}
+
+var MONTH_NAMES_FULL = ['January','February','March','April','May','June',
+                        'July','August','September','October','November','December'];
+
+
+function _dismissLockReminder() {
+  var el = document.getElementById('_lock_reminder');
+  if (el) el.remove();
+}
+
+function _showLockReminderBanner(prevM, prevY, curM) {
+  var existing = document.getElementById('_lock_reminder');
+  if (existing) existing.remove();
+
+  var banner = document.createElement('div');
+  banner.id  = '_lock_reminder';
+  banner.style.cssText =
+    'position:fixed;top:62px;left:50%;z-index:8100;' +
+    'background:#fff;border:2px solid #c9a84c;border-radius:14px;' +
+    'box-shadow:0 8px 32px rgba(201,168,76,.25);max-width:520px;width:calc(100vw - 32px);' +
+    'animation:slideDown .4s cubic-bezier(.22,1,.36,1);font-family:inherit';
+
+  var prevName = MONTH_NAMES_FULL[prevM - 1];
+  var curName  = MONTH_NAMES_FULL[curM  - 1];
+
+  banner.innerHTML =
+    '<div style="display:flex;align-items:center;justify-content:space-between;' +
+      'padding:12px 16px;background:linear-gradient(135deg,#0d1b2e,#1e3a5f);' +
+      'border-radius:12px 12px 0 0">' +
+      '<div style="display:flex;align-items:center;gap:10px">' +
+        '<span style="font-size:22px">🔒</span>' +
+        '<div>' +
+          '<div style="font-size:13px;font-weight:800;color:#c9a84c">New Month — Lock ' + prevName + ' Before Entering ' + curName + ' Data</div>' +
+          '<div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:1px">' + prevName + ' has unsaved entries — lock them now to protect the revenue calculations</div>' +
+        '</div>' +
+      '</div>' +
+      '<button onclick="_dismissLockReminder()" ' +
+        'style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);' +
+        'color:#fff;border-radius:7px;padding:5px 12px;font-size:12px;cursor:pointer">✕</button>' +
+    '</div>' +
+    '<div style="padding:14px 16px">' +
+      '<div style="font-size:12px;color:#64748b;margin-bottom:12px;line-height:1.6">' +
+        'Locking ' + prevName + ' permanently freezes its revenue calculations. ' +
+        'You can then set new prices for ' + curName + ' without affecting past data.' +
+      '</div>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
+        '<button onclick="_goToLockMonth(' + prevM + ')" ' +
+          'style="flex:1;padding:10px 16px;background:linear-gradient(135deg,#0d1b2e,#1e3a5f);' +
+          'color:#c9a84c;border:none;border-radius:9px;font-size:12px;font-weight:800;cursor:pointer">' +
+          '🔒 Lock ' + prevName + ' Now</button>' +
+        '<button onclick="_dismissLockReminder()" ' +
+          'style="padding:10px 16px;background:#f8fafc;color:#64748b;border:1.5px solid #e2e8f0;' +
+          'border-radius:9px;font-size:12px;font-weight:700;cursor:pointer">Remind Me Later</button>' +
+      '</div>' +
+    '</div>';
+
+  document.body.appendChild(banner);
+
+  // Auto dismiss after 45 seconds
+  setTimeout(function() {
+    var el = document.getElementById('_lock_reminder');
+    if (el) { el.style.opacity='0'; el.style.transition='opacity .5s'; setTimeout(function(){ if(el.parentNode) el.remove(); },500); }
+  }, 45000);
+}
+
+function _goToLockMonth(m) {
+  var el = document.getElementById('_lock_reminder');
+  if (el) el.remove();
+  showTab('prices');
+  setTimeout(openMonthlyPriceManager, 400);
+}
+
+
+// ════════════════════════════════════════════════════════════════
+//  EXCHANGE RATE SYSTEM
+//  Stores QAR-based rates for multiple currencies
+//  Reminder to update rates on a schedule
+//  Quick converter + "View in USD" anywhere
+// ════════════════════════════════════════════════════════════════
+
+var _FX_STORE_KEY  = 'pearl_fx_rates';
+var _FX_FB_PATH    = 'pearl/settings/fx_rates';
+
+// Default rates (QAR to each currency — how many QAR = 1 unit)
+var _FX_DEFAULT = {
+  USD: { name:'US Dollar',       symbol:'$',   position:'before', rate: 3.64,  decimals:2 },
+  EUR: { name:'Euro',            symbol:'€',   position:'before', rate: 3.99,  decimals:2 },
+  GBP: { name:'British Pound',   symbol:'£',   position:'before', rate: 4.60,  decimals:2 },
+  SAR: { name:'Saudi Riyal',     symbol:'SAR', position:'after',  rate: 0.97,  decimals:2 },
+  AED: { name:'UAE Dirham',      symbol:'AED', position:'after',  rate: 0.99,  decimals:2 },
+  KWD: { name:'Kuwaiti Dinar',   symbol:'KWD', position:'after',  rate:11.84,  decimals:3 },
+  EGP: { name:'Egyptian Pound',  symbol:'EGP', position:'after',  rate: 0.075, decimals:2 },
+  INR: { name:'Indian Rupee',    symbol:'₹',   position:'before', rate: 0.044, decimals:2 }
+};
+
+var _FX_RATES = null; // will be set by loadFxRates()
+var _FX_REMINDER_DAYS = 14;
+var _FX_LAST_UPDATED  = null;
+
+function loadFxRates() {
+  // Always start with defaults — overwrite if stored data exists
+  _FX_RATES = JSON.parse(JSON.stringify(_FX_DEFAULT));
+  try {
+    var stored = JSON.parse(_STORE.getItem(_FX_STORE_KEY) || 'null');
+    if (stored && stored.rates && Object.keys(stored.rates).length > 0) {
+      _FX_RATES         = stored.rates;
+      _FX_REMINDER_DAYS = stored.reminderDays  !== undefined ? stored.reminderDays : 14;
+      _FX_LAST_UPDATED  = stored.lastUpdated   || null;
+    }
+  } catch(e) {
+    _FX_RATES = JSON.parse(JSON.stringify(_FX_DEFAULT));
+  }
+  if (window._fbLoadKey) {
+    window._fbLoadKey(_FX_FB_PATH).then(function(fb) {
+      if (fb && fb.rates) {
+        _FX_RATES         = fb.rates;
+        _FX_REMINDER_DAYS = fb.reminderDays !== undefined ? fb.reminderDays : _FX_REMINDER_DAYS;
+        _FX_LAST_UPDATED  = fb.lastUpdated  || _FX_LAST_UPDATED;
+        try { _STORE.setItem(_FX_STORE_KEY, JSON.stringify({rates:_FX_RATES, reminderDays:_FX_REMINDER_DAYS, lastUpdated:_FX_LAST_UPDATED})); } catch(e) {}
+      }
+    }).catch(function(){});
+  }
+}
+
+function saveFxRates() {
+  // Read reminder setting
+  var remSel = document.getElementById('fx-reminder-days');
+  if (remSel) _FX_REMINDER_DAYS = parseInt(remSel.value) || 0;
+
+  // Read rate inputs
+  Object.keys(_FX_RATES).forEach(function(code) {
+    var inp = document.getElementById('fx-rate-' + code);
+    if (inp) {
+      var val = parseFloat(inp.value);
+      if (!isNaN(val) && val > 0) _FX_RATES[code].rate = val;
+    }
+  });
+
+  _FX_LAST_UPDATED = new Date().toISOString();
+
+  var payload = { rates: _FX_RATES, reminderDays: _FX_REMINDER_DAYS, lastUpdated: _FX_LAST_UPDATED };
+  try { _STORE.setItem(_FX_STORE_KEY, JSON.stringify(payload)); } catch(e) {}
+  if (window._fbSaveKey) window._fbSaveKey(_FX_FB_PATH, payload);
+
+  // Update last-updated display
+  var el = document.getElementById('fx-last-updated');
+  if (el) el.textContent = 'Updated: ' + new Date().toLocaleDateString();
+
+  var msg = document.getElementById('fx-save-msg');
+  if (msg) { msg.textContent = '✅ Rates saved successfully'; setTimeout(function(){ msg.textContent=''; },3000); }
+
+  toast('✅ Exchange rates saved', 'ok');
+  renderFxRateInputs();
+  renderFxConvert();
+}
+
+// Convert QAR amount to a target currency
+function convertFromQAR(qarAmount, currencyCode) {
+  // Ensure rates are loaded
+  if (!_FX_RATES || Object.keys(_FX_RATES).length === 0) {
+    _FX_RATES = JSON.parse(JSON.stringify(_FX_DEFAULT));
+  }
+  var fx = _FX_RATES[currencyCode];
+  if (!fx || !fx.rate || fx.rate <= 0) return null;
+  return qarAmount / fx.rate;
+}
+
+// Format a converted amount with the currency's symbol
+function fmtFX(amount, currencyCode) {
+  var fx = _FX_RATES[currencyCode];
+  if (!fx) return '';
+  var dec = fx.decimals || 2;
+  var parts = amount.toFixed(dec).split('.');
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  var num = parts.join('.');
+  if (fx.position === 'before') return fx.symbol + ' ' + num;
+  return num + ' ' + fx.symbol;
+}
+
+// Render rate input rows in settings
+function renderFxRateInputs() {
+  var wrap = document.getElementById('fx-rates-wrap');
+  if (!wrap) return;
+
+  var lastUpdatedEl = document.getElementById('fx-last-updated');
+  if (lastUpdatedEl && _FX_LAST_UPDATED) {
+    lastUpdatedEl.textContent = 'Updated ' + new Date(_FX_LAST_UPDATED).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+  }
+
+  var remSel = document.getElementById('fx-reminder-days');
+  if (remSel) remSel.value = String(_FX_REMINDER_DAYS);
+
+  var html = '';
+  if (!_FX_RATES || Object.keys(_FX_RATES).length === 0) { _FX_RATES = JSON.parse(JSON.stringify(_FX_DEFAULT)); }
+  Object.keys(_FX_RATES).forEach(function(code) {
+    var fx = _FX_RATES[code];
+    html += '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:9px">' +
+      '<div style="width:40px;height:36px;background:#0d1b2e;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#c9a84c;flex-shrink:0">' + code + '</div>' +
+      '<div style="flex:1;min-width:0">' +
+        '<div style="font-size:12px;font-weight:700;color:#0d1b2e">' + fx.name + '</div>' +
+        '<div style="font-size:10px;color:#94a3b8">1 ' + code + ' = ? QAR</div>' +
+      '</div>' +
+      '<div style="display:flex;align-items:center;gap:6px">' +
+        '<input type="number" id="fx-rate-' + code + '" value="' + fx.rate + '" step="0.0001" min="0.0001"' +
+          ' style="width:90px;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:700;color:#0d1b2e;text-align:right;outline:none"' +
+          ' oninput="renderFxConvert()">' +
+        '<span style="font-size:11px;color:#64748b;font-weight:700">QAR</span>' +
+      '</div>' +
+    '</div>';
+  });
+  wrap.innerHTML = html;
+}
+
+// Render quick converter results
+function renderFxConvert() {
+  var wrap = document.getElementById('fx-convert-results');
+  if (!wrap) return;
+  var amtEl = document.getElementById('fx-input-amount');
+  var qar = amtEl ? (parseFloat(amtEl.value) || 0) : 0;
+  if (qar <= 0) { wrap.innerHTML = '<div style="text-align:center;color:#94a3b8;font-size:12px;padding:8px">Enter an amount above to see conversions</div>'; return; }
+
+  var html = '';
+  if (!_FX_RATES || Object.keys(_FX_RATES).length === 0) { _FX_RATES = JSON.parse(JSON.stringify(_FX_DEFAULT)); }
+  Object.keys(_FX_RATES).forEach(function(code) {
+    var converted = convertFromQAR(qar, code);
+    if (converted === null) return;
+    var fx = _FX_RATES[code];
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:9px">' +
+      '<div style="display:flex;align-items:center;gap:8px">' +
+        '<div style="width:36px;height:30px;background:#0d1b2e;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#c9a84c">' + code + '</div>' +
+        '<span style="font-size:12px;color:#64748b">' + fx.name + '</span>' +
+      '</div>' +
+      '<div style="font-size:15px;font-weight:800;color:#0d1b2e">' + fmtFX(converted, code) + '</div>' +
+    '</div>';
+  });
+  wrap.innerHTML = html;
+}
+
+// Open the currency converter modal from anywhere (e.g. dashboard, reports)
+
+
+
+function _goToFxFromReminder() {
+  var el = document.getElementById('_fx_reminder');
+  if (el) el.remove();
+  showTab('settings');
+  setTimeout(function(){ switchStab('currency'); }, 200);
+}
+
+function _closeFxReminder() {
+  var el = document.getElementById('_fx_reminder');
+  if (el) el.remove();
+}
+
+function _goToFxSettings() {
+  _closeFxModal();
+  showTab('settings');
+  setTimeout(function(){ switchStab('currency'); }, 200);
+}
+
+function _closeFxModal() {
+  var el = document.getElementById('_fx_modal');
+  if (el) el.remove();
+}
+
+function openFxConverter(qarAmount) {
+  var existing = document.getElementById('_fx_modal');
+  if (existing) { existing.remove(); return; }
+
+  // Always ensure rates are populated before building modal
+  if (!_FX_RATES || typeof _FX_RATES !== 'object' || Object.keys(_FX_RATES).length === 0) {
+    _FX_RATES = JSON.parse(JSON.stringify(_FX_DEFAULT));
+  }
+
+  var modal = document.createElement('div');
+  modal.id = '_fx_modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9800;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)';
+
+  var rates = _FX_RATES;
+  var rows = '';
+  Object.keys(rates).forEach(function(code) {
+    var converted = convertFromQAR(qarAmount, code);
+    if (converted === null) return;
+    var fx = _FX_RATES[code];
+    rows += '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:9px">' +
+      '<div style="display:flex;align-items:center;gap:8px">' +
+        '<div style="width:38px;height:32px;background:#0d1b2e;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#c9a84c">' + code + '</div>' +
+        '<div><div style="font-size:12px;font-weight:700;color:#0d1b2e">' + fx.name + '</div><div style="font-size:10px;color:#94a3b8">1 ' + code + ' = ' + fx.rate + ' QAR</div></div>' +
+      '</div>' +
+      '<div style="font-size:16px;font-weight:800;color:#0d1b2e">' + fmtFX(converted, code) + '</div>' +
+    '</div>';
+  });
+
+  modal.innerHTML =
+    '<div style="background:#fff;border-radius:16px;width:480px;max-width:96vw;max-height:88vh;overflow:hidden;display:flex;flex-direction:column">' +
+      '<div style="background:linear-gradient(135deg,#0d1b2e,#1e3a5f);padding:16px 20px;display:flex;align-items:center;justify-content:space-between">' +
+        '<div>' +
+          '<div style="font-size:15px;font-weight:800;color:#c9a84c">💱 Currency Converter</div>' +
+          '<div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:2px">' + fmtMoney(qarAmount) + ' converted to all currencies</div>' +
+        '</div>' +
+        '<button onclick="_closeFxModal()" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:8px;padding:6px 14px;font-size:13px;cursor:pointer">✕</button>' +
+      '</div>' +
+      '<div style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:8px">' + rows + '</div>' +
+      '<div style="padding:12px 16px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center">' +
+        '<div style="font-size:10px;color:#94a3b8">Rates set in Settings → Currency</div>' +
+        '<button onclick="_goToFxSettings()" style="padding:7px 14px;background:#f1f5f9;color:#64748b;border:none;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer">⚙️ Update Rates</button>' +
+      '</div>' +
+    '</div>';
+
+  document.body.appendChild(modal);
+}
+
+// ── Rate update reminder (runs on login) ──────────────────────
+function checkFxRateReminder() {
+  if (!_FX_REMINDER_DAYS || _FX_REMINDER_DAYS <= 0) return;
+  if (!_FX_LAST_UPDATED) {
+    // Never updated — show first-time nudge after 3 days
+    var installKey = 'pearl_fx_install_date';
+    var installed  = _STORE.getItem(installKey);
+    if (!installed) { try { _STORE.setItem(installKey, new Date().toISOString()); } catch(e) {} return; }
+    var daysSince = (Date.now() - new Date(installed)) / 86400000;
+    if (daysSince < 3) return;
+  } else {
+    var daysSince2 = (Date.now() - new Date(_FX_LAST_UPDATED)) / 86400000;
+    if (daysSince2 < _FX_REMINDER_DAYS) return;
+  }
+
+  // Don't show more than once per day
+  var todayKey = 'pearl_fx_reminder_' + new Date().toISOString().slice(0,10);
+  if (_STORE.getItem(todayKey)) return;
+  try { _STORE.setItem(todayKey, '1'); } catch(e) {}
+
+  // Show toast with action button
+  var banner = document.createElement('div');
+  banner.id = '_fx_reminder';
+  banner.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:8200;background:#fff;' +
+    'border:2px solid #fde68a;border-radius:12px;padding:14px 16px;max-width:320px;' +
+    'box-shadow:0 8px 24px rgba(0,0,0,.15);font-family:inherit;animation:slideUp .4s ease';
+
+  var daysTxt = _FX_LAST_UPDATED
+    ? Math.round((Date.now() - new Date(_FX_LAST_UPDATED)) / 86400000) + ' days ago'
+    : 'never';
+
+  banner.innerHTML =
+    '<div style="display:flex;gap:10px;align-items:flex-start">' +
+      '<span style="font-size:20px;flex-shrink:0">💱</span>' +
+      '<div style="flex:1">' +
+        '<div style="font-size:13px;font-weight:800;color:#0d1b2e;margin-bottom:3px">Exchange Rates Need Update</div>' +
+        '<div style="font-size:11px;color:#64748b;margin-bottom:10px">Rates were last updated <strong>' + daysTxt + '</strong>. Check they\'re still accurate.</div>' +
+        '<div style="display:flex;gap:6px">' +
+          '<button onclick="_goToFxFromReminder()" ' +
+            'style="flex:1;padding:8px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer">⚙️ Update Now</button>' +
+          '<button onclick="_closeFxReminder()" ' +
+            'style="padding:8px 12px;background:#f1f5f9;color:#64748b;border:none;border-radius:7px;font-size:11px;cursor:pointer">Later</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
+  if (!document.getElementById('_slideUp_style')) {
+    var ss = document.createElement('style');
+    ss.id = '_slideUp_style';
+    ss.textContent = '@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}';
+    document.head.appendChild(ss);
+  }
+  document.body.appendChild(banner);
+  setTimeout(function() {
+    var el = document.getElementById('_fx_reminder');
+    if (el) { el.style.opacity='0'; el.style.transition='opacity .5s'; setTimeout(function(){ if(el.parentNode)el.remove(); },500); }
+  }, 20000);
+}
+
+
+
+// ════════════════════════════════════════════════════════════════
+//  YEAR HEALTH PANEL
+//  Shows all 12 months with completion status on dashboard
+//  Click any month to see full checklist details
+// ════════════════════════════════════════════════════════════════
+
+
+function toggleYearHealth() {
+  var panel = document.getElementById('year-health-panel');
+  var btn   = document.getElementById('btn-year-health');
+  if (!panel) return;
+  var isOpen = panel.style.display !== 'none';
+  panel.style.display = isOpen ? 'none' : 'block';
+  if (btn) {
+    btn.style.background = isOpen ? '#fff' : '#f0fdf4';
+    btn.style.borderColor = isOpen ? '#e2e8f0' : '#86efac';
+    btn.style.color = isOpen ? '#64748b' : '#16a34a';
+  }
+  if (!isOpen) renderYearHealth();
+}
+
+function renderYearHealth() {
+  var wrap = document.getElementById('year-health-wrap');
+  if (!wrap) return;
+
+  var today = new Date();
+  var curM  = today.getMonth() + 1;
+  var curY  = today.getFullYear();
+  var MNS   = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var keys  = ['allDaysEntered','pricesLocked','monthlyPricesSet','financePosted','backupSaved'];
+
+  // Build month cards
+  var html = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">' +
+    '<div style="font-size:13px;font-weight:800;color:#0d1b2e">📋 ' + curY + ' Month Health</div>' +
+    '<button onclick="openYearHealthDetail()" style="padding:5px 12px;background:#f8fafc;border:1.5px solid #e2e8f0;color:#64748b;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer">View All →</button>' +
+  '</div>';
+
+  html += '<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px">';
+
+  for (var mi = 1; mi <= 12; mi++) {
+    var isFuture  = mi > curM;
+    var isCurrent = mi === curM;
+
+    if (isFuture) {
+      html += '<div style="padding:8px 6px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:9px;text-align:center;opacity:.5">' +
+        '<div style="font-size:12px;font-weight:700;color:#94a3b8">' + MNS[mi-1] + '</div>' +
+        '<div style="font-size:16px;margin:3px 0">—</div>' +
+        '<div style="font-size:9px;color:#94a3b8">Future</div>' +
+      '</div>';
+      continue;
+    }
+
+    var status    = getEomStatus(curY, mi);
+    var doneCount = keys.filter(function(k){ return status[k].done; }).length;
+    var total     = keys.length;
+    var pct       = Math.round(doneCount / total * 100);
+
+    var bg, bdr, icon, statusTxt;
+    if (doneCount === total) {
+      bg = '#f0fdf4'; bdr = '#86efac'; icon = '✅'; statusTxt = '5/5';
+    } else if (doneCount >= 3) {
+      bg = '#fffbeb'; bdr = '#fde68a'; icon = '⚠️'; statusTxt = doneCount + '/5';
+    } else {
+      bg = '#fef2f2'; bdr = '#fca5a5'; icon = '🔴'; statusTxt = doneCount + '/5';
+    }
+
+    if (isCurrent) { bdr = '#c9a84c'; }
+
+    html += '<div onclick="openMonthChecklist(' + mi + ')" ' +
+      'style="padding:8px 6px;background:' + bg + ';border:2px solid ' + bdr + ';border-radius:9px;text-align:center;cursor:pointer;transition:all .15s" ' +
+      'onmouseover="this.style.opacity=.8" onmouseout="this.style.opacity=1">' +
+      '<div style="font-size:12px;font-weight:800;color:#0d1b2e">' + MNS[mi-1] + (isCurrent?' ◀':'') + '</div>' +
+      '<div style="font-size:18px;margin:3px 0">' + icon + '</div>' +
+      '<div style="font-size:10px;font-weight:700;color:#64748b">' + statusTxt + '</div>' +
+    '</div>';
+  }
+
+  html += '</div>';
+  wrap.innerHTML = html;
+}
+
+function openMonthChecklist(m) {
+  var existing = document.getElementById('_month_checklist_modal');
+  if (existing) existing.remove();
+
+  var modal = document.createElement('div');
+  modal.id = '_month_checklist_modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9800;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)';
+
+  var curY = new Date().getFullYear();
+  var MNF  = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var keys = ['allDaysEntered','pricesLocked','monthlyPricesSet','financePosted','backupSaved'];
+  var status = getEomStatus(curY, m);
+  var doneCount = keys.filter(function(k){ return status[k].done; }).length;
+  var allDone   = doneCount === keys.length;
+
+  var inner = document.createElement('div');
+  inner.style.cssText = 'background:#fff;border-radius:16px;width:460px;max-width:96vw;overflow:hidden';
+
+  // Header
+  var hdr = document.createElement('div');
+  hdr.style.cssText = 'background:linear-gradient(135deg,#0d1b2e,#1e3a5f);padding:16px 20px;display:flex;align-items:center;justify-content:space-between';
+  hdr.innerHTML =
+    '<div>' +
+      '<div style="font-size:15px;font-weight:800;color:#c9a84c">📋 ' + MNF[m-1] + ' ' + curY + ' Checklist</div>' +
+      '<div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:2px">' + doneCount + ' of ' + keys.length + ' items complete</div>' +
+    '</div>' +
+    '<div style="background:' + (allDone?'#16a34a':'#c9a84c') + ';color:' + (allDone?'#fff':'#0d1b2e') + ';border-radius:20px;padding:4px 12px;font-size:13px;font-weight:800">' + doneCount + '/' + keys.length + '</div>';
+  inner.appendChild(hdr);
+
+  // Items
+  var body = document.createElement('div');
+  body.style.cssText = 'padding:14px 16px;display:flex;flex-direction:column;gap:8px';
+
+  keys.forEach(function(k) {
+    var item     = status[k];
+    var rowBg    = item.done ? '#f0fdf4' : '#fff';
+    var rowBdr   = item.done ? '#86efac' : '#e2e8f0';
+    var checkBg  = item.done ? '#16a34a' : '#e2e8f0';
+    var checkClr = item.done ? '#fff'    : '#94a3b8';
+
+    var row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 12px;background:' + rowBg + ';border:1.5px solid ' + rowBdr + ';border-radius:9px';
+
+    // Tick / checkbox
+    if (item.manual) {
+      var cb = document.createElement('button');
+      cb.style.cssText = 'width:26px;height:26px;border-radius:7px;border:2px solid ' + (item.done?'#16a34a':'#d1d5db') + ';background:' + checkBg + ';cursor:pointer;flex-shrink:0;font-size:14px;color:' + checkClr + ';display:flex;align-items:center;justify-content:center';
+      cb.textContent = item.done ? '✓' : '';
+      cb.onclick = (function(ky, mi){ return function(){ _eomTick(curY, mi, ky); setTimeout(function(){ openMonthChecklist(mi); }, 100); }; })(k, m);
+      row.appendChild(cb);
+    } else {
+      var dot = document.createElement('div');
+      dot.style.cssText = 'width:26px;height:26px;border-radius:7px;background:' + checkBg + ';flex-shrink:0;font-size:14px;color:' + checkClr + ';display:flex;align-items:center;justify-content:center';
+      dot.textContent = item.done ? '✓' : '○';
+      row.appendChild(dot);
+    }
+
+    // Label
+    var info = document.createElement('div');
+    info.style.cssText = 'flex:1;min-width:0';
+    info.innerHTML =
+      '<div style="font-size:13px;font-weight:700;color:#0d1b2e' + (item.done?';text-decoration:line-through;opacity:.6':'') + '">' + item.label + '</div>' +
+      '<div style="font-size:11px;color:#94a3b8;margin-top:1px">' + item.detail + '</div>';
+    row.appendChild(info);
+
+    // Fix + Mark OK buttons
+    if (!item.done) {
+      var btnWrap = document.createElement('div');
+      btnWrap.style.cssText = 'display:flex;flex-direction:column;gap:6px;flex-shrink:0;align-items:flex-end';
+      if (item.action) {
+        var fixBtn = document.createElement('button');
+        fixBtn.textContent = 'Fix →';
+        fixBtn.style.cssText = 'padding:6px 10px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer';
+        fixBtn.onclick = (function(fn){ return function(){ modal.remove(); fn(); }; })(item.action);
+        btnWrap.appendChild(fixBtn);
+      }
+      if (item.missingDepts && item.missingDepts.length > 0) {
+        item.missingDepts.forEach(function(dept) {
+          var ackBtn = document.createElement('button');
+          ackBtn.textContent = '✓ Mark OK: ' + dept.split(' ')[0];
+          ackBtn.title = 'Intentional zero or posted next day';
+          ackBtn.style.cssText = 'padding:5px 8px;background:#f0fdf4;color:#16a34a;border:1.5px solid #86efac;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap';
+          ackBtn.onclick = (function(d, fn){ return function(){ fn(d); }; })(dept, item.ackFn);
+          btnWrap.appendChild(ackBtn);
+        });
+      }
+      if (btnWrap.children.length > 0) row.appendChild(btnWrap);
+    }
+
+    body.appendChild(row);
+  });
+
+  inner.appendChild(body);
+
+  // Footer
+  var footer = document.createElement('div');
+  footer.style.cssText = 'padding:12px 16px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center';
+  footer.innerHTML =
+    '<div style="font-size:10px;color:#94a3b8">Auto-items update automatically · Finance posted requires manual tick</div>';
+  var closeBtn = document.createElement('button');
+  closeBtn.textContent = 'Close';
+  closeBtn.style.cssText = 'padding:8px 18px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer';
+  closeBtn.onclick = function(){ modal.remove(); };
+  footer.appendChild(closeBtn);
+  inner.appendChild(footer);
+
+  modal.appendChild(inner);
+  modal.onclick = function(e){ if(e.target===modal) modal.remove(); };
+  document.body.appendChild(modal);
+
+  // Refresh year health when modal closes
+  modal.addEventListener('click', function(e){
+    if (e.target === modal) renderYearHealth();
+  });
+}
+
+function openYearHealthDetail() {
+  // Open checklist for current month by default
+  openMonthChecklist(new Date().getMonth() + 1);
+}
+
 </script>
 
 <!-- ══ RECEIVING LOG DRAWER ══════════════════════════════════════ -->
@@ -18914,874 +19270,6 @@ function deptHasData(y, m, dept, day) {
 }
 
 // Returns array of {dept, day, label} for missing required dept/day combos
-// Departments that are irregular by nature — never flag as missing
-var _IRREGULAR_DEPTS = ['Dry Cleaning'];
-
-// Key for acknowledged missing days: pearl_ack_YYYY_MM
-function _ackKey(y, m) { return 'pearl_ack_' + y + '_' + m; }
-function loadAckDays(y, m) {
-  try { return JSON.parse(_STORE.getItem(_ackKey(y,m)) || '{}'); } catch(e) { return {}; }
-}
-function ackMissingDay(y, m, dept) {
-  var ack = loadAckDays(y, m);
-  if (!ack[dept]) ack[dept] = [];
-  // Acknowledge all currently missing days for this dept
-  var missing = getSmartMissingDays(y, m, dim(y,m));
-  missing.forEach(function(item) {
-    if (item.dept === dept && ack[dept].indexOf(item.day) === -1) ack[dept].push(item.day);
-  });
-  try { _STORE.setItem(_ackKey(y,m), JSON.stringify(ack)); } catch(e) {}
-  if (window._fbSaveKey) window._fbSaveKey('pearl/settings/ack_' + y + '_' + m, ack);
-
-  // Re-render immediately — no logout needed
-  var modal = document.getElementById('_month_checklist_modal');
-  if (modal) {
-    // Refresh the modal in place with updated status
-    modal.remove();
-    openMonthChecklist(m); // openMonthChecklist uses current year internally
-  }
-  // Always refresh year health panels (desktop + mobile)
-  if (typeof renderYearHealth === 'function') renderYearHealth();
-  if (typeof mobRenderYearHealth === 'function') mobRenderYearHealth();
-  // Refresh dashboard checklist if showing
-  var eomInfo = shouldShowEomChecklist();
-  if (eomInfo.show && document.getElementById('eom-checklist-container')) {
-    renderEomChecklist(eomInfo.y, eomInfo.m);
-  }
-  // Show toast confirmation
-  toast('✓ Marked OK — ' + dept, 'ok');
-}
-
-// Smart missing days: only flag if the day was active for other depts
-function getSmartMissingDays(y, m, upToDay) {
-  var required = getRequiredDepts().filter(function(d) { return _IRREGULAR_DEPTS.indexOf(d) === -1; });
-  var ack      = loadAckDays(y, m);
-  var today    = new Date();
-  var nd       = dim(y, m);
-  var missing  = [];
-  var dows     = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-
-  // Don't check last 2 days of current month (might not be entered yet)
-  var curY = today.getFullYear(), curM = today.getMonth()+1, curD = today.getDate();
-  var isCurrentMonth = (y === curY && m === curM);
-  var checkLimit = isCurrentMonth ? Math.min(upToDay, nd - 2) : upToDay;
-
-  for (var day = 1; day <= checkLimit; day++) {
-    // Count how many required depts have data this day
-    var deptsWithData = required.filter(function(d) { return deptHasData(y, m, d, day); });
-    var totalActive   = deptsWithData.length;
-
-    // Skip day if NO departments had data — genuine rest day
-    if (totalActive === 0) continue;
-
-    // Skip day if only 1 dept active AND it's Uniform — could be weekly batch entry
-    if (totalActive === 1 && deptsWithData[0] === 'Uniform') continue;
-
-    // Now check for missing depts
-    required.forEach(function(dept) {
-      if (deptHasData(y, m, dept, day)) return; // has data, fine
-      if (ack[dept] && ack[dept].indexOf(day) !== -1) return; // acknowledged
-
-      var dt = new Date(y, m-1, day);
-      missing.push({ dept: dept, day: day, label: dows[dt.getDay()] + ' ' + day });
-    });
-  }
-  return missing;
-}
-
-// Legacy wrapper used by runMissingDeptCheck
-function getMissingDeptDays(y, m, upToDay) {
-  return getSmartMissingDays(y, m, upToDay);
-}
-
-// ── Main check: run on boot (morning) and at 8pm ──
-function runMissingDeptCheck() {
-  var today  = new Date();
-  var todayY = today.getFullYear();
-  var todayM = today.getMonth() + 1;
-  var todayD = today.getDate();
-  var hour   = today.getHours();
-
-  var checkUpTo = (hour >= 20) ? todayD : todayD - 1;
-  if (checkUpTo < 1) return;
-  if (CY !== todayY) return;
-
-  var missing = getMissingDeptDays(todayY, todayM, checkUpTo);
-  if (missing.length === 0) {
-    _dismissMissingAlert();
-    return;
-  }
-
-  // Don't re-show if already dismissed today by clicking X
-  var dismissedAt = parseInt(_STORE.getItem('_dept_alert_dismissed') || '0');
-  var todayStart  = new Date(); todayStart.setHours(0,0,0,0);
-  if (dismissedAt >= todayStart.getTime()) return;
-
-  // Already visible — no need to re-create (prevents flash on re-render)
-  if (document.getElementById('_dept_alert')) return;
-
-  _showMissingDeptAlert(missing, todayM);
-}
-
-function _showMissingDeptAlert(missing, m) {
-  // If already showing — don't re-create (prevents flash)
-  if (document.getElementById('_dept_alert')) return;
-
-  // Group by dept for compact display
-  var byDept = {};
-  missing.forEach(function(item) {
-    if (!byDept[item.dept]) byDept[item.dept] = [];
-    byDept[item.dept].push(item.day);
-  });
-  var depts = Object.keys(byDept);
-
-  var banner = document.createElement('div');
-  banner.id  = '_dept_alert';
-  banner.style.cssText =
-    'position:fixed;top:60px;left:50%;z-index:8000;' +
-    'background:#fff;border:2px solid #fca5a5;border-radius:14px;' +
-    'box-shadow:0 8px 32px rgba(220,38,38,.15);max-width:560px;width:calc(100vw - 32px);' +
-    'animation:slideDown .4s cubic-bezier(.22,1,.36,1) forwards';
-
-  // Build content
-  var deptRows = depts.map(function(dept) {
-    var days = byDept[dept];
-    var dayStr = days.length <= 4
-      ? days.join(', ')
-      : days.slice(0,3).join(', ') + ' +' + (days.length - 3) + ' more';
-    return '<div style="display:flex;align-items:center;justify-content:space-between;' +
-      'padding:6px 0;border-bottom:1px solid #f1f5f9">' +
-      '<span style="font-size:12px;font-weight:700;color:#0d1b2e">' + dept + '</span>' +
-      '<span style="font-size:11px;color:#dc2626;font-weight:600">Days: ' + dayStr + '</span>' +
-      '</div>';
-  }).join('');
-
-  banner.innerHTML =
-    // Header
-    '<div style="display:flex;align-items:center;justify-content:space-between;' +
-      'padding:12px 16px;background:#fef2f2;border-radius:12px 12px 0 0;border-bottom:1px solid #fecaca">' +
-      '<div style="display:flex;align-items:center;gap:8px">' +
-        '<span style="font-size:18px">⚠️</span>' +
-        '<div>' +
-          '<div style="font-size:13px;font-weight:800;color:#dc2626">Missing Department Data</div>' +
-          '<div style="font-size:11px;color:#94a3b8;margin-top:1px">' + missing.length + ' dept/day combination(s) with no entries</div>' +
-        '</div>' +
-      '</div>' +
-            '<button onclick="_dismissMissingAlert();_STORE.setItem(\'_dept_alert_dismissed\',Date.now())" ' +
-        'style="background:none;border:none;font-size:18px;cursor:pointer;color:#94a3b8;padding:4px">✕</button>' +
-    '</div>' +
-    // Dept rows
-    '<div style="padding:10px 16px">' + deptRows + '</div>' +
-    // Action buttons
-    '<div style="padding:10px 16px;display:flex;gap:8px;flex-wrap:wrap">' +
-            '<button onclick="_goToEntryFromAlert()" ' +
-        'style="flex:1;padding:9px 14px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">✏️ Go to Entry</button>' +
-      '<button onclick="openMissingDeptSettings()" ' +
-        'style="padding:9px 14px;background:#f8fafc;color:#64748b;border:1.5px solid #e2e8f0;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">⚙️ Configure</button>' +
-    '</div>';
-
-  // Add slide-down animation
-  if (!document.getElementById('_dept_anim')) {
-    var s = document.createElement('style');
-    s.id = '_dept_anim';
-    s.textContent = '@keyframes slideDown{from{opacity:0;transform:translate(-50%,-20px)}to{opacity:1;transform:translate(-50%,0)}}';
-    document.head.appendChild(s);
-  }
-
-  document.body.appendChild(banner);
-
-  // Auto-dismiss after 30 seconds
-  setTimeout(function() {
-    var el = document.getElementById('_dept_alert');
-    if (el) { el.style.opacity='0'; el.style.transition='opacity .5s'; setTimeout(function(){ if(el.parentNode) el.remove(); }, 500); }
-  }, 30000);
-}
-
-
-
-function _closeDeptSettings() {
-  var el = document.getElementById('_dept_settings');
-  if (el) el.remove();
-}
-
-function _goToEntryFromAlert() {
-  _dismissMissingAlert();
-  showTab('entry');
-}
-
-function _dismissMissingAlert() {
-  var el = document.getElementById('_dept_alert');
-  if (el) el.remove();
-}
-
-// ── Settings popup to configure required depts ──
-function openMissingDeptSettings() {
-  var existing = document.getElementById('_dept_settings');
-  if (existing) { existing.remove(); return; }
-
-  var required = getRequiredDepts();
-  var box = document.createElement('div');
-  box.id = '_dept_settings';
-  box.style.cssText =
-    'position:fixed;bottom:80px;right:24px;z-index:99999;background:#fff;' +
-    'border:2px solid #e2e8f0;border-radius:14px;padding:18px 20px;' +
-    'box-shadow:0 8px 32px rgba(0,0,0,.18);max-width:300px;font-family:inherit';
-
-  var rows = DEPT_KEYS.map(function(dept) {
-    var checked = required.indexOf(dept) !== -1;
-    return '<label style="display:flex;align-items:center;gap:10px;padding:8px 0;' +
-      'border-bottom:1px solid #f1f5f9;cursor:pointer">' +
-      '<input type="checkbox" data-dept="' + dept + '" ' + (checked ? 'checked' : '') + ' ' +
-        'style="width:16px;height:16px;accent-color:#0d1b2e;cursor:pointer">' +
-      '<span style="font-size:13px;font-weight:600;color:#0d1b2e">' + dept + '</span>' +
-      '</label>';
-  }).join('');
-
-  box.innerHTML =
-    '<div style="font-size:13px;font-weight:800;color:#0d1b2e;margin-bottom:4px">⚙️ Required Departments</div>' +
-    '<div style="font-size:11px;color:#64748b;margin-bottom:12px">Tick departments that must have data every day</div>' +
-    '<div>' + rows + '</div>' +
-    '<div style="display:flex;gap:8px;margin-top:14px">' +
-      '<button id="_dept_save_btn" style="flex:1;padding:9px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">💾 Save</button>' +
-            '<button onclick="_closeDeptSettings()" style="padding:9px 14px;background:#f1f5f9;color:#64748b;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">Cancel</button>' +
-    '</div>';
-
-  document.body.appendChild(box);
-
-  document.getElementById('_dept_save_btn').onclick = function() {
-    var checked = [];
-    box.querySelectorAll('input[type=checkbox]:checked').forEach(function(inp) {
-      checked.push(inp.dataset.dept);
-    });
-    saveRequiredDepts(checked);
-    box.remove();
-    toast('✅ Required departments saved', 'ok');
-    runMissingDeptCheck(); // re-run immediately
-  };
-}
-
-// ── Schedule the 8pm check ──
-function scheduleMissingDeptCheck() {
-  var now  = new Date();
-  var eight = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 20, 0, 0);
-  var msUntil8pm = eight - now;
-  if (msUntil8pm < 0) msUntil8pm += 86400000; // already past 8pm — schedule for tomorrow
-  setTimeout(function() {
-    runMissingDeptCheck();
-    // Then check every 24h
-    setInterval(runMissingDeptCheck, 86400000);
-  }, msUntil8pm);
-}
-
-
-// ════════════════════════════════════════════════════════════════
-//  NEW MONTH LOCK REMINDER
-//  Fires once on the 1st of each month if previous month has
-//  unlocked data — reminds user to lock before entering new data
-// ════════════════════════════════════════════════════════════════
-
-function checkNewMonthLockReminder() {
-  var today  = new Date();
-  var day    = today.getDate();
-  var curM   = today.getMonth() + 1;  // 1-based
-  var curY   = today.getFullYear();
-  var prevM  = curM === 1 ? 12 : curM - 1;
-  var prevY  = curM === 1 ? curY - 1 : curY;
-
-  // Only run on days 1–7 of the month (grace window)
-  if (day > 7) return;
-
-  // Don't show more than once per month
-  var shownKey = 'pearl_lock_reminder_' + curY + '_' + String(curM).padStart(2,'0');
-  if (_STORE.getItem(shownKey)) return;
-
-  // Check if previous month has any data that is NOT locked
-  var db   = loadDB(prevY);
-  var nd   = dim(prevY, prevM);
-  var hasUnlocked = false;
-
-  outer:
-  for (var i_d = 0; i_d < nd; i_d++) {
-    for (var di = 0; di < DEPT_KEYS.length; di++) {
-      var dept = DEPT_KEYS[di];
-      for (var ii = 0; ii < MASTER[dept].length; ii++) {
-        var key = prevM + '-' + dept + '-' + ii + '-' + i_d;
-        if (db[key] && db[key] > 0 && !db[key + '-p']) {
-          hasUnlocked = true;
-          break outer;
-        }
-      }
-    }
-  }
-
-  if (!hasUnlocked) return; // previous month already locked or has no data
-
-  // Mark as shown for this month
-  try { _STORE.setItem(shownKey, '1'); } catch(e) {}
-
-  // Show the banner
-  _showLockReminderBanner(prevM, prevY, curM);
-}
-
-var MONTH_NAMES_FULL = ['January','February','March','April','May','June',
-                        'July','August','September','October','November','December'];
-
-
-function _dismissLockReminder() {
-  var el = document.getElementById('_lock_reminder');
-  if (el) el.remove();
-}
-
-function _showLockReminderBanner(prevM, prevY, curM) {
-  var existing = document.getElementById('_lock_reminder');
-  if (existing) existing.remove();
-
-  var banner = document.createElement('div');
-  banner.id  = '_lock_reminder';
-  banner.style.cssText =
-    'position:fixed;top:62px;left:50%;z-index:8100;' +
-    'background:#fff;border:2px solid #c9a84c;border-radius:14px;' +
-    'box-shadow:0 8px 32px rgba(201,168,76,.25);max-width:520px;width:calc(100vw - 32px);' +
-    'animation:slideDown .4s cubic-bezier(.22,1,.36,1);font-family:inherit';
-
-  var prevName = MONTH_NAMES_FULL[prevM - 1];
-  var curName  = MONTH_NAMES_FULL[curM  - 1];
-
-  banner.innerHTML =
-    '<div style="display:flex;align-items:center;justify-content:space-between;' +
-      'padding:12px 16px;background:linear-gradient(135deg,#0d1b2e,#1e3a5f);' +
-      'border-radius:12px 12px 0 0">' +
-      '<div style="display:flex;align-items:center;gap:10px">' +
-        '<span style="font-size:22px">🔒</span>' +
-        '<div>' +
-          '<div style="font-size:13px;font-weight:800;color:#c9a84c">New Month — Lock ' + prevName + ' Before Entering ' + curName + ' Data</div>' +
-          '<div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:1px">' + prevName + ' has unsaved entries — lock them now to protect the revenue calculations</div>' +
-        '</div>' +
-      '</div>' +
-      '<button onclick="_dismissLockReminder()" ' +
-        'style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);' +
-        'color:#fff;border-radius:7px;padding:5px 12px;font-size:12px;cursor:pointer">✕</button>' +
-    '</div>' +
-    '<div style="padding:14px 16px">' +
-      '<div style="font-size:12px;color:#64748b;margin-bottom:12px;line-height:1.6">' +
-        'Locking ' + prevName + ' permanently freezes its revenue calculations. ' +
-        'You can then set new prices for ' + curName + ' without affecting past data.' +
-      '</div>' +
-      '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
-        '<button onclick="_goToLockMonth(' + prevM + ')" ' +
-          'style="flex:1;padding:10px 16px;background:linear-gradient(135deg,#0d1b2e,#1e3a5f);' +
-          'color:#c9a84c;border:none;border-radius:9px;font-size:12px;font-weight:800;cursor:pointer">' +
-          '🔒 Lock ' + prevName + ' Now</button>' +
-        '<button onclick="_dismissLockReminder()" ' +
-          'style="padding:10px 16px;background:#f8fafc;color:#64748b;border:1.5px solid #e2e8f0;' +
-          'border-radius:9px;font-size:12px;font-weight:700;cursor:pointer">Remind Me Later</button>' +
-      '</div>' +
-    '</div>';
-
-  document.body.appendChild(banner);
-
-  // Auto dismiss after 45 seconds
-  setTimeout(function() {
-    var el = document.getElementById('_lock_reminder');
-    if (el) { el.style.opacity='0'; el.style.transition='opacity .5s'; setTimeout(function(){ if(el.parentNode) el.remove(); },500); }
-  }, 45000);
-}
-
-function _goToLockMonth(m) {
-  var el = document.getElementById('_lock_reminder');
-  if (el) el.remove();
-  showTab('prices');
-  setTimeout(openMonthlyPriceManager, 400);
-}
-
-
-// ════════════════════════════════════════════════════════════════
-//  EXCHANGE RATE SYSTEM
-//  Stores QAR-based rates for multiple currencies
-//  Reminder to update rates on a schedule
-//  Quick converter + "View in USD" anywhere
-// ════════════════════════════════════════════════════════════════
-
-var _FX_STORE_KEY  = 'pearl_fx_rates';
-var _FX_FB_PATH    = 'pearl/settings/fx_rates';
-
-// Default rates (QAR to each currency — how many QAR = 1 unit)
-var _FX_DEFAULT = {
-  USD: { name:'US Dollar',       symbol:'$',   position:'before', rate: 3.64,  decimals:2 },
-  EUR: { name:'Euro',            symbol:'€',   position:'before', rate: 3.99,  decimals:2 },
-  GBP: { name:'British Pound',   symbol:'£',   position:'before', rate: 4.60,  decimals:2 },
-  SAR: { name:'Saudi Riyal',     symbol:'SAR', position:'after',  rate: 0.97,  decimals:2 },
-  AED: { name:'UAE Dirham',      symbol:'AED', position:'after',  rate: 0.99,  decimals:2 },
-  KWD: { name:'Kuwaiti Dinar',   symbol:'KWD', position:'after',  rate:11.84,  decimals:3 },
-  EGP: { name:'Egyptian Pound',  symbol:'EGP', position:'after',  rate: 0.075, decimals:2 },
-  INR: { name:'Indian Rupee',    symbol:'₹',   position:'before', rate: 0.044, decimals:2 }
-};
-
-var _FX_RATES = null; // will be set by loadFxRates()
-var _FX_REMINDER_DAYS = 14;
-var _FX_LAST_UPDATED  = null;
-
-function loadFxRates() {
-  // Always start with defaults — overwrite if stored data exists
-  _FX_RATES = JSON.parse(JSON.stringify(_FX_DEFAULT));
-  try {
-    var stored = JSON.parse(_STORE.getItem(_FX_STORE_KEY) || 'null');
-    if (stored && stored.rates && Object.keys(stored.rates).length > 0) {
-      _FX_RATES         = stored.rates;
-      _FX_REMINDER_DAYS = stored.reminderDays  !== undefined ? stored.reminderDays : 14;
-      _FX_LAST_UPDATED  = stored.lastUpdated   || null;
-    }
-  } catch(e) {
-    _FX_RATES = JSON.parse(JSON.stringify(_FX_DEFAULT));
-  }
-  if (window._fbLoadKey) {
-    window._fbLoadKey(_FX_FB_PATH).then(function(fb) {
-      if (fb && fb.rates) {
-        _FX_RATES         = fb.rates;
-        _FX_REMINDER_DAYS = fb.reminderDays !== undefined ? fb.reminderDays : _FX_REMINDER_DAYS;
-        _FX_LAST_UPDATED  = fb.lastUpdated  || _FX_LAST_UPDATED;
-        try { _STORE.setItem(_FX_STORE_KEY, JSON.stringify({rates:_FX_RATES, reminderDays:_FX_REMINDER_DAYS, lastUpdated:_FX_LAST_UPDATED})); } catch(e) {}
-      }
-    }).catch(function(){});
-  }
-}
-
-function saveFxRates() {
-  // Read reminder setting
-  var remSel = document.getElementById('fx-reminder-days');
-  if (remSel) _FX_REMINDER_DAYS = parseInt(remSel.value) || 0;
-
-  // Read rate inputs
-  Object.keys(_FX_RATES).forEach(function(code) {
-    var inp = document.getElementById('fx-rate-' + code);
-    if (inp) {
-      var val = parseFloat(inp.value);
-      if (!isNaN(val) && val > 0) _FX_RATES[code].rate = val;
-    }
-  });
-
-  _FX_LAST_UPDATED = new Date().toISOString();
-
-  var payload = { rates: _FX_RATES, reminderDays: _FX_REMINDER_DAYS, lastUpdated: _FX_LAST_UPDATED };
-  try { _STORE.setItem(_FX_STORE_KEY, JSON.stringify(payload)); } catch(e) {}
-  if (window._fbSaveKey) window._fbSaveKey(_FX_FB_PATH, payload);
-
-  // Update last-updated display
-  var el = document.getElementById('fx-last-updated');
-  if (el) el.textContent = 'Updated: ' + new Date().toLocaleDateString();
-
-  var msg = document.getElementById('fx-save-msg');
-  if (msg) { msg.textContent = '✅ Rates saved successfully'; setTimeout(function(){ msg.textContent=''; },3000); }
-
-  toast('✅ Exchange rates saved', 'ok');
-  renderFxRateInputs();
-  renderFxConvert();
-}
-
-// Convert QAR amount to a target currency
-function convertFromQAR(qarAmount, currencyCode) {
-  // Ensure rates are loaded
-  if (!_FX_RATES || Object.keys(_FX_RATES).length === 0) {
-    _FX_RATES = JSON.parse(JSON.stringify(_FX_DEFAULT));
-  }
-  var fx = _FX_RATES[currencyCode];
-  if (!fx || !fx.rate || fx.rate <= 0) return null;
-  return qarAmount / fx.rate;
-}
-
-// Format a converted amount with the currency's symbol
-function fmtFX(amount, currencyCode) {
-  var fx = _FX_RATES[currencyCode];
-  if (!fx) return '';
-  var dec = fx.decimals || 2;
-  var parts = amount.toFixed(dec).split('.');
-  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  var num = parts.join('.');
-  if (fx.position === 'before') return fx.symbol + ' ' + num;
-  return num + ' ' + fx.symbol;
-}
-
-// Render rate input rows in settings
-function renderFxRateInputs() {
-  var wrap = document.getElementById('fx-rates-wrap');
-  if (!wrap) return;
-
-  var lastUpdatedEl = document.getElementById('fx-last-updated');
-  if (lastUpdatedEl && _FX_LAST_UPDATED) {
-    lastUpdatedEl.textContent = 'Updated ' + new Date(_FX_LAST_UPDATED).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
-  }
-
-  var remSel = document.getElementById('fx-reminder-days');
-  if (remSel) remSel.value = String(_FX_REMINDER_DAYS);
-
-  var html = '';
-  if (!_FX_RATES || Object.keys(_FX_RATES).length === 0) { _FX_RATES = JSON.parse(JSON.stringify(_FX_DEFAULT)); }
-  Object.keys(_FX_RATES).forEach(function(code) {
-    var fx = _FX_RATES[code];
-    html += '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:9px">' +
-      '<div style="width:40px;height:36px;background:#0d1b2e;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#c9a84c;flex-shrink:0">' + code + '</div>' +
-      '<div style="flex:1;min-width:0">' +
-        '<div style="font-size:12px;font-weight:700;color:#0d1b2e">' + fx.name + '</div>' +
-        '<div style="font-size:10px;color:#94a3b8">1 ' + code + ' = ? QAR</div>' +
-      '</div>' +
-      '<div style="display:flex;align-items:center;gap:6px">' +
-        '<input type="number" id="fx-rate-' + code + '" value="' + fx.rate + '" step="0.0001" min="0.0001"' +
-          ' style="width:90px;padding:8px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:700;color:#0d1b2e;text-align:right;outline:none"' +
-          ' oninput="renderFxConvert()">' +
-        '<span style="font-size:11px;color:#64748b;font-weight:700">QAR</span>' +
-      '</div>' +
-    '</div>';
-  });
-  wrap.innerHTML = html;
-}
-
-// Render quick converter results
-function renderFxConvert() {
-  var wrap = document.getElementById('fx-convert-results');
-  if (!wrap) return;
-  var amtEl = document.getElementById('fx-input-amount');
-  var qar = amtEl ? (parseFloat(amtEl.value) || 0) : 0;
-  if (qar <= 0) { wrap.innerHTML = '<div style="text-align:center;color:#94a3b8;font-size:12px;padding:8px">Enter an amount above to see conversions</div>'; return; }
-
-  var html = '';
-  if (!_FX_RATES || Object.keys(_FX_RATES).length === 0) { _FX_RATES = JSON.parse(JSON.stringify(_FX_DEFAULT)); }
-  Object.keys(_FX_RATES).forEach(function(code) {
-    var converted = convertFromQAR(qar, code);
-    if (converted === null) return;
-    var fx = _FX_RATES[code];
-    html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:9px">' +
-      '<div style="display:flex;align-items:center;gap:8px">' +
-        '<div style="width:36px;height:30px;background:#0d1b2e;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#c9a84c">' + code + '</div>' +
-        '<span style="font-size:12px;color:#64748b">' + fx.name + '</span>' +
-      '</div>' +
-      '<div style="font-size:15px;font-weight:800;color:#0d1b2e">' + fmtFX(converted, code) + '</div>' +
-    '</div>';
-  });
-  wrap.innerHTML = html;
-}
-
-// Open the currency converter modal from anywhere (e.g. dashboard, reports)
-
-
-
-function _goToFxFromReminder() {
-  var el = document.getElementById('_fx_reminder');
-  if (el) el.remove();
-  showTab('settings');
-  setTimeout(function(){ switchStab('currency'); }, 200);
-}
-
-function _closeFxReminder() {
-  var el = document.getElementById('_fx_reminder');
-  if (el) el.remove();
-}
-
-function _goToFxSettings() {
-  _closeFxModal();
-  showTab('settings');
-  setTimeout(function(){ switchStab('currency'); }, 200);
-}
-
-function _closeFxModal() {
-  var el = document.getElementById('_fx_modal');
-  if (el) el.remove();
-}
-
-function openFxConverter(qarAmount) {
-  var existing = document.getElementById('_fx_modal');
-  if (existing) { existing.remove(); return; }
-
-  // Always ensure rates are populated before building modal
-  if (!_FX_RATES || typeof _FX_RATES !== 'object' || Object.keys(_FX_RATES).length === 0) {
-    _FX_RATES = JSON.parse(JSON.stringify(_FX_DEFAULT));
-  }
-
-  var modal = document.createElement('div');
-  modal.id = '_fx_modal';
-  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9800;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)';
-
-  var rates = _FX_RATES;
-  var rows = '';
-  Object.keys(rates).forEach(function(code) {
-    var converted = convertFromQAR(qarAmount, code);
-    if (converted === null) return;
-    var fx = _FX_RATES[code];
-    rows += '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:9px">' +
-      '<div style="display:flex;align-items:center;gap:8px">' +
-        '<div style="width:38px;height:32px;background:#0d1b2e;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#c9a84c">' + code + '</div>' +
-        '<div><div style="font-size:12px;font-weight:700;color:#0d1b2e">' + fx.name + '</div><div style="font-size:10px;color:#94a3b8">1 ' + code + ' = ' + fx.rate + ' QAR</div></div>' +
-      '</div>' +
-      '<div style="font-size:16px;font-weight:800;color:#0d1b2e">' + fmtFX(converted, code) + '</div>' +
-    '</div>';
-  });
-
-  modal.innerHTML =
-    '<div style="background:#fff;border-radius:16px;width:480px;max-width:96vw;max-height:88vh;overflow:hidden;display:flex;flex-direction:column">' +
-      '<div style="background:linear-gradient(135deg,#0d1b2e,#1e3a5f);padding:16px 20px;display:flex;align-items:center;justify-content:space-between">' +
-        '<div>' +
-          '<div style="font-size:15px;font-weight:800;color:#c9a84c">💱 Currency Converter</div>' +
-          '<div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:2px">' + fmtMoney(qarAmount) + ' converted to all currencies</div>' +
-        '</div>' +
-        '<button onclick="_closeFxModal()" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:8px;padding:6px 14px;font-size:13px;cursor:pointer">✕</button>' +
-      '</div>' +
-      '<div style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:8px">' + rows + '</div>' +
-      '<div style="padding:12px 16px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center">' +
-        '<div style="font-size:10px;color:#94a3b8">Rates set in Settings → Currency</div>' +
-        '<button onclick="_goToFxSettings()" style="padding:7px 14px;background:#f1f5f9;color:#64748b;border:none;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer">⚙️ Update Rates</button>' +
-      '</div>' +
-    '</div>';
-
-  document.body.appendChild(modal);
-}
-
-// ── Rate update reminder (runs on login) ──────────────────────
-function checkFxRateReminder() {
-  if (!_FX_REMINDER_DAYS || _FX_REMINDER_DAYS <= 0) return;
-  if (!_FX_LAST_UPDATED) {
-    // Never updated — show first-time nudge after 3 days
-    var installKey = 'pearl_fx_install_date';
-    var installed  = _STORE.getItem(installKey);
-    if (!installed) { try { _STORE.setItem(installKey, new Date().toISOString()); } catch(e) {} return; }
-    var daysSince = (Date.now() - new Date(installed)) / 86400000;
-    if (daysSince < 3) return;
-  } else {
-    var daysSince2 = (Date.now() - new Date(_FX_LAST_UPDATED)) / 86400000;
-    if (daysSince2 < _FX_REMINDER_DAYS) return;
-  }
-
-  // Don't show more than once per day
-  var todayKey = 'pearl_fx_reminder_' + new Date().toISOString().slice(0,10);
-  if (_STORE.getItem(todayKey)) return;
-  try { _STORE.setItem(todayKey, '1'); } catch(e) {}
-
-  // Show toast with action button
-  var banner = document.createElement('div');
-  banner.id = '_fx_reminder';
-  banner.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:8200;background:#fff;' +
-    'border:2px solid #fde68a;border-radius:12px;padding:14px 16px;max-width:320px;' +
-    'box-shadow:0 8px 24px rgba(0,0,0,.15);font-family:inherit;animation:slideUp .4s ease';
-
-  var daysTxt = _FX_LAST_UPDATED
-    ? Math.round((Date.now() - new Date(_FX_LAST_UPDATED)) / 86400000) + ' days ago'
-    : 'never';
-
-  banner.innerHTML =
-    '<div style="display:flex;gap:10px;align-items:flex-start">' +
-      '<span style="font-size:20px;flex-shrink:0">💱</span>' +
-      '<div style="flex:1">' +
-        '<div style="font-size:13px;font-weight:800;color:#0d1b2e;margin-bottom:3px">Exchange Rates Need Update</div>' +
-        '<div style="font-size:11px;color:#64748b;margin-bottom:10px">Rates were last updated <strong>' + daysTxt + '</strong>. Check they\'re still accurate.</div>' +
-        '<div style="display:flex;gap:6px">' +
-          '<button onclick="_goToFxFromReminder()" ' +
-            'style="flex:1;padding:8px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer">⚙️ Update Now</button>' +
-          '<button onclick="_closeFxReminder()" ' +
-            'style="padding:8px 12px;background:#f1f5f9;color:#64748b;border:none;border-radius:7px;font-size:11px;cursor:pointer">Later</button>' +
-        '</div>' +
-      '</div>' +
-    '</div>';
-
-  if (!document.getElementById('_slideUp_style')) {
-    var ss = document.createElement('style');
-    ss.id = '_slideUp_style';
-    ss.textContent = '@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}';
-    document.head.appendChild(ss);
-  }
-  document.body.appendChild(banner);
-  setTimeout(function() {
-    var el = document.getElementById('_fx_reminder');
-    if (el) { el.style.opacity='0'; el.style.transition='opacity .5s'; setTimeout(function(){ if(el.parentNode)el.remove(); },500); }
-  }, 20000);
-}
-
-
-
-// ════════════════════════════════════════════════════════════════
-//  YEAR HEALTH PANEL
-//  Shows all 12 months with completion status on dashboard
-//  Click any month to see full checklist details
-// ════════════════════════════════════════════════════════════════
-
-function renderYearHealth() {
-  var wrap = document.getElementById('year-health-wrap');
-  if (!wrap) return;
-
-  var today = new Date();
-  var curM  = today.getMonth() + 1;
-  var curY  = today.getFullYear();
-  var MNS   = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  var keys  = ['allDaysEntered','pricesLocked','monthlyPricesSet','financePosted','backupSaved'];
-
-  // Build month cards
-  var html = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">' +
-    '<div style="font-size:13px;font-weight:800;color:#0d1b2e">📋 ' + curY + ' Month Health</div>' +
-    '<button onclick="openYearHealthDetail()" style="padding:5px 12px;background:#f8fafc;border:1.5px solid #e2e8f0;color:#64748b;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer">View All →</button>' +
-  '</div>';
-
-  html += '<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px">';
-
-  for (var mi = 1; mi <= 12; mi++) {
-    var isFuture  = mi > curM;
-    var isCurrent = mi === curM;
-
-    if (isFuture) {
-      html += '<div style="padding:8px 6px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:9px;text-align:center;opacity:.5">' +
-        '<div style="font-size:12px;font-weight:700;color:#94a3b8">' + MNS[mi-1] + '</div>' +
-        '<div style="font-size:16px;margin:3px 0">—</div>' +
-        '<div style="font-size:9px;color:#94a3b8">Future</div>' +
-      '</div>';
-      continue;
-    }
-
-    var status    = getEomStatus(curY, mi);
-    var doneCount = keys.filter(function(k){ return status[k].done; }).length;
-    var total     = keys.length;
-    var pct       = Math.round(doneCount / total * 100);
-
-    var bg, bdr, icon, statusTxt;
-    if (doneCount === total) {
-      bg = '#f0fdf4'; bdr = '#86efac'; icon = '✅'; statusTxt = '5/5';
-    } else if (doneCount >= 3) {
-      bg = '#fffbeb'; bdr = '#fde68a'; icon = '⚠️'; statusTxt = doneCount + '/5';
-    } else {
-      bg = '#fef2f2'; bdr = '#fca5a5'; icon = '🔴'; statusTxt = doneCount + '/5';
-    }
-
-    if (isCurrent) { bdr = '#c9a84c'; }
-
-    html += '<div onclick="openMonthChecklist(' + mi + ')" ' +
-      'style="padding:8px 6px;background:' + bg + ';border:2px solid ' + bdr + ';border-radius:9px;text-align:center;cursor:pointer;transition:all .15s" ' +
-      'onmouseover="this.style.opacity=.8" onmouseout="this.style.opacity=1">' +
-      '<div style="font-size:12px;font-weight:800;color:#0d1b2e">' + MNS[mi-1] + (isCurrent?' ◀':'') + '</div>' +
-      '<div style="font-size:18px;margin:3px 0">' + icon + '</div>' +
-      '<div style="font-size:10px;font-weight:700;color:#64748b">' + statusTxt + '</div>' +
-    '</div>';
-  }
-
-  html += '</div>';
-  wrap.innerHTML = html;
-}
-
-function openMonthChecklist(m) {
-  var existing = document.getElementById('_month_checklist_modal');
-  if (existing) existing.remove();
-
-  var modal = document.createElement('div');
-  modal.id = '_month_checklist_modal';
-  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9800;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)';
-
-  var curY = new Date().getFullYear();
-  var MNF  = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  var keys = ['allDaysEntered','pricesLocked','monthlyPricesSet','financePosted','backupSaved'];
-  var status = getEomStatus(curY, m);
-  var doneCount = keys.filter(function(k){ return status[k].done; }).length;
-  var allDone   = doneCount === keys.length;
-
-  var inner = document.createElement('div');
-  inner.style.cssText = 'background:#fff;border-radius:16px;width:460px;max-width:96vw;overflow:hidden';
-
-  // Header
-  var hdr = document.createElement('div');
-  hdr.style.cssText = 'background:linear-gradient(135deg,#0d1b2e,#1e3a5f);padding:16px 20px;display:flex;align-items:center;justify-content:space-between';
-  hdr.innerHTML =
-    '<div>' +
-      '<div style="font-size:15px;font-weight:800;color:#c9a84c">📋 ' + MNF[m-1] + ' ' + curY + ' Checklist</div>' +
-      '<div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:2px">' + doneCount + ' of ' + keys.length + ' items complete</div>' +
-    '</div>' +
-    '<div style="background:' + (allDone?'#16a34a':'#c9a84c') + ';color:' + (allDone?'#fff':'#0d1b2e') + ';border-radius:20px;padding:4px 12px;font-size:13px;font-weight:800">' + doneCount + '/' + keys.length + '</div>';
-  inner.appendChild(hdr);
-
-  // Items
-  var body = document.createElement('div');
-  body.style.cssText = 'padding:14px 16px;display:flex;flex-direction:column;gap:8px';
-
-  keys.forEach(function(k) {
-    var item     = status[k];
-    var rowBg    = item.done ? '#f0fdf4' : '#fff';
-    var rowBdr   = item.done ? '#86efac' : '#e2e8f0';
-    var checkBg  = item.done ? '#16a34a' : '#e2e8f0';
-    var checkClr = item.done ? '#fff'    : '#94a3b8';
-
-    var row = document.createElement('div');
-    row.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 12px;background:' + rowBg + ';border:1.5px solid ' + rowBdr + ';border-radius:9px';
-
-    // Tick / checkbox
-    if (item.manual) {
-      var cb = document.createElement('button');
-      cb.style.cssText = 'width:26px;height:26px;border-radius:7px;border:2px solid ' + (item.done?'#16a34a':'#d1d5db') + ';background:' + checkBg + ';cursor:pointer;flex-shrink:0;font-size:14px;color:' + checkClr + ';display:flex;align-items:center;justify-content:center';
-      cb.textContent = item.done ? '✓' : '';
-      cb.onclick = (function(ky, mi){ return function(){ _eomTick(curY, mi, ky); setTimeout(function(){ openMonthChecklist(mi); }, 100); }; })(k, m);
-      row.appendChild(cb);
-    } else {
-      var dot = document.createElement('div');
-      dot.style.cssText = 'width:26px;height:26px;border-radius:7px;background:' + checkBg + ';flex-shrink:0;font-size:14px;color:' + checkClr + ';display:flex;align-items:center;justify-content:center';
-      dot.textContent = item.done ? '✓' : '○';
-      row.appendChild(dot);
-    }
-
-    // Label
-    var info = document.createElement('div');
-    info.style.cssText = 'flex:1;min-width:0';
-    info.innerHTML =
-      '<div style="font-size:13px;font-weight:700;color:#0d1b2e' + (item.done?';text-decoration:line-through;opacity:.6':'') + '">' + item.label + '</div>' +
-      '<div style="font-size:11px;color:#94a3b8;margin-top:1px">' + item.detail + '</div>';
-    row.appendChild(info);
-
-    // Fix + Mark OK buttons
-    if (!item.done) {
-      var btnWrap = document.createElement('div');
-      btnWrap.style.cssText = 'display:flex;flex-direction:column;gap:6px;flex-shrink:0;align-items:flex-end';
-      if (item.action) {
-        var fixBtn = document.createElement('button');
-        fixBtn.textContent = 'Fix →';
-        fixBtn.style.cssText = 'padding:6px 10px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer';
-        fixBtn.onclick = (function(fn){ return function(){ modal.remove(); fn(); }; })(item.action);
-        btnWrap.appendChild(fixBtn);
-      }
-      if (item.missingDepts && item.missingDepts.length > 0) {
-        item.missingDepts.forEach(function(dept) {
-          var ackBtn = document.createElement('button');
-          ackBtn.textContent = '✓ Mark OK: ' + dept.split(' ')[0];
-          ackBtn.title = 'Intentional zero or posted next day';
-          ackBtn.style.cssText = 'padding:5px 8px;background:#f0fdf4;color:#16a34a;border:1.5px solid #86efac;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap';
-          ackBtn.onclick = (function(d, fn){ return function(){ fn(d); }; })(dept, item.ackFn);
-          btnWrap.appendChild(ackBtn);
-        });
-      }
-      if (btnWrap.children.length > 0) row.appendChild(btnWrap);
-    }
-
-    body.appendChild(row);
-  });
-
-  inner.appendChild(body);
-
-  // Footer
-  var footer = document.createElement('div');
-  footer.style.cssText = 'padding:12px 16px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center';
-  footer.innerHTML =
-    '<div style="font-size:10px;color:#94a3b8">Auto-items update automatically · Finance posted requires manual tick</div>';
-  var closeBtn = document.createElement('button');
-  closeBtn.textContent = 'Close';
-  closeBtn.style.cssText = 'padding:8px 18px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer';
-  closeBtn.onclick = function(){ modal.remove(); };
-  footer.appendChild(closeBtn);
-  inner.appendChild(footer);
-
-  modal.appendChild(inner);
-  modal.onclick = function(e){ if(e.target===modal) modal.remove(); };
-  document.body.appendChild(modal);
-
-  // Refresh year health when modal closes
-  modal.addEventListener('click', function(e){
-    if (e.target === modal) renderYearHealth();
-  });
-}
-
-function openYearHealthDetail() {
-  // Open checklist for current month by default
-  openMonthChecklist(new Date().getMonth() + 1);
-}
-
 // ── Service Worker for offline support ──
 if ('serviceWorker' in navigator) {
   var swCode = `
