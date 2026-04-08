@@ -10676,26 +10676,31 @@ function renderDashOccQuick(m) {
     (function(){ var opts=''; for(var _d=1;_d<=dim(CY,m);_d++){ var _dn=DAY_NAMES[new Date(CY,m-1,_d).getDay()]; opts+='<option value="'+_d+'" '+(_d===displayDay?'selected':'')+'>'+_dn+' '+_d+'</option>'; } return opts; })() +
     '</select>' +
     '</div>' +
-    '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">' +
       '<div>' +
-        '<div style="font-size:10px;color:#94a3b8;margin-bottom:4px">Rooms Occupied</div>' +
-        '<input type="number" id="occ-rooms-inp" min="0" max="' + totalRooms + '" value="' + (rooms||'') + '" placeholder="0"' +
-          ' style="width:100px;padding:8px 12px;border:1.5px solid #c9a84c;border-radius:8px;font-size:16px;font-weight:700;color:#0d1b2e;outline:none;text-align:center"' +
-          ' oninput="_occInputChange(parseInt(this.value)||0,_TOTAL_ROOMS||161)">' +
+        '<div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:5px;letter-spacing:.5px">ROOMS OCCUPIED</div>' +
+        '<div style="display:flex;align-items:center;gap:6px">' +
+          '<input type="number" id="occ-rooms-inp" min="0" max="' + totalRooms + '" value="' + (rooms||'') + '" placeholder="e.g. 89"' +
+            ' style="flex:1;padding:10px 12px;border:1.5px solid #c9a84c;border-radius:8px;font-size:18px;font-weight:800;color:#0d1b2e;outline:none;text-align:center;background:#fffbeb"' +
+            ' oninput="_occRoomsChange(this.value,' + totalRooms + ')">' +
+          '<span style="font-size:13px;color:#94a3b8;font-weight:600">/ ' + totalRooms + '</span>' +
+        '</div>' +
+        '<div style="font-size:10px;color:#94a3b8;margin-top:4px">Enter number of occupied rooms</div>' +
       '</div>' +
-      '<div style="font-size:20px;color:#94a3b8">/</div>' +
       '<div>' +
-        '<div style="font-size:10px;color:#94a3b8;margin-bottom:4px">Total Rooms</div>' +
-        '<div style="font-size:16px;font-weight:800;color:#0d1b2e;padding:8px 12px">' + totalRooms + '</div>' +
+        '<div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:5px;letter-spacing:.5px">OCCUPANCY %</div>' +
+        '<div style="display:flex;align-items:center;gap:6px">' +
+          '<input type="number" id="occ-pct-inp" min="0" max="100" step="0.1" value="' + (pct||'') + '" placeholder="e.g. 55.3"' +
+            ' style="flex:1;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:18px;font-weight:800;color:#0d1b2e;outline:none;text-align:center"' +
+            ' oninput="_occPctChange(this.value,' + totalRooms + ')">' +
+          '<span style="font-size:13px;color:#94a3b8;font-weight:600">%</span>' +
+        '</div>' +
+        '<div style="font-size:10px;color:#94a3b8;margin-top:4px">Or enter % directly</div>' +
       '</div>' +
-      '<div style="padding:8px 14px;background:#fffbeb;border-radius:8px;text-align:center">' +
-        '<div id="occ-pct-display" style="font-size:18px;font-weight:900;color:#d97706">' + (pct||'—') + (pct?'%':'') + '</div>' +
-        '<div style="font-size:9px;color:#94a3b8">OCCUPANCY</div>' +
-      '</div>' +
-      '<div style="display:flex;gap:8px">' +
-        '<button onclick="saveOccFromCompact(' + m + ',' + displayDay + ',' + totalRooms + ')" style="padding:10px 18px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">💾 Save</button>' +
-        '<button onclick="_closeOccEdit()" style="padding:10px 14px;background:#f1f5f9;color:#64748b;border:none;border-radius:8px;font-size:13px;cursor:pointer">Cancel</button>' +
-      '</div>' +
+    '</div>' +
+    '<div style="display:flex;gap:8px">' +
+      '<button onclick="saveOccFromCompact(' + m + ',' + displayDay + ',' + totalRooms + ')" style="flex:1;padding:11px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">💾 Save Occupancy</button>' +
+      '<button onclick="_closeOccEdit()" style="padding:11px 16px;background:#f1f5f9;color:#64748b;border:none;border-radius:8px;font-size:13px;cursor:pointer">Cancel</button>' +
     '</div>';
   el.appendChild(form);
 }
@@ -10707,11 +10712,22 @@ function _closeOccEdit() {
   if (f) f.style.display = 'none';
 }
 
-function _occInputChange(rooms, totalRooms) {
-  var pct = (rooms / totalRooms * 100).toFixed(1);
-  var el  = document.getElementById('occ-pct-display');
-  if (el) el.textContent = pct + '%';
+function _occRoomsChange(val, totalRooms) {
+  var rooms = parseFloat(val) || 0;
+  var pct   = totalRooms > 0 ? (rooms / totalRooms * 100).toFixed(1) : 0;
+  var pctInp = document.getElementById('occ-pct-inp');
+  if (pctInp) { pctInp.value = pct; pctInp.style.borderColor = '#c9a84c'; }
 }
+
+function _occPctChange(val, totalRooms) {
+  var pct   = parseFloat(val) || 0;
+  var rooms = Math.round(pct / 100 * totalRooms);
+  var roomsInp = document.getElementById('occ-rooms-inp');
+  if (roomsInp) { roomsInp.value = rooms || ''; roomsInp.style.borderColor = '#c9a84c'; }
+}
+
+// Legacy alias
+function _occInputChange(rooms, totalRooms) { _occRoomsChange(rooms, totalRooms); }
 
 function toggleOccEdit(m, day, totalRooms) {
   var form = document.getElementById('occ-edit-form');
@@ -10723,14 +10739,31 @@ function toggleOccEdit(m, day, totalRooms) {
 }
 
 function saveOccFromCompact(m, day, totalRooms) {
-  var inp = document.getElementById('occ-rooms-inp');
-  if (!inp) return;
-  var rooms = parseInt(inp.value) || 0;
-  var pct   = totalRooms > 0 ? parseFloat((rooms / totalRooms * 100).toFixed(2)) : 0;
+  var roomsInp = document.getElementById('occ-rooms-inp');
+  var pctInp   = document.getElementById('occ-pct-inp');
+  var rooms, pct;
+
+  // Prefer whichever was last edited — use pct if rooms is empty
+  if (roomsInp && roomsInp.value !== '') {
+    rooms = parseInt(roomsInp.value) || 0;
+    pct   = totalRooms > 0 ? parseFloat((rooms / totalRooms * 100).toFixed(2)) : 0;
+  } else if (pctInp && pctInp.value !== '') {
+    pct   = parseFloat(pctInp.value) || 0;
+    rooms = Math.round(pct / 100 * totalRooms);
+  } else {
+    toast('⚠️ Enter rooms or occupancy % first', 'warn');
+    return;
+  }
+
+  if (rooms < 0 || rooms > totalRooms) {
+    toast('⚠️ Rooms must be between 0 and ' + totalRooms, 'warn');
+    return;
+  }
+
   saveDayOcc(CY, m, day, rooms, pct);
-  document.getElementById('occ-edit-form').style.display = 'none';
+  _closeOccEdit();
   renderDash();
-  toast('🏨 Occupancy saved: ' + rooms + ' rooms (' + pct.toFixed(1) + '%)', 'ok');
+  toast('🏨 Saved: ' + rooms + ' rooms · ' + pct.toFixed(1) + '%', 'ok');
 }
 
 
