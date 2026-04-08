@@ -12683,6 +12683,45 @@ var _mobDayClip = null;
 
 function isMobile() { return window.innerWidth <= 768; }
 
+// Handle screen rotation / resize — switch between mobile and desktop layout
+(function() {
+  var _lastMobile = null;
+  function _checkLayout() {
+    var nowMobile = isMobile();
+    if (nowMobile === _lastMobile) return; // no change
+    _lastMobile = nowMobile;
+    var mob  = document.getElementById('mob-app');
+    var desk = document.getElementById('pg-app');
+    if (!mob || !desk) return;
+    if (nowMobile) {
+      desk.style.display = 'none';
+      mob.style.display  = 'flex';
+      // Re-render current mobile tab
+      if (typeof mobRenderDash === 'function') {
+        var tab = window._mobTab || 'dashboard';
+        if (tab === 'dashboard') mobRenderDash();
+        else if (tab === 'entry') mobRenderEntry();
+        else if (tab === 'checklist') mobRenderChecklist();
+        else if (tab === 'fx') mobRenderFx();
+      }
+    } else {
+      mob.style.display  = 'none';
+      desk.style.display = 'flex';
+      // Re-render desktop dashboard
+      if (typeof renderDash === 'function') renderDash();
+    }
+  }
+  // Listen for both resize and orientation change
+  window.addEventListener('resize', function() {
+    clearTimeout(window._layoutTimer);
+    window._layoutTimer = setTimeout(_checkLayout, 150);
+  });
+  window.addEventListener('orientationchange', function() {
+    // Give browser time to update dimensions after rotation
+    setTimeout(_checkLayout, 300);
+  });
+})();
+
 // Store mobile app HTML on first load so we can restore after loading screen
 (function() {
   // ══════════════════════════════════════════════════════════════
