@@ -4650,9 +4650,24 @@ function saveHotelSettings() {
 // ── Load daily occupancy ──
 function loadDayOcc(y, m, d) {
   try {
+    // 1. Check individual day key (set by dashboard or benchmark bridge)
     var key = 'occ_' + y + '_' + m + '_' + d;
     var stored = JSON.parse(_STORE.getItem(key) || 'null');
-    return stored; // { rooms: 120, pct: 74.5 } or null
+    if (stored) return stored;
+
+    // 2. Fallback: check benchmark storage for this day
+    var bench = {};
+    try { bench = JSON.parse(_STORE.getItem(benchKey(y, m)) || '{}'); } catch(e) {}
+    var benchPct = bench[d] !== undefined ? parseFloat(bench[d]) : null;
+    if (benchPct !== null && !isNaN(benchPct)) {
+      var totalRooms = _TOTAL_ROOMS || 161;
+      var rooms = Math.round(benchPct / 100 * totalRooms);
+      var bridged = { rooms: rooms, pct: benchPct };
+      // Save to individual key for future fast reads
+      try { _STORE.setItem(key, JSON.stringify(bridged)); } catch(e) {}
+      return bridged;
+    }
+    return null;
   } catch(e) { return null; }
 }
 
@@ -5816,19 +5831,40 @@ function closeMobMore() {
   var m = document.getElementById('mob-more-menu');
   if (m) m.style.display = 'none';
 }
+var _tabRenderTime = {}; // { tabName: timestamp }
+var _TAB_CACHE_MS  = 30000; // 30 seconds — re-render if stale
+
 function refreshTab() {
-  if (curTab === 'backup') { renderBackupTab(); return; }
-  if (curTab === 'dashboard') renderDash();
-  else if (curTab === 'entry') renderEntry();
-  else if (curTab === 'monthly') renderMonthly();
-  else if (curTab === 'report') renderReport();
-  else if (curTab === 'finance') renderFinance();
-  else if (curTab === 'prices') renderPriceTable();
-  else if (curTab === 'benchmark') initBenchmark();
-  else if (curTab === 'analytics') { renderAnalytics(); showAnalyticsTab('charts'); }
-  else if (curTab === 'forecast') renderForecast();
-  else if (curTab === 'guide') renderGuide();
-  else if (curTab === 'items') { renderItemsDeptList(); closeItemsEditor(); initItemsTab(); }
+  var now = Date.now();
+  var last = _tabRenderTime[curTab] || 0;
+  var stale = (now - last) > _TAB_CACHE_MS;
+
+  // Always re-render entry (user is actively editing)
+  // Always re-render backup (version list changes)
+  var alwaysRender = ['entry','backup','dashboard'];
+  var needsRender  = alwaysRender.indexOf(curTab) !== -1 || stale;
+
+  if (!needsRender) return; // Tab was rendered recently — skip
+  _tabRenderTime[curTab] = now;
+
+  if (curTab === 'backup')    { renderBackupTab(); return; }
+  if (curTab === 'dashboard') { renderDash(); return; }
+  if (curTab === 'entry')     { renderEntry(); return; }
+  if (curTab === 'monthly')   { renderMonthly(); return; }
+  if (curTab === 'report')    { renderReport(); return; }
+  if (curTab === 'finance')   { renderFinance(); return; }
+  if (curTab === 'prices')    { renderPriceTable(); return; }
+  if (curTab === 'benchmark') { initBenchmark(); return; }
+  if (curTab === 'analytics') { renderAnalytics(); showAnalyticsTab('charts'); return; }
+  if (curTab === 'forecast')  { renderForecast(); return; }
+  if (curTab === 'guide')     { renderGuide(); return; }
+  if (curTab === 'items')     { renderItemsDeptList(); closeItemsEditor(); initItemsTab(); return; }
+}
+
+// Force a tab to re-render even if cached (call after saving data)
+function invalidateTabCache(tabName) {
+  if (tabName) { delete _tabRenderTime[tabName]; }
+  else { _tabRenderTime = {}; } // clear all
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -6581,6 +6617,7 @@ function saveDayConfirmed(m, day, updatePrices) {
   stampTimestamps(CY, m, entDept, day);
   commitSave(CY);
   logAudit('SAVE_DAY', entDept + ' · Day ' + day + ' ' + MONTH_NAMES[m-1] + ' ' + CY + (updatePrices ? '' : ' · prices kept'));
+  invalidateTabCache('dashboard');
   toast('✔ Saved — ' + entDept + ' day ' + day + ' ' + MONTH_NAMES[m-1] + (updatePrices ? '' : ' · old prices kept'), 'ok');
   setTimeout(autoCloudBackup, 2000);
 }
@@ -9718,16 +9755,30 @@ function loadBenchOccFromFB(y, m, callback) {
 }
 
 function saveBenchOccData(y, m, data) {
-  // ALWAYS save to BOTH localStorage AND Firebase
+  // Save to benchmark storage
   try { _STORE.setItem(benchKey(y, m), JSON.stringify(data)); } catch(e) {}
   if (window._fbSaveKey) {
     window._fbSaveKey('pearl/benchmark/' + y + '/' + m, data).catch(function(err) {
-      // Retry once after 2 seconds
       setTimeout(function() {
         if (window._fbSaveKey) window._fbSaveKey('pearl/benchmark/' + y + '/' + m, data);
       }, 2000);
     });
   }
+  // ── BRIDGE: also save each day to individual occ keys so dashboard can read them ──
+  var totalRooms = _TOTAL_ROOMS || 161;
+  Object.keys(data).forEach(function(d) {
+    var pct   = parseFloat(data[d]) || 0;
+    var rooms = Math.round(pct / 100 * totalRooms);
+    var dayKey = 'occ_' + y + '_' + m + '_' + d;
+    var dayData = { rooms: rooms, pct: pct };
+    try { _STORE.setItem(dayKey, JSON.stringify(dayData)); } catch(e) {}
+    // Also sync to Firebase individual day path
+    if (window._fbDB) {
+      window._fbDB.ref('pearl/occupancy/' + y + '/' + m + '/' + d).set(dayData);
+    }
+  });
+  // Invalidate dashboard cache so it re-renders with new occupancy
+  invalidateTabCache('dashboard');
 }
 function loadBenchSettings() {
   try { return JSON.parse(_STORE.getItem(benchSettingsKey()) || '{}'); } catch(e) { return {}; }
@@ -11306,6 +11357,7 @@ function saveOccFromCompact(m, day, totalRooms) {
 
   saveDayOcc(CY, m, day, rooms, pct);
   _closeOccEdit();
+  invalidateTabCache('benchmark'); // So benchmark shows updated occ
   renderDash();
   toast('🏨 Saved: ' + rooms + ' rooms · ' + pct.toFixed(1) + '%', 'ok');
 }
