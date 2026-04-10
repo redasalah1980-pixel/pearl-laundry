@@ -5801,11 +5801,10 @@ function showTab(name) {
     if (allowed.indexOf(name) === -1) { toast('🔒 You do not have access to this tab.', 'err'); return; }
   }
   curTab = name;
-  // Match exact order of .tn-tab elements in HTML
-  // Update main nav tabs (8 tabs) — More dropdown items handled separately
-  const mainTabs = ['dashboard','entry','benchmark','prices','analytics','forecast'];
-  document.querySelectorAll('.tn-tab').forEach(function(t, i) {
-    t.classList.toggle('on', mainTabs[i] === name);
+  // Highlight nav tab by ID — works regardless of tab order
+  document.querySelectorAll('.tn-tab').forEach(function(t) {
+    var tabId = t.id.replace('nav-', '');
+    t.classList.toggle('on', tabId === name);
   });
   updateMoreBtnState(name);
   document.querySelectorAll('.pg').forEach(p => p.classList.remove('on'));
@@ -5835,30 +5834,53 @@ var _tabRenderTime = {}; // { tabName: timestamp }
 var _TAB_CACHE_MS  = 30000; // 30 seconds — re-render if stale
 
 function refreshTab() {
-  var now = Date.now();
-  var last = _tabRenderTime[curTab] || 0;
+  var now   = Date.now();
+  var last  = _tabRenderTime[curTab] || 0;
   var stale = (now - last) > _TAB_CACHE_MS;
-
-  // Always re-render entry (user is actively editing)
-  // Always re-render backup (version list changes)
-  var alwaysRender = ['entry','backup','dashboard'];
+  var alwaysRender = ['entry', 'backup', 'dashboard'];
   var needsRender  = alwaysRender.indexOf(curTab) !== -1 || stale;
-
-  if (!needsRender) return; // Tab was rendered recently — skip
+  if (!needsRender) return;
   _tabRenderTime[curTab] = now;
 
-  if (curTab === 'backup')    { renderBackupTab(); return; }
-  if (curTab === 'dashboard') { renderDash(); return; }
-  if (curTab === 'entry')     { renderEntry(); return; }
-  if (curTab === 'monthly')   { renderMonthly(); return; }
-  if (curTab === 'report')    { renderReport(); return; }
-  if (curTab === 'finance')   { renderFinance(); return; }
-  if (curTab === 'prices')    { renderPriceTable(); return; }
-  if (curTab === 'benchmark') { initBenchmark(); return; }
-  if (curTab === 'analytics') { renderAnalytics(); showAnalyticsTab('charts'); return; }
-  if (curTab === 'forecast')  { renderForecast(); return; }
-  if (curTab === 'guide')     { renderGuide(); return; }
-  if (curTab === 'items')     { renderItemsDeptList(); closeItemsEditor(); initItemsTab(); return; }
+  // Fast tabs — render immediately
+  var fastTabs = {
+    'backup':    function(){ renderBackupTab(); },
+    'dashboard': function(){ renderDash(); },
+    'entry':     function(){ renderEntry(); },
+    'prices':    function(){ renderPriceTable(); },
+    'items':     function(){ renderItemsDeptList(); closeItemsEditor(); initItemsTab(); }
+  };
+
+  // Heavy tabs — show tab frame first, then render content after paint
+  var heavyTabs = {
+    'monthly':   function(){ renderMonthly(); },
+    'report':    function(){ renderReport(); },
+    'finance':   function(){ renderFinance(); },
+    'benchmark': function(){ initBenchmark(); },
+    'analytics': function(){ renderAnalytics(); showAnalyticsTab('charts'); },
+    'forecast':  function(){ renderForecast(); },
+    'guide':     function(){ renderGuide(); }
+  };
+
+  if (fastTabs[curTab]) {
+    fastTabs[curTab]();
+  } else if (heavyTabs[curTab]) {
+    // Show loading indicator immediately
+    var tabEl = document.getElementById('tab-' + curTab);
+    if (tabEl && !tabEl.querySelector('.tab-loading')) {
+      var loader = document.createElement('div');
+      loader.className = 'tab-loading';
+      loader.style.cssText = 'padding:40px;text-align:center;color:#94a3b8;font-size:13px';
+      loader.textContent = 'Loading...';
+      if (!tabEl.innerHTML.trim()) tabEl.appendChild(loader);
+    }
+    // Render after browser has painted the tab switch
+    requestAnimationFrame(function() {
+      setTimeout(function() {
+        heavyTabs[curTab]();
+      }, 0);
+    });
+  }
 }
 
 // Force a tab to re-render even if cached (call after saving data)
