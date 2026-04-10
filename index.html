@@ -3585,17 +3585,27 @@ function prKeyM(y,m) { return 'pearl_prices_' + y + '_' + String(m).padStart(2,'
 function fbPricePathM(y,m) { return 'pearl/prices/' + y + '_' + String(m).padStart(2,'0'); }
 
 // Load prices for a specific month — falls back to year prices then MASTER
+// In-memory price cache — avoids repeated localStorage reads in tight loops
+var _prmCache = {}; // { 'YYYY_MM': pricesObj }
+
 function loadPRM(y, m) {
-  // 1. Check monthly price version in localStorage
+  var cacheKey = y + '_' + m;
+
+  // 1. In-memory cache hit — fastest path (no localStorage read)
+  if (_prmCache[cacheKey]) return _prmCache[cacheKey];
+
+  // 2. Read from localStorage
   var localKey = prKeyM(y, m);
   try {
     var s = JSON.parse(_STORE.getItem(localKey) || 'null');
     if (s && typeof s === 'object' && Object.keys(s).length > 0) {
-      // Background sync from Firebase to keep fresh
+      _prmCache[cacheKey] = s; // cache it
+      // Background Firebase sync (non-blocking)
       if (window._fbLoadKey) {
         window._fbLoadKey(fbPricePathM(y, m)).then(function(fbPrices) {
           if (fbPrices && typeof fbPrices === 'object' && Object.keys(fbPrices).length > 0) {
             try { _STORE.setItem(localKey, JSON.stringify(fbPrices)); } catch(e) {}
+            _prmCache[cacheKey] = fbPrices; // update cache with Firebase version
           }
         }).catch(function(){});
       }
@@ -3603,13 +3613,13 @@ function loadPRM(y, m) {
     }
   } catch(e) {}
 
-  // 2. Not in localStorage — try Firebase synchronously via cached value
-  // Then trigger async load for next render
+  // 3. Not in localStorage — fetch from Firebase async, use year prices now
   if (window._fbLoadKey) {
     window._fbLoadKey(fbPricePathM(y, m)).then(function(fbPrices) {
       if (fbPrices && typeof fbPrices === 'object' && Object.keys(fbPrices).length > 0) {
         try { _STORE.setItem(localKey, JSON.stringify(fbPrices)); } catch(e) {}
-        // Re-render entry table if this is current month
+        _prmCache[cacheKey] = fbPrices;
+        // Re-render entry if this is active month
         var today = new Date();
         if (y === today.getFullYear() && m === today.getMonth()+1) {
           if (typeof renderEntryTable === 'function') setTimeout(renderEntryTable, 100);
@@ -3618,8 +3628,16 @@ function loadPRM(y, m) {
     }).catch(function(){});
   }
 
-  // 3. Fall back to year prices
-  return loadPR(y);
+  // 4. Fall back to year prices
+  var yr = loadPR(y);
+  _prmCache[cacheKey] = yr;
+  return yr;
+}
+
+// Clear price cache (call after applying new prices)
+function clearPRMCache(y, m) {
+  if (y && m) { delete _prmCache[y + '_' + m]; }
+  else { _prmCache = {}; }
 }
 
 // Force-load monthly prices from Firebase for a given month
@@ -3639,14 +3657,22 @@ function syncMonthlyPricesFromFB(y, m) {
 function savePRM(y, m, p) {
   try { _STORE.setItem(prKeyM(y,m), JSON.stringify(p)); } catch(e) {}
   if (window._fbSaveKey) window._fbSaveKey(fbPricePathM(y,m), p);
+  // Clear caches so new prices take effect immediately
+  clearPRMCache(y, m);
+  delete _hasMonthlyCache[y + '_' + m];
 }
 
 // Check if a month has its own price version
+var _hasMonthlyCache = {}; // { 'YYYY_MM': bool }
 function hasMonthlyPrices(y, m) {
+  var k = y + '_' + m;
+  if (_hasMonthlyCache[k] !== undefined) return _hasMonthlyCache[k];
   try {
     var s = JSON.parse(_STORE.getItem(prKeyM(y,m)) || 'null');
-    return s && typeof s === 'object' && Object.keys(s).length > 0;
-  } catch(e) { return false; }
+    var result = !!(s && typeof s === 'object' && Object.keys(s).length > 0);
+    _hasMonthlyCache[k] = result;
+    return result;
+  } catch(e) { _hasMonthlyCache[k] = false; return false; }
 }
 
 // Copy year prices to a month (create monthly version from year base)
@@ -6371,6 +6397,9 @@ function invalidatePriceCache(y, m) {
   var key = y + '_' + String(m).padStart(2,'0');
   delete _verifiedPrices[key];
   delete _priceVerifyPending[key];
+  // Also clear fast-access caches
+  clearPRMCache(y, m);
+  delete _hasMonthlyCache[y + '_' + m];
 }
 
 // Boot: pre-load prices for current month into verified cache
