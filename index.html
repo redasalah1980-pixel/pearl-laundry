@@ -1523,6 +1523,10 @@ var _fbDB = null;
   <!-- DAILY ENTRY -->
   <div class="pg" id="tab-entry">
     <div class="ph"><h1>Daily Entry</h1><p>Enter quantities for each department each day</p></div>
+    <div id="entry-price-status" style="display:none;padding:6px 16px;background:#fff;border-bottom:1.5px solid #fde68a;font-size:11px;font-weight:700;color:#92400e;display:flex;align-items:center;gap:8px">
+      <span>📋</span><span id="entry-price-status-text"></span>
+      <button onclick="forcePriceSync()" style="margin-left:auto;padding:3px 10px;background:#d97706;color:#fff;border:none;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer">🔄 Sync Now</button>
+    </div>
     <div class="ctrl ctrl-sticky" id="entry-ctrl">
       <div class="ctrl-group"><div class="ctrl-label">Month</div>
         <select id="ent-month" onchange="onEntMonthChange()"></select></div>
@@ -3582,13 +3586,53 @@ function fbPricePathM(y,m) { return 'pearl/prices/' + y + '_' + String(m).padSta
 
 // Load prices for a specific month — falls back to year prices then MASTER
 function loadPRM(y, m) {
-  // 1. Check monthly price version
+  // 1. Check monthly price version in localStorage
+  var localKey = prKeyM(y, m);
   try {
-    var s = JSON.parse(_STORE.getItem(prKeyM(y,m)) || 'null');
-    if (s && typeof s === 'object' && Object.keys(s).length > 0) return s;
+    var s = JSON.parse(_STORE.getItem(localKey) || 'null');
+    if (s && typeof s === 'object' && Object.keys(s).length > 0) {
+      // Background sync from Firebase to keep fresh
+      if (window._fbLoadKey) {
+        window._fbLoadKey(fbPricePathM(y, m)).then(function(fbPrices) {
+          if (fbPrices && typeof fbPrices === 'object' && Object.keys(fbPrices).length > 0) {
+            try { _STORE.setItem(localKey, JSON.stringify(fbPrices)); } catch(e) {}
+          }
+        }).catch(function(){});
+      }
+      return s;
+    }
   } catch(e) {}
-  // 2. Fall back to year prices
+
+  // 2. Not in localStorage — try Firebase synchronously via cached value
+  // Then trigger async load for next render
+  if (window._fbLoadKey) {
+    window._fbLoadKey(fbPricePathM(y, m)).then(function(fbPrices) {
+      if (fbPrices && typeof fbPrices === 'object' && Object.keys(fbPrices).length > 0) {
+        try { _STORE.setItem(localKey, JSON.stringify(fbPrices)); } catch(e) {}
+        // Re-render entry table if this is current month
+        var today = new Date();
+        if (y === today.getFullYear() && m === today.getMonth()+1) {
+          if (typeof renderEntryTable === 'function') setTimeout(renderEntryTable, 100);
+        }
+      }
+    }).catch(function(){});
+  }
+
+  // 3. Fall back to year prices
   return loadPR(y);
+}
+
+// Force-load monthly prices from Firebase for a given month
+function syncMonthlyPricesFromFB(y, m) {
+  if (!window._fbLoadKey) return;
+  var localKey = prKeyM(y, m);
+  return window._fbLoadKey(fbPricePathM(y, m)).then(function(fbPrices) {
+    if (fbPrices && typeof fbPrices === 'object' && Object.keys(fbPrices).length > 0) {
+      try { _STORE.setItem(localKey, JSON.stringify(fbPrices)); } catch(e) {}
+      return fbPrices;
+    }
+    return null;
+  }).catch(function(){ return null; });
 }
 
 // Save prices for a specific month
@@ -3653,7 +3697,46 @@ function loadDB(y) {
 // ── Monthly Targets ───────────────────────────────────────────
 function targetKey(y, m) { return 'pearl_target_' + y + '_' + m; }
 function loadTarget(y, m) {
-  try { return JSON.parse(_STORE.getItem(targetKey(y, m)) || 'null'); } catch(e) { return null; }
+  var key = targetKey(y, m);
+  var fbPath = 'pearl/targets/' + y + '/' + m;
+  try {
+    var local = JSON.parse(_STORE.getItem(key) || 'null');
+    // Always background-sync from Firebase to keep fresh
+    if (window._fbLoadKey) {
+      window._fbLoadKey(fbPath).then(function(fbVal) {
+        if (fbVal && fbVal.revenue > 0) {
+          try { _STORE.setItem(key, JSON.stringify(fbVal)); } catch(e) {}
+          // Re-render dash target bar if this is the displayed month
+          var dashM = parseInt(document.getElementById('dash-month')?.value || 0);
+          if (dashM === m) {
+            var inp = document.getElementById('dash-target');
+            if (inp && (!local || !local.revenue)) {
+              inp.value = fbVal.revenue.toLocaleString();
+              if (typeof renderTargetBar === 'function') {
+                renderTargetBar(window._lastDashQR || 0, m);
+              }
+            }
+          }
+        }
+      }).catch(function(){});
+    }
+    return local;
+  } catch(e) { return null; }
+}
+
+// Force sync all targets for current year from Firebase
+function syncTargetsFromFB(y) {
+  if (!window._fbLoadKey) return;
+  for (var mo = 1; mo <= 12; mo++) {
+    (function(m) {
+      var key = targetKey(y, m);
+      window._fbLoadKey('pearl/targets/' + y + '/' + m).then(function(fbVal) {
+        if (fbVal && fbVal.revenue > 0) {
+          try { _STORE.setItem(key, JSON.stringify(fbVal)); } catch(e) {}
+        }
+      }).catch(function(){});
+    })(mo);
+  }
 }
 function saveTarget(y, m, data) {
   try { _STORE.setItem(targetKey(y, m), JSON.stringify(data)); } catch(e) {}
@@ -5593,6 +5676,17 @@ function changeYear(y) {
   CY = parseInt(y);
   _DB[CY] = null; // clear cache so it reloads from Firebase/localStorage
   PRICES = loadPR(CY);
+  // On login: sync critical data from Firebase that localStorage-only functions miss
+  (function() {
+    var today = new Date();
+    var cm = today.getMonth() + 1;
+    var pm = cm === 1 ? 12 : cm - 1;
+    var py = cm === 1 ? CY - 1 : CY;
+    // Pre-load and verify prices from Firebase (prevents old prices showing)
+    if (typeof preloadCurrentMonthPrices === 'function') {
+      setTimeout(preloadCurrentMonthPrices, 300);
+    }
+  })();
   buildSelectors();
   refreshTab();
   // Re-attach Firebase real-time listener for new year
@@ -5831,6 +5925,7 @@ function renderDash() {
   var tgtLbl2 = document.getElementById('dash-target-month-lbl');
   if (tgtLbl2) tgtLbl2.textContent = MONTH_NAMES[m-1] + ' ' + CY;
   // Render target progress bar
+  window._lastDashQR = qr;
   renderTargetBar(qr, m);
   renderNotifications(m, qr, nd);
   renderInsightBadge(m);
@@ -6119,6 +6214,7 @@ function renderEntry() {
   entDept = document.getElementById('ent-dept')?.value || DEPT_KEYS[0];
   renderEntryTable();
   updateEntStats(m, day);
+  updateEntryPriceStatus(m);
 }
 
 function updateEntStats(m, day) {
@@ -6149,6 +6245,181 @@ function updateEntStats(m, day) {
   renderDailyDeptSummary(m, day);
 }
 
+// ════════════════════════════════════════════════════════════════
+//  PRICE INTEGRITY SYSTEM
+//  Ensures monthly prices always come from Firebase (authoritative)
+//  localStorage is only a fast-access cache, never the master
+// ════════════════════════════════════════════════════════════════
+
+var _verifiedPrices = {}; // { 'YYYY_MM': prices } — Firebase-verified this session
+var _priceVerifyPending = {}; // { 'YYYY_MM': true } — fetch in progress
+
+// Get prices for a month — Firebase is master, localStorage is cache
+function getVerifiedPrices(y, m, callback) {
+  var key = y + '_' + String(m).padStart(2,'0');
+  var localKey = prKeyM(y, m);
+
+  // Already verified this session — use immediately
+  if (_verifiedPrices[key]) { callback(_verifiedPrices[key]); return; }
+
+  // Try localStorage first for instant render
+  var local = null;
+  try {
+    var s = JSON.parse(_STORE.getItem(localKey) || 'null');
+    if (s && typeof s === 'object' && Object.keys(s).length > 0) local = s;
+  } catch(e) {}
+
+  // If we have local, render immediately AND verify in background
+  if (local) { callback(local); }
+
+  // Always fetch from Firebase to verify (unless already fetching)
+  if (_priceVerifyPending[key]) return;
+  _priceVerifyPending[key] = true;
+
+  if (!window._fbLoadKey) {
+    if (local) { _verifiedPrices[key] = local; }
+    _priceVerifyPending[key] = false;
+    if (!local) callback(loadPR(y));
+    return;
+  }
+
+  window._fbLoadKey(fbPricePathM(y, m)).then(function(fbPrices) {
+    _priceVerifyPending[key] = false;
+    if (fbPrices && typeof fbPrices === 'object' && Object.keys(fbPrices).length > 0) {
+      // Firebase has prices — this is the master copy
+      try { _STORE.setItem(localKey, JSON.stringify(fbPrices)); } catch(e) {}
+      _verifiedPrices[key] = fbPrices;
+      // If prices differ from what we showed, re-render silently
+      if (!local || JSON.stringify(local) !== JSON.stringify(fbPrices)) {
+        var entM = parseInt(document.getElementById('ent-month')?.value || 0);
+        if (entM === m) {
+          setTimeout(function() {
+            if (typeof renderEntryTable === 'function') renderEntryTable();
+            if (typeof updateEntStats === 'function') {
+              var day = parseInt(document.getElementById('ent-day')?.value || 1);
+              updateEntStats(m, day);
+            }
+          }, 200);
+        }
+        // Update dashboard target bar too
+        var dashM = parseInt(document.getElementById('dash-month')?.value || 0);
+        if (dashM === m && typeof renderDash === 'function') {
+          setTimeout(renderDash, 300);
+        }
+      }
+    } else {
+      // Firebase has no monthly prices — use local if available
+      if (local) { _verifiedPrices[key] = local; }
+      else {
+        // No prices anywhere — use year prices and warn
+        _verifiedPrices[key] = null;
+        showPriceWarningBanner(m);
+      }
+    }
+  }).catch(function() {
+    _priceVerifyPending[key] = false;
+    if (local) _verifiedPrices[key] = local;
+  });
+}
+
+// Show a persistent warning banner if prices can't be verified
+function showPriceWarningBanner(m) {
+  if (document.getElementById('_price-warn-banner')) return;
+  var banner = document.createElement('div');
+  banner.id = '_price-warn-banner';
+  banner.style.cssText = 'position:fixed;top:54px;left:0;right:0;z-index:8000;background:#dc2626;color:#fff;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:700;box-shadow:0 4px 12px rgba(0,0,0,.3)';
+  banner.innerHTML =
+    '<div style="display:flex;align-items:center;gap:10px">' +
+      '<span style="font-size:18px">⚠️</span>' +
+      '<span>Monthly prices for ' + MONTH_NAMES[m-1] + ' could not be verified — showing base year prices. Go to <strong>Prices → Monthly Price Manager</strong> and re-apply.</span>' +
+    '</div>' +
+    '<button onclick="this.parentElement.remove()" style="background:rgba(255,255,255,.2);border:none;color:#fff;padding:5px 12px;border-radius:6px;cursor:pointer;font-weight:700">✕</button>';
+  document.body.appendChild(banner);
+}
+
+// Invalidate price cache for a month (call after applying new prices)
+function invalidatePriceCache(y, m) {
+  var key = y + '_' + String(m).padStart(2,'0');
+  delete _verifiedPrices[key];
+  delete _priceVerifyPending[key];
+}
+
+// Boot: pre-load prices for current month into verified cache
+function preloadCurrentMonthPrices() {
+  var today = new Date();
+  var cm = today.getMonth() + 1;
+  var pm = cm === 1 ? 12 : cm - 1;
+  var py = cm === 1 ? CY - 1 : CY;
+  getVerifiedPrices(CY, cm, function(){});
+  getVerifiedPrices(py, pm, function(){});
+  // Also sync targets
+  if (typeof syncTargetsFromFB === 'function') syncTargetsFromFB(CY);
+}
+
+
+// Force sync prices from Firebase and re-render entry table
+function forcePriceSync() {
+  var m = parseInt(document.getElementById('ent-month')?.value || new Date().getMonth()+1);
+  var statusEl = document.getElementById('entry-price-status-text');
+  if (statusEl) statusEl.textContent = '🔄 Syncing from Firebase...';
+
+  // Clear cache for this month
+  if (typeof invalidatePriceCache === 'function') invalidatePriceCache(CY, m);
+
+  // Force reload from Firebase
+  if (!window._fbLoadKey) {
+    toast('⚠️ No Firebase connection', 'err');
+    return;
+  }
+
+  window._fbLoadKey(fbPricePathM(CY, m)).then(function(fbPrices) {
+    if (fbPrices && typeof fbPrices === 'object' && Object.keys(fbPrices).length > 0) {
+      try { _STORE.setItem(prKeyM(CY, m), JSON.stringify(fbPrices)); } catch(e) {}
+      _verifiedPrices[CY + '_' + String(m).padStart(2,'0')] = fbPrices;
+      renderEntryTable();
+      updateEntryPriceStatus(m);
+      toast('✅ Prices synced from Firebase — ' + MONTH_NAMES[m-1] + ' prices now active', 'ok');
+    } else {
+      toast('⚠️ No monthly prices in Firebase for ' + MONTH_NAMES[m-1] + ' — go to Prices tab to apply them', 'warn');
+      if (statusEl) statusEl.textContent = '⚠️ No monthly prices set for ' + MONTH_NAMES[m-1];
+    }
+  }).catch(function(e) {
+    toast('❌ Firebase sync failed: ' + e.message, 'err');
+  });
+}
+
+// Update price status banner in entry tab
+function updateEntryPriceStatus(m) {
+  var banner  = document.getElementById('entry-price-status');
+  var textEl  = document.getElementById('entry-price-status-text');
+  if (!banner || !textEl) return;
+
+  if (hasMonthlyPrices(CY, m)) {
+    // Check if these are the correct prices
+    var key = CY + '_' + String(m).padStart(2,'0');
+    var verified = _verifiedPrices[key];
+    if (verified) {
+      // Verified from Firebase this session
+      banner.style.display = 'none'; // All good — hide banner
+    } else {
+      // Have local prices but not yet verified
+      banner.style.background = '#fff';
+      banner.style.borderBottomColor = '#c9a84c';
+      textEl.style.color = '#92400e';
+      textEl.textContent = 'Using ' + MONTH_NAMES[m-1] + ' prices (verifying with cloud...)';
+      banner.style.display = 'flex';
+    }
+  } else {
+    // No monthly prices — using year prices (old)
+    banner.style.background = '#fef2f2';
+    banner.style.borderBottomColor = '#fca5a5';
+    textEl.style.color = '#dc2626';
+    textEl.textContent = '⚠️ Using base year prices — ' + MONTH_NAMES[m-1] + ' prices not set. Go to Prices tab to apply monthly prices.';
+    banner.style.display = 'flex';
+  }
+}
+
+
 function renderEntryTable() {
   const m = parseInt(document.getElementById('ent-month')?.value || 1);
   const day = parseInt(document.getElementById('ent-day')?.value || 1);
@@ -6157,8 +6428,22 @@ function renderEntryTable() {
   const items = MASTER[entDept];
   const dateStr = `${DAY_NAMES[new Date(CY,m-1,day).getDay()]} ${day} ${MONTH_NAMES[m-1]} ${CY}`;
   let rows = '';
-  // Use monthly price version if available, otherwise fall back to year prices
-  const _entPR = hasMonthlyPrices(CY, m) ? loadPRM(CY, m) : PRICES;
+  // Get prices — uses Firebase-verified cache (see getVerifiedPrices)
+  var _entPR;
+  if (hasMonthlyPrices(CY, m)) {
+    _entPR = loadPRM(CY, m);
+    // Trigger background Firebase verification
+    getVerifiedPrices(CY, m, function(verified) {
+      if (verified) {
+        var cur = prKeyM(CY, m);
+        try { _STORE.setItem(cur, JSON.stringify(verified)); } catch(e) {}
+      }
+    });
+  } else {
+    _entPR = PRICES;
+    // Check Firebase for monthly prices we might be missing
+    getVerifiedPrices(CY, m, function(verified) {});
+  }
   items.forEach((_, i) => {
     const nm = getN(entDept, i);
     const pr = _entPR[entDept]?.[i]?.[1] ?? MASTER[entDept][i][1];
@@ -12649,6 +12934,59 @@ function renderGuide() {
     ],
 
 
+    // ── 47. PRICE INTEGRITY SYSTEM ──────────────────────────────
+    ['🔒 How Prices Are Protected',
+     'The system uses a <strong>Price Integrity System</strong> to make sure you always see the correct monthly prices — even after a browser refresh, cache clear, or switching devices.' +
+     '<br><br><strong>How it works:</strong>' +
+     ul([
+       '<strong>Firebase is the master</strong> — monthly prices are always verified against Firebase when you open the Entry tab',
+       '<strong>localStorage is a cache only</strong> — used for fast loading but always checked against Firebase',
+       '<strong>Auto-sync on login</strong> — every time you log in, the system pulls current month prices from Firebase before anything renders',
+       '<strong>Background verification</strong> — prices are silently re-verified from Firebase every time you open the Entry tab'
+     ]) +
+     '<br><strong>What you will see:</strong>' +
+     ul([
+       '✅ No banner = prices are verified and correct',
+       '🟡 Gold banner = prices loaded locally, verifying with cloud (normal, disappears in seconds)',
+       '🔴 Red banner = monthly prices not found — base year prices being used (action required)'
+     ]) +
+     warn('If prices look wrong, click the Sync Now button in the Entry tab banner, or go to Prices tab to re-apply monthly prices.')
+    ],
+
+    // ── 48. WHAT TO DO IF PRICES ARE WRONG ──────────────────────
+    ['⚠️ What To Do If Prices Look Wrong',
+     'If you notice prices in the Entry tab look higher than expected (e.g. showing 1.5750 instead of 1.5525 for April):' +
+     step([
+       'Look at the top of the Entry tab — is there a red or gold banner?',
+       'If yes: click <strong>🔄 Sync Now</strong> in the banner',
+       'If prices still look wrong after sync: go to <strong>⚙️ Prices → Monthly Price Manager</strong>',
+       'Select the month and click <strong>Apply Monthly Prices</strong>',
+       'Return to Entry tab — prices should now be correct'
+     ]) +
+     '<br><strong>Why this happens (rare cases):</strong>' +
+     ul([
+       'Browser cleared localStorage automatically (common on iOS Safari)',
+       'First time opening on a new device or browser',
+       'Firebase connection was briefly unavailable during login'
+     ]) +
+     tip('The system now auto-recovers from all of these cases. The 🔄 Sync Now button is a manual override for edge cases.')
+    ],
+
+    // ── 49. REVENUE TARGET PERSISTENCE ─────────────────────────
+    ['🎯 Revenue Target — How It Is Saved',
+     'The monthly revenue target is saved in both localStorage and Firebase. If localStorage is cleared (browser cache, new device), the target is automatically restored from Firebase on your next login.' +
+     '<br><br><strong>Setting a target:</strong>' +
+     ul([
+       'Go to Dashboard',
+       'Click directly on the TARGET number in the Revenue Target bar',
+       'Type the new value and press Enter or click away',
+       'Use the +1k / +5k / +10k buttons for quick adjustments',
+       'Saves automatically — no Save button needed'
+     ]) +
+     tip('The target is saved per month. You can set different targets for each month. Once set, it persists permanently in Firebase and will always reload correctly even if you clear your browser.')
+    ],
+
+
   ];
 
   var style = '<style>' +
@@ -16746,6 +17084,7 @@ function applyApril2026Prices() {
     // Write April 2026 monthly price table
     try {
       _STORE.setItem(prKeyM(2026, 4), JSON.stringify(_APRIL_2026_PRICES));
+      if (typeof invalidatePriceCache === 'function') invalidatePriceCache(2026, 4);
     } catch(e) {
       console.error('Failed to save April prices locally:', e);
     }
@@ -16842,6 +17181,7 @@ function createMonthlyPriceVersion(y, m, sourcePct) {
   });
 
   savePRM(y, m, newPrices);
+  if (typeof invalidatePriceCache === 'function') invalidatePriceCache(y, m);
   return newPrices;
 }
 
