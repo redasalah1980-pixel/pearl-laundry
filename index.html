@@ -5837,50 +5837,21 @@ function refreshTab() {
   var now   = Date.now();
   var last  = _tabRenderTime[curTab] || 0;
   var stale = (now - last) > _TAB_CACHE_MS;
-  var alwaysRender = ['entry', 'backup', 'dashboard'];
-  var needsRender  = alwaysRender.indexOf(curTab) !== -1 || stale;
-  if (!needsRender) return;
+  var alwaysRender = ['entry','backup','dashboard'];
+  if (alwaysRender.indexOf(curTab) === -1 && !stale) return;
   _tabRenderTime[curTab] = now;
-
-  // Fast tabs — render immediately
-  var fastTabs = {
-    'backup':    function(){ renderBackupTab(); },
-    'dashboard': function(){ renderDash(); },
-    'entry':     function(){ renderEntry(); },
-    'prices':    function(){ renderPriceTable(); },
-    'items':     function(){ renderItemsDeptList(); closeItemsEditor(); initItemsTab(); }
-  };
-
-  // Heavy tabs — show tab frame first, then render content after paint
-  var heavyTabs = {
-    'monthly':   function(){ renderMonthly(); },
-    'report':    function(){ renderReport(); },
-    'finance':   function(){ renderFinance(); },
-    'benchmark': function(){ initBenchmark(); },
-    'analytics': function(){ renderAnalytics(); showAnalyticsTab('charts'); },
-    'forecast':  function(){ renderForecast(); },
-    'guide':     function(){ renderGuide(); }
-  };
-
-  if (fastTabs[curTab]) {
-    fastTabs[curTab]();
-  } else if (heavyTabs[curTab]) {
-    // Show loading indicator immediately
-    var tabEl = document.getElementById('tab-' + curTab);
-    if (tabEl && !tabEl.querySelector('.tab-loading')) {
-      var loader = document.createElement('div');
-      loader.className = 'tab-loading';
-      loader.style.cssText = 'padding:40px;text-align:center;color:#94a3b8;font-size:13px';
-      loader.textContent = 'Loading...';
-      if (!tabEl.innerHTML.trim()) tabEl.appendChild(loader);
-    }
-    // Render after browser has painted the tab switch
-    requestAnimationFrame(function() {
-      setTimeout(function() {
-        heavyTabs[curTab]();
-      }, 0);
-    });
-  }
+  if (curTab === 'backup')    { renderBackupTab(); return; }
+  if (curTab === 'dashboard') { renderDash(); return; }
+  if (curTab === 'entry')     { renderEntry(); return; }
+  if (curTab === 'monthly')   { renderMonthly(); return; }
+  if (curTab === 'report')    { renderReport(); return; }
+  if (curTab === 'finance')   { renderFinance(); return; }
+  if (curTab === 'prices')    { renderPriceTable(); return; }
+  if (curTab === 'benchmark') { initBenchmark(); return; }
+  if (curTab === 'analytics') { renderAnalytics(); showAnalyticsTab('charts'); return; }
+  if (curTab === 'forecast')  { renderForecast(); return; }
+  if (curTab === 'guide')     { renderGuide(); return; }
+  if (curTab === 'items')     { renderItemsDeptList(); closeItemsEditor(); initItemsTab(); return; }
 }
 
 // Force a tab to re-render even if cached (call after saving data)
@@ -6448,29 +6419,25 @@ function forcePriceSync() {
 
 // Update price status banner in entry tab
 function updateEntryPriceStatus(m) {
-  var banner  = document.getElementById('entry-price-status');
-  var textEl  = document.getElementById('entry-price-status-text');
+  var banner = document.getElementById('entry-price-status');
+  var textEl = document.getElementById('entry-price-status-text');
   if (!banner || !textEl) return;
+  var key      = CY + '_' + String(m).padStart(2,'0');
+  var verified = _verifiedPrices[key];
 
-  if (hasMonthlyPrices(CY, m)) {
-    var key      = CY + '_' + String(m).padStart(2,'0');
-    var verified = _verifiedPrices[key];
-    if (verified) {
-      // Verified from Firebase — show green confirmation briefly then hide
-      banner.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 16px;background:#f0fdf4;border-bottom:1.5px solid #86efac;font-size:11px;font-weight:700;color:#15803d';
-      textEl.textContent = '✅ ' + MONTH_NAMES[m-1] + ' prices verified from Firebase — prices are correct';
-      // Hide after 4 seconds
-      clearTimeout(banner._hideTimer);
-      banner._hideTimer = setTimeout(function(){ banner.style.display = 'none'; }, 4000);
-    } else {
-      // Have local prices, waiting for Firebase verification
-      banner.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 16px;background:#fffbeb;border-bottom:1.5px solid #c9a84c;font-size:11px;font-weight:700;color:#92400e';
-      textEl.textContent = '🔄 ' + MONTH_NAMES[m-1] + ' prices loaded — verifying with Firebase...';
-    }
-  } else {
-    // No monthly prices — using year base prices (WRONG for current month)
+  if (!hasMonthlyPrices(CY, m) && !verified) {
+    // No monthly prices at all — show warning
     banner.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 16px;background:#fef2f2;border-bottom:1.5px solid #fca5a5;font-size:11px;font-weight:700;color:#dc2626';
-    textEl.textContent = '⚠️ ' + MONTH_NAMES[m-1] + ' prices not set — showing base year prices (may be wrong). Click Sync Now or go to Prices tab.';
+    textEl.textContent = '⚠️ ' + MONTH_NAMES[m-1] + ' prices not set — showing base year prices. Click Sync Now or go to Prices tab.';
+  } else if (verified) {
+    // Verified — show green briefly then hide
+    banner.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 16px;background:#f0fdf4;border-bottom:1.5px solid #86efac;font-size:11px;font-weight:700;color:#15803d';
+    textEl.textContent = '✅ ' + MONTH_NAMES[m-1] + ' prices verified';
+    clearTimeout(banner._hideTimer);
+    banner._hideTimer = setTimeout(function(){ banner.style.display='none'; }, 3000);
+  } else {
+    // Hide — have local prices, verification happens in background silently
+    banner.style.display = 'none';
   }
 }
 
@@ -6483,22 +6450,8 @@ function renderEntryTable() {
   const items = MASTER[entDept];
   const dateStr = `${DAY_NAMES[new Date(CY,m-1,day).getDay()]} ${day} ${MONTH_NAMES[m-1]} ${CY}`;
   let rows = '';
-  // Get prices — uses Firebase-verified cache (see getVerifiedPrices)
-  var _entPR;
-  if (hasMonthlyPrices(CY, m)) {
-    _entPR = loadPRM(CY, m);
-    // Trigger background Firebase verification
-    getVerifiedPrices(CY, m, function(verified) {
-      if (verified) {
-        var cur = prKeyM(CY, m);
-        try { _STORE.setItem(cur, JSON.stringify(verified)); } catch(e) {}
-      }
-    });
-  } else {
-    _entPR = PRICES;
-    // Check Firebase for monthly prices we might be missing
-    getVerifiedPrices(CY, m, function(verified) {});
-  }
+  // Get prices — monthly version if available, year prices as fallback
+  var _entPR = hasMonthlyPrices(CY, m) ? loadPRM(CY, m) : PRICES;
   items.forEach((_, i) => {
     const nm = getN(entDept, i);
     const pr = _entPR[entDept]?.[i]?.[1] ?? MASTER[entDept][i][1];
