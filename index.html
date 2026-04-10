@@ -1523,7 +1523,7 @@ var _fbDB = null;
   <!-- DAILY ENTRY -->
   <div class="pg" id="tab-entry">
     <div class="ph"><h1>Daily Entry</h1><p>Enter quantities for each department each day</p></div>
-    <div id="entry-price-status" style="display:none;padding:6px 16px;background:#fff;border-bottom:1.5px solid #fde68a;font-size:11px;font-weight:700;color:#92400e;display:flex;align-items:center;gap:8px">
+    <div id="entry-price-status" style="display:none;padding:6px 16px;background:#fff;border-bottom:1.5px solid #fde68a;font-size:11px;font-weight:700;color:#92400e;align-items:center;gap:8px">
       <span>📋</span><span id="entry-price-status-text"></span>
       <button onclick="forcePriceSync()" style="margin-left:auto;padding:3px 10px;background:#d97706;color:#fff;border:none;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer">🔄 Sync Now</button>
     </div>
@@ -6395,27 +6395,24 @@ function updateEntryPriceStatus(m) {
   if (!banner || !textEl) return;
 
   if (hasMonthlyPrices(CY, m)) {
-    // Check if these are the correct prices
-    var key = CY + '_' + String(m).padStart(2,'0');
+    var key      = CY + '_' + String(m).padStart(2,'0');
     var verified = _verifiedPrices[key];
     if (verified) {
-      // Verified from Firebase this session
-      banner.style.display = 'none'; // All good — hide banner
+      // Verified from Firebase — show green confirmation briefly then hide
+      banner.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 16px;background:#f0fdf4;border-bottom:1.5px solid #86efac;font-size:11px;font-weight:700;color:#15803d';
+      textEl.textContent = '✅ ' + MONTH_NAMES[m-1] + ' prices verified from Firebase — prices are correct';
+      // Hide after 4 seconds
+      clearTimeout(banner._hideTimer);
+      banner._hideTimer = setTimeout(function(){ banner.style.display = 'none'; }, 4000);
     } else {
-      // Have local prices but not yet verified
-      banner.style.background = '#fff';
-      banner.style.borderBottomColor = '#c9a84c';
-      textEl.style.color = '#92400e';
-      textEl.textContent = 'Using ' + MONTH_NAMES[m-1] + ' prices (verifying with cloud...)';
-      banner.style.display = 'flex';
+      // Have local prices, waiting for Firebase verification
+      banner.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 16px;background:#fffbeb;border-bottom:1.5px solid #c9a84c;font-size:11px;font-weight:700;color:#92400e';
+      textEl.textContent = '🔄 ' + MONTH_NAMES[m-1] + ' prices loaded — verifying with Firebase...';
     }
   } else {
-    // No monthly prices — using year prices (old)
-    banner.style.background = '#fef2f2';
-    banner.style.borderBottomColor = '#fca5a5';
-    textEl.style.color = '#dc2626';
-    textEl.textContent = '⚠️ Using base year prices — ' + MONTH_NAMES[m-1] + ' prices not set. Go to Prices tab to apply monthly prices.';
-    banner.style.display = 'flex';
+    // No monthly prices — using year base prices (WRONG for current month)
+    banner.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 16px;background:#fef2f2;border-bottom:1.5px solid #fca5a5;font-size:11px;font-weight:700;color:#dc2626';
+    textEl.textContent = '⚠️ ' + MONTH_NAMES[m-1] + ' prices not set — showing base year prices (may be wrong). Click Sync Now or go to Prices tab.';
   }
 }
 
@@ -10531,6 +10528,44 @@ function renderInsightsPanel(m) {
     '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:8px">' + rows + '</div>' +
   '</div>';
 }
+
+function getTopBottomItems(m) {
+  // Build a flat list of all items with their monthly revenue
+  var allItems = [];
+  var totalQR = 0;
+
+  DEPT_KEYS.forEach(function(dept) {
+    MASTER[dept].forEach(function(_, i) {
+      var qr = 0;
+      var nd = dim(CY, m);
+      for (var d = 1; d <= nd; d++) {
+        var v  = getVal(CY, m, dept, i, d - 1);
+        var pr = getPriceForCalc(dept, i, CY, m, d);
+        qr += v * pr;
+      }
+      if (qr > 0) {
+        allItems.push({
+          name: getN(dept, i),
+          dept: dept,
+          qr:   qr,
+          pct:  0  // filled below
+        });
+        totalQR += qr;
+      }
+    });
+  });
+
+  // Calculate percentages
+  allItems.forEach(function(item) {
+    item.pct = totalQR > 0 ? (item.qr / totalQR * 100) : 0;
+  });
+
+  // Sort by revenue descending
+  allItems.sort(function(a, b) { return b.qr - a.qr; });
+
+  return { items: allItems, totalQR: totalQR };
+}
+
 
 function renderTopBottomPanel(m) {
   var data = getTopBottomItems(m);
