@@ -5696,14 +5696,29 @@ function _bootApp(user) {
   document.getElementById('pg-app').style.display = 'flex';
   if (window._stopLoginCanvas) window._stopLoginCanvas();
   document.getElementById('tn-name').textContent = user;
-  // Apply hotel name to nav bar NOW that DOM is visible
+  // Apply hotel name + total rooms NOW that DOM is visible
   // Read from localStorage directly (fastest, no Firebase needed)
   try {
     var _hs = JSON.parse(_STORE.getItem('pearl_hotel_settings') || '{}');
     if (_hs.name && typeof applyHotelNameToUI === 'function') {
       applyHotelNameToUI(_hs.name);
     }
+    if (_hs.rooms && _hs.rooms > 0) {
+      _TOTAL_ROOMS = _hs.rooms;
+    }
   } catch(e) {}
+  // Also check benchmark settings for rooms (most recently saved source wins)
+  try {
+    var _bs = JSON.parse(_STORE.getItem('pearl_bench_settings') || '{}');
+    if (_bs.totalRooms && _bs.totalRooms > 0) {
+      _TOTAL_ROOMS = _bs.totalRooms;
+    }
+  } catch(e) {}
+  // Update benchmark rooms field if visible
+  setTimeout(function() {
+    var btr = document.getElementById('bench-total-rooms');
+    if (btr && !btr.value) btr.value = _TOTAL_ROOMS;
+  }, 500);
   var nd2 = document.getElementById('tn-name-display'); if(nd2) nd2.textContent = user;
   var role = _SESSION.getItem('ph_role') || 'admin';
   // Register presence in Firebase
@@ -5737,7 +5752,20 @@ function _bootApp(user) {
   if (settBtn) settBtn.style.display = (role === 'admin') ? '' : 'none';
   // Show first allowed tab
   var firstTab = allowed[0] || 'dashboard';
-  buildYearSel(); buildSelectors(); showTab(firstTab);
+  buildYearSel(); buildSelectors();
+  // Ensure _TOTAL_ROOMS is loaded before rendering
+  try {
+    var _bsCheck = JSON.parse(localStorage.getItem('pearl_bench_settings') || '{}');
+    var _hsCheck = JSON.parse(localStorage.getItem('pearl_hotel_settings') || '{}');
+    var _savedRooms = _bsCheck.totalRooms || _hsCheck.rooms || 0;
+    if (_savedRooms > 0) _TOTAL_ROOMS = _savedRooms;
+  } catch(e) {}
+  showTab(firstTab);
+  // Re-render occ row after short delay to pick up correct room count
+  setTimeout(function() {
+    var _m = parseInt(document.getElementById('dash-month')?.value || new Date().getMonth()+1);
+    if (typeof renderDashOccQuick === 'function') renderDashOccQuick(_m);
+  }, 300);
   // Sync targets for all 12 months from Firebase on login
   for (var _tm = 1; _tm <= 12; _tm++) { loadTargetFB(CY, _tm); }
   // Now show error badge if any errors were caught during boot
