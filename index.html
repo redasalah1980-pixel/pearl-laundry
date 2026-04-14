@@ -1715,9 +1715,12 @@ var _fbDB = null;
         <select id="bench-month" onchange="renderBenchmark()"></select></div>
       <div style="display:flex;flex-direction:column;gap:3px">
         <div style="font-size:10px;font-weight:700;color:#64748b;letter-spacing:.8px">TOTAL ROOMS IN HOTEL</div>
-        <input type="number" id="bench-total-rooms" min="1" max="9999" placeholder="e.g. 200"
-          style="padding:7px 12px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;width:120px;outline:none"
-          onchange="saveBenchSettings();renderBenchmark()">
+        <div style="display:flex;align-items:center;gap:6px">
+          <input type="number" id="bench-total-rooms" min="1" max="9999" placeholder="e.g. 200"
+            style="padding:7px 12px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#1a2332;width:100px;outline:none"
+            onkeydown="if(event.key==='Enter'){saveBenchRooms();}">
+          <button onclick="saveBenchRooms()" style="padding:7px 14px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">💾 Save</button>
+        </div>
       </div>
       <button onclick="renderBenchmark()" style="padding:8px 18px;background:var(--navy);color:var(--gold);border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;align-self:flex-end">🔄 Refresh</button>
       <button onclick="exportBenchmarkExcel()" style="padding:8px 18px;background:#f0fdf4;border:1.5px solid #16a34a;color:#15803d;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;align-self:flex-end">⬇️ Export Excel</button>
@@ -4674,7 +4677,14 @@ function saveTotalRooms() {
   if (msg) { msg.style.display = 'block'; setTimeout(function(){ msg.style.display='none'; }, 2000); }
   if (rd)  rd.textContent = val + ' rooms';
   invalidateTabCache('dashboard');
-  toast('🏨 Total rooms set to ' + val, 'ok');
+  // Re-render dashboard occupancy row if dashboard is active
+  if (curTab === 'dashboard') {
+    renderDashOccQuick(parseInt(document.getElementById('dash-month')?.value || new Date().getMonth()+1));
+  }
+  // Also update benchmark rooms field if it exists
+  var btr = document.getElementById('bench-total-rooms');
+  if (btr) btr.value = val;
+  toast('🏨 Total rooms set to ' + val + ' — all displays updated', 'ok');
 }
 
 function saveHotelSettings() {
@@ -9878,9 +9888,7 @@ function saveBenchSettings() {
   var s = { totalRooms: tr };
   try { _STORE.setItem(benchSettingsKey(), JSON.stringify(s)); } catch(e) {}
   if (window._fbSaveKey) window._fbSaveKey('pearl/benchmark/settings', s);
-  // Update global so dashboard occupancy % is also correct
   _TOTAL_ROOMS = tr;
-  // Also update hotel settings so it persists everywhere
   try {
     var hotel = JSON.parse(_STORE.getItem('pearl_hotel_settings') || '{}');
     hotel.rooms = tr;
@@ -9888,7 +9896,25 @@ function saveBenchSettings() {
     if (window._fbSaveKey) window._fbSaveKey('pearl/settings/hotel', hotel);
   } catch(e) {}
   invalidateTabCache('dashboard');
-  toast('✅ Total rooms updated to ' + tr, 'ok');
+}
+
+// Save rooms and immediately update dashboard display
+function saveBenchRooms() {
+  var inp = document.getElementById('bench-total-rooms');
+  var tr  = parseInt(inp?.value) || 0;
+  if (tr < 1 || tr > 9999) {
+    toast('⚠️ Enter a valid room count (1–9999)', 'err');
+    return;
+  }
+  // Highlight input to confirm
+  if (inp) { inp.style.borderColor = '#16a34a'; setTimeout(function(){ inp.style.borderColor = '#e2e8f0'; }, 1500); }
+  saveBenchSettings();
+  renderBenchmark();
+  // If dashboard is currently visible, re-render it too
+  if (curTab === 'dashboard') {
+    renderDashOccQuick(parseInt(document.getElementById('dash-month')?.value || new Date().getMonth()+1));
+  }
+  toast('✅ Total rooms saved: ' + tr + ' rooms — dashboard updated', 'ok');
 }
 
 function renderBenchmark() {
