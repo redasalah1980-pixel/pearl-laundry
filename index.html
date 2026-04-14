@@ -5948,7 +5948,7 @@ function renderDash() {
       '<div class="sc-val">' + fmtMoney(financeTotal) + '</div>' +
       '<div class="sc-sub">Carry ' + f2(prevCarry) + ' + Days 1–' + (nd2-1) + ' (excl. last day)</div>' +
     '</div>' +
-    '<div class="sc green"><div class="sc-lbl">Total KG Washed</div><div class="sc-val">' + kg.toFixed(1) + '<span>kg</span></div><div class="sc-sub">All departments</div></div>' +
+    '<div class="sc green"><div class="sc-lbl">Total KG Washed</div><div class="sc-val">' + Math.round(kg) + '<span>kg</span></div><div class="sc-sub">All departments</div></div>' +
     (function(){
       // Projection calculation
       var tgtData = loadTarget(CY, m);
@@ -6033,7 +6033,7 @@ function renderCal(m) {
       h += `<div class="cal-day${hd?' has-data':''}${d===td?' today':''}${wk?' wknd-day':''}" style="border-color:${hd?'#d97706':''};" onclick="goToDay(${m},${d})">
         <div class="cdn${wk?' wknd':''}">${DAY_SHORT[dw]}</div>
         <div class="cdnum">${d}</div>
-        ${hd ? carryBadge + `<div class="cdv">${fmtMoney(pd.qr)}</div><div class="cdd">${pd.kg.toFixed(1)} kg</div>` : ''}
+        ${hd ? carryBadge + `<div class="cdv">${fmtMoney(pd.qr)}</div><div class="cdd">${Math.round(pd.kg)} kg</div>` : ''}
         ${overflowNote}
       </div>`;
     }
@@ -6049,7 +6049,7 @@ function renderCal(m) {
       h += `<div class="cal-day${hd?' has-data':''}${d===td?' today':''}${wk?' wknd-day':''}" onclick="goToDay(${m},${d})">
         <div class="cdn${wk?' wknd':''}">${DAY_SHORT[dw]}</div>
         <div class="cdnum">${d}</div>
-        ${hd ? `<div class="cdv">${fmtMoney(qr)}</div><div class="cdd">${kg.toFixed(1)} kg</div>` : ''}
+        ${hd ? `<div class="cdv">${fmtMoney(qr)}</div><div class="cdd">${Math.round(kg)} kg</div>` : ''}
       </div>`;
     }
     document.getElementById('cal-grid').innerHTML = h;
@@ -6092,7 +6092,7 @@ function renderDeptTable(m, totalQR, byDept) {
     return `<tr onclick="goDept('${d}')" title="Click to view ${d}">
       <td><div class="dept-name">${DEPT_ICONS[d]} ${d}</div></td>
       <td style="color:var(--blue);font-family:'Courier New',Courier,monospace;font-weight:600">${fmtMoney(qr)}</td>
-      <td style="color:#16a34a;font-family:'Courier New',Courier,monospace">${kg.toFixed(2)}</td>
+      <td style="color:#16a34a;font-family:'Courier New',Courier,monospace">${Math.round(kg)}</td>
       <td><span style="font-size:11.5px;color:var(--grey)">${pct.toFixed(1)}%</span>
         <span class="pct-bar-wrap"><span class="pct-bar" style="width:${Math.min(100,pct)}%"></span></span></td>
     </tr>`;
@@ -7605,7 +7605,7 @@ function renderMonthly() {
   // Stats bar
   document.getElementById('mon-stats').innerHTML =
     '<div class="sc blue"><div class="sc-lbl">Total Revenue</div><div class="sc-val">' + fmtMoney(totalQR) + '</div><div class="sc-sub">' + MONTH_NAMES[m-1] + ' ' + CY + '</div></div>' +
-    '<div class="sc green"><div class="sc-lbl">Total KG</div><div class="sc-val">' + totalKG.toFixed(1) + '<span>kg</span></div><div class="sc-sub">All departments</div></div>' +
+    '<div class="sc green"><div class="sc-lbl">Total KG</div><div class="sc-val">' + Math.round(totalKG) + '<span>kg</span></div><div class="sc-sub">All departments</div></div>' +
     '<div class="sc dark"><div class="sc-lbl">Total Pieces</div><div class="sc-val">' + totalPCS.toLocaleString() + '</div><div class="sc-sub">All items</div></div>' +
     '<div class="sc orange"><div class="sc-lbl">Avg Daily Rev</div><div class="sc-val">' + fmtMoney(totalQR / nd) + '</div><div class="sc-sub">Per day this month</div></div>';
 
@@ -7737,10 +7737,10 @@ function renderReport() {
   // ── SECTION 1: Year at a glance ──────────────────────────────
   html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:28px">' +
     _rCard('Total Revenue ' + ry, fmtMoney(yrQR), 'All departments', '#1d4ed8', '#eff6ff') +
-    _rCard('Total KG', yrKG.toFixed(1) + ' kg', 'All departments', '#15803d', '#f0fdf4') +
+    _rCard('Total KG', Math.round(yrKG) + ' kg', 'All departments', '#15803d', '#f0fdf4') +
     _rCard('Total Pieces', yrPCS.toLocaleString(), 'Items processed', '#92400e', '#fffbeb') +
     _rCard('Avg Monthly Rev', fmtMoney(avgMonthlyRev), monthsWithData + ' months with data', '#7e22ce', '#fdf4ff') +
-    _rCard('Avg Daily KG', (yrKG / Math.max(monthsWithData * 30, 1)).toFixed(1) + ' kg', 'Estimated daily avg', '#0e7490', '#ecfeff') +
+    _rCard('Avg Daily KG', Math.round(yrKG / Math.max(monthsWithData * 30, 1)) + ' kg', 'Estimated daily avg', '#0e7490', '#ecfeff') +
     _rCard('Months Active', monthsWithData + ' / 12', 'Months with entries', '#be185d', '#fdf2f8') +
   '</div>';
 
@@ -7771,7 +7771,7 @@ function renderReport() {
           '<td style="padding:9px 12px;border-bottom:1px solid #e2e8f0;text-align:right;color:' + (hasD?'#0d1b2e':'#94a3b8') + '">' + (hasD ? (md.kg > 0 ? Math.round(md.kg) : '—') : '—') + '</td>' +
           '<td style="padding:9px 12px;border-bottom:1px solid #e2e8f0;text-align:right;color:' + (hasD?'#0d1b2e':'#94a3b8') + '">' + (hasD ? md.pcs.toLocaleString() : '—') + '</td>' +
           '<td style="padding:9px 12px;border-bottom:1px solid #e2e8f0;text-align:right;font-size:11px;color:#64748b">' + (hasD ? fmtMoney(md.qr/nd) : '—') + '</td>' +
-          '<td style="padding:9px 12px;border-bottom:1px solid #e2e8f0;text-align:right;font-size:11px;color:#64748b">' + (hasD ? (md.kg/nd).toFixed(1) : '—') + '</td>' +
+          '<td style="padding:9px 12px;border-bottom:1px solid #e2e8f0;text-align:right;font-size:11px;color:#64748b">' + (hasD ? Math.round(md.kg/nd) : '—') + '</td>' +
           DEPT_KEYS.map(function(dept) {
             var dv = md.byDept[dept];
             return '<td style="padding:9px 8px;border-bottom:1px solid #e2e8f0;text-align:right;font-size:11px;color:#64748b">' +
@@ -7952,7 +7952,7 @@ function _rTopTable(items, metric, total) {
   var fmtVal = function(item) {
     if (metric === 'qr')  return fmtMoney(item.qr);
     if (metric === 'pcs') return item.pcs.toLocaleString() + ' pcs';
-    if (metric === 'kg')  return item.kg.toFixed(1) + ' kg';
+    if (metric === 'kg')  return Math.round(item.kg) + ' kg';
     return '';
   };
   var html = '<table style="width:100%;border-collapse:collapse;font-size:12px">' +
@@ -10760,7 +10760,7 @@ function renderYoY() {
       '</div></div>';
   }
   html += yoyCard('Revenue (QR)', data1.qr, data2.qr, function(v){ return fmtMoney(Math.abs(v)); });
-  html += yoyCard('KG Washed', data1.kg, data2.kg, function(v){ return Math.abs(v).toFixed(1)+'kg'; });
+  html += yoyCard('KG Washed', data1.kg, data2.kg, function(v){ return Math.round(Math.abs(v))+'kg'; });
   html += yoyCard('Total Pieces', data1.pcs, data2.pcs, function(v){ return Math.abs(v).toLocaleString()+'pcs'; });
   html += '</div>';
 
