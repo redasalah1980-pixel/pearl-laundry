@@ -1419,7 +1419,7 @@ var _fbDB = null;
     </div>
 
   <div style="text-align:center;padding:18px 0 10px;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;margin-top:32px;letter-spacing:0.3px">
-    © Reda Salah · All Rights Reserved
+    © Reda Salah · <span class="footer-system-name">RS LaundryPro</span> · All Rights Reserved
   </div>
   </div>
 
@@ -1579,7 +1579,7 @@ var _fbDB = null;
     <div id="entry-wrap"></div>
 
   <div style="text-align:center;padding:18px 0 10px;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;margin-top:32px;letter-spacing:0.3px">
-    © Reda Salah · All Rights Reserved
+    © Reda Salah · <span class="footer-system-name">RS LaundryPro</span> · All Rights Reserved
   </div>
   </div>
 
@@ -1623,7 +1623,7 @@ var _fbDB = null;
     <div id="mon-wrap"></div>
 
   <div style="text-align:center;padding:18px 0 10px;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;margin-top:32px;letter-spacing:0.3px">
-    © Reda Salah · All Rights Reserved
+    © Reda Salah · <span class="footer-system-name">RS LaundryPro</span> · All Rights Reserved
   </div>
   </div>
 
@@ -1648,7 +1648,7 @@ var _fbDB = null;
     <div id="report-wrap" style="padding:4px 0"></div>
 
   <div style="text-align:center;padding:18px 0 10px;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;margin-top:32px;letter-spacing:0.3px">
-    © Reda Salah · All Rights Reserved
+    © Reda Salah · <span class="footer-system-name">RS LaundryPro</span> · All Rights Reserved
   </div>
   </div>
 
@@ -1689,7 +1689,7 @@ var _fbDB = null;
     <div id="finance-wrap"></div>
 
   <div style="text-align:center;padding:18px 0 10px;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;margin-top:32px;letter-spacing:0.3px">
-    © Reda Salah · All Rights Reserved
+    © Reda Salah · <span class="footer-system-name">RS LaundryPro</span> · All Rights Reserved
   </div>
   </div>
 
@@ -1772,7 +1772,7 @@ var _fbDB = null;
     </div>
 
   <div style="text-align:center;padding:18px 0 10px;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;margin-top:32px;letter-spacing:0.3px">
-    © Reda Salah · All Rights Reserved
+    © Reda Salah · <span class="footer-system-name">RS LaundryPro</span> · All Rights Reserved
   </div>
   </div>
 
@@ -2257,7 +2257,7 @@ var _fbDB = null;
     </div><!-- end ptab-schedules -->
 
   <div style="text-align:center;padding:18px 0 10px;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;margin-top:32px;letter-spacing:0.3px">
-    © Reda Salah · All Rights Reserved
+    © Reda Salah · <span class="footer-system-name">RS LaundryPro</span> · All Rights Reserved
   </div>
   </div>
 
@@ -2366,7 +2366,7 @@ var _fbDB = null;
     <div id="forecast-wrap"></div>
 
   <div style="text-align:center;padding:18px 0 10px;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;margin-top:32px">
-    © Reda Salah · All Rights Reserved
+    © Reda Salah · <span class="footer-system-name">RS LaundryPro</span> · All Rights Reserved
   </div>
   </div>
 
@@ -4711,6 +4711,10 @@ function applyHotelNameToUI(name) {
   // 8. Login screen name (shows before login)
   var loginName = document.getElementById('login-system-name');
   if (loginName) loginName.textContent = display;
+
+  // 9. Footer copyright line
+  var footers = document.querySelectorAll('.footer-system-name');
+  footers.forEach(function(f){ f.textContent = display; });
 }
 
 // ── Load daily occupancy ──
@@ -10415,7 +10419,7 @@ function printBenchmarkPDF() {
     '<div class="header">' +
       '<div><div class="header h1">🎯 Benchmark Report — ' + MONTH_NAMES[m-1] + ' ' + CY + '</div>' +
       '<p>RS LaundryPro Laundry Management System' + (totalRooms > 0 ? ' · ' + totalRooms + ' total rooms' : '') + '</p></div>' +
-      '<div class="header-right">Prepared by: Reda Salah<br>Date: ' + dateStr + '<br>© Reda Salah · All Rights Reserved</div>' +
+      '<div class="header-right">Prepared by: Reda Salah<br>Date: ' + dateStr + '<br>© Reda Salah · <span class="footer-system-name">RS LaundryPro</span> · All Rights Reserved</div>' +
     '</div>' +
     '<div class="cards">' + cardsHTML + '</div>' +
     '<div class="charts">' +
