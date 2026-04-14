@@ -1466,7 +1466,10 @@ var _fbDB = null;
 
     <!-- Add Item Modal (inline) -->
     <div id="items-add-item-form" style="display:none;background:#fff;border:2px solid #3b82f6;border-radius:14px;padding:20px;margin-bottom:20px">
-      <div id="items-add-item-title" style="font-size:14px;font-weight:800;color:#0d1b2e;margin-bottom:16px">➕ Add New Item</div>
+      <div id="items-add-item-title" style="font-size:14px;font-weight:800;color:#0d1b2e;margin-bottom:8px">➕ Add New Item</div>
+    <div style="background:#fef3c7;border:1.5px solid #f59e0b;border-radius:8px;padding:8px 12px;margin-bottom:14px;font-size:11px;font-weight:700;color:#92400e">
+      ⚠️ New items are always added to the <strong>bottom of the list</strong>. This protects your historical data.
+    </div>
       <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;margin-bottom:14px">
         <div>
           <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:5px;letter-spacing:.8px">ITEM NAME *</div>
@@ -1502,6 +1505,15 @@ var _fbDB = null;
             <button onclick="showAddItemForm()" style="padding:7px 14px;background:rgba(59,130,246,.2);border:1px solid rgba(59,130,246,.4);color:#93c5fd;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer">➕ Add Item</button>
             <button onclick="saveItemsEdits()" style="padding:7px 14px;background:#c9a84c;border:none;color:#0d1b2e;border-radius:7px;font-size:11px;font-weight:800;cursor:pointer">💾 Save</button>
             <button onclick="closeItemsEditor()" style="padding:7px 12px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:7px;font-size:11px;cursor:pointer">✕</button>
+          </div>
+        </div>
+        <!-- Critical warning about item order -->
+        <div style="background:#fef3c7;border-bottom:2px solid #f59e0b;padding:10px 18px;display:flex;align-items:center;gap:10px">
+          <span style="font-size:18px;flex-shrink:0">⚠️</span>
+          <div style="font-size:12px;font-weight:700;color:#92400e;line-height:1.5">
+            <strong>IMPORTANT — Always add new items at the BOTTOM of the list only.</strong>
+            Never delete or reorder existing items — this would corrupt historical data for past months.
+            Editing names, prices and weights of existing items is safe.
           </div>
         </div>
         <div style="display:grid;grid-template-columns:40px 1fr 120px 100px 50px;padding:8px 16px;background:#f8fafc;border-bottom:1.5px solid #e2e8f0">
@@ -13318,6 +13330,62 @@ function renderGuide() {
      '<strong>Licence:</strong> Proprietary — all rights reserved' +
      '<br><br>' +
      warn('Unauthorised copying, distribution, or modification of RS LaundryPro is strictly prohibited. This system is the intellectual property of Reda Salah.')
+    ],
+
+
+    // ── 57. ADDING ITEMS — DATA SAFETY ──────────────────────────
+    ['⚠️ Adding Items — Important Data Safety Rules',
+     'Understanding how item data is stored is critical to keeping your historical records accurate.' +
+     '<br><br><strong>How data is stored:</strong>' +
+     '<br>Each item quantity is saved using its <strong>position number</strong> in the list (index 0, 1, 2, 3...). ' +
+     'For example: Rooms Linen item 0 = King Bottom Sheet, item 1 = King Top Sheet XL, and so on.' +
+     '<br><br><div style="background:#fef3c7;border:2px solid #f59e0b;border-radius:10px;padding:14px 16px;margin:10px 0">' +
+     '<div style="font-size:13px;font-weight:800;color:#92400e;margin-bottom:8px">⚠️ CRITICAL RULES</div>' +
+     '<div style="font-size:12px;color:#92400e;line-height:1.9">' +
+     '✅ <strong>Safe:</strong> Add new items — always at the bottom of the list<br>' +
+     '✅ <strong>Safe:</strong> Edit item name, price, or weight<br>' +
+     '❌ <strong>NEVER:</strong> Delete an existing item that has historical data<br>' +
+     '❌ <strong>NEVER:</strong> Reorder or move existing items up or down<br>' +
+     '❌ <strong>NEVER:</strong> Insert a new item in the middle of the list' +
+     '</div></div>' +
+     '<br><strong>Why this matters:</strong><br>' +
+     'If you move "King Bottom Sheet" from position 0 to position 5, all historical data that was saved ' +
+     'at position 0 would now show against the wrong item. Your January numbers would be wrong.' +
+     '<br><br><strong>What happens when you add a new item at the bottom:</strong>' +
+     ul([
+       'It appears immediately in the Entry tab for all months',
+       'Past months show 0 quantity for the new item — which is correct (it did not exist yet)',
+       'Current and future months can have quantities entered for it',
+       'Revenue and KG calculations update automatically'
+     ]) +
+     '<br><strong>What if I need to remove an item no longer used?</strong><br>' +
+     'Do not delete it. Instead, just enter 0 for that item going forward. ' +
+     'You can rename it to something like "(Discontinued) King Bottom Sheet" so you know not to use it.' +
+     tip('The system shows a warning banner every time you open the item editor as a reminder of these rules.')
+    ],
+
+    // ── 58. NEW DEPARTMENTS — WHERE THEY APPEAR ──────────────────
+    ['🏢 New Departments — Where They Appear',
+     'When you add a new department in the <strong>📦 Items</strong> tab, it appears immediately everywhere in the system:' +
+     ul([
+       '<strong>Entry tab</strong> — department dropdown selector and department tabs',
+       '<strong>Dashboard</strong> — department breakdown panel and daily summary',
+       '<strong>Monthly report</strong> — department columns',
+       '<strong>Finance Posting</strong> — department columns',
+       '<strong>Analytics</strong> — department breakdown charts',
+       '<strong>Prices tab</strong> — department selector for price management',
+       '<strong>Benchmark</strong> — included in totals'
+     ]) +
+     '<br><strong>For past months:</strong><br>' +
+     'The new department shows with 0 quantities for all past days — which is correct. ' +
+     'You can go back and enter historical data for past months if needed.' +
+     '<br><br><strong>Department rules:</strong>' +
+     ul([
+       'Built-in departments (Rooms Linen, F&B, Spa & Pool, Uniform, Others, Dry Cleaning) cannot be deleted or renamed — they are protected',
+       'Custom departments you create can be renamed or deleted',
+       'Deleting a department removes it from future entry only — historical data is preserved in backups'
+     ]) +
+     warn('Before adding a new department, make sure the name is final. Renaming later is possible for custom departments but will not update any historical report labels.')
     ],
 
 
