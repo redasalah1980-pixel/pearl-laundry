@@ -5971,7 +5971,7 @@ function renderDash() {
       }
       return '<div class="sc orange"><div class="sc-lbl">Avg Daily Revenue</div><div class="sc-val">' + fmtMoney(avgQR) + '</div><div class="sc-sub">' + act + ' active days</div>' + projLine + '</div>';
     })() +
-    '<div class="sc dark"><div class="sc-lbl">Avg Daily KG</div><div class="sc-val">' + avgKG.toFixed(1) + '<span>kg</span></div><div class="sc-sub">Per working day</div></div>';
+    '<div class="sc dark"><div class="sc-lbl">Avg Daily KG</div><div class="sc-val">' + Math.round(avgKG) + '<span>kg</span></div><div class="sc-sub">Per working day</div></div>';
   renderCal(m); renderDeptTable(m, qr, byDept); renderDashCharts(m);
   // Update target input and label for this month
   var tgt2 = loadTarget(CY, m);
@@ -6190,7 +6190,7 @@ function renderDailyDeptSummary(m, day) {
   hdr.style.cssText = 'background:#0d1b2e;padding:11px 16px;display:flex;align-items:center;justify-content:space-between';
   hdr.innerHTML =
     '<div style="font-size:12px;font-weight:800;color:#c9a84c">📊 ' + dn + ' ' + day + ' ' + MONTH_NAMES[m-1] + ' — All Departments</div>' +
-    '<div style="font-size:11px;color:rgba(255,255,255,.5)">' + fmtMoney(totQR) + ' · ' + totKG.toFixed(2) + ' kg</div>';
+    '<div style="font-size:11px;color:rgba(255,255,255,.5)">' + fmtMoney(totQR) + ' · ' + Math.round(totKG) + ' kg</div>';
   card.appendChild(hdr);
 
   // Dept rows
@@ -6229,7 +6229,7 @@ function renderDailyDeptSummary(m, day) {
     // KG
     var kgDiv = document.createElement('div');
     kgDiv.style.cssText = 'width:80px;text-align:right;font-size:11px;color:#64748b';
-    kgDiv.textContent = d.kg > 0 ? d.kg.toFixed(2) + ' kg' : '';
+    kgDiv.textContent = d.kg > 0 ? Math.round(d.kg) + ' kg' : '';
     row.appendChild(kgDiv);
 
     // Pcs
@@ -6248,7 +6248,7 @@ function renderDailyDeptSummary(m, day) {
     '<div style="width:160px;min-width:120px;font-size:12px;font-weight:800;color:#c9a84c">TOTAL</div>' +
     '<div style="flex:1"></div>' +
     '<div style="width:120px;text-align:right;font-size:14px;font-weight:900;color:#c9a84c">' + fmtMoney(totQR) + '</div>' +
-    '<div style="width:80px;text-align:right;font-size:11px;color:rgba(255,255,255,.6)">' + totKG.toFixed(2) + ' kg</div>' +
+    '<div style="width:80px;text-align:right;font-size:11px;color:rgba(255,255,255,.6)">' + Math.round(totKG) + ' kg</div>' +
     '<div style="width:60px;text-align:right;font-size:11px;color:rgba(255,255,255,.5)">' + totPCS + ' pcs</div>';
   table.appendChild(totRow);
 
@@ -6293,8 +6293,8 @@ function updateEntStats(m, day) {
   const dn = DAY_NAMES[new Date(CY, m-1, day).getDay()];
   document.getElementById('ent-stats').innerHTML = `
     <div class="sc blue"><div class="sc-lbl">Day Total</div><div class="sc-val">${fmtMoney(dQR)}</div><div class="sc-sub">All depts — ${dn} ${day}</div></div>
-    <div class="sc green"><div class="sc-lbl">Day KG</div><div class="sc-val">${dKG.toFixed(2)}<span>kg</span></div><div class="sc-sub">All departments</div></div>
-    <div class="sc orange"><div class="sc-lbl">${DEPT_ICONS[entDept]} ${entDept} Revenue</div><div class="sc-val">${fmtMoney(depQR)}</div><div class="sc-sub">${depKG.toFixed(2)} kg</div></div>
+    <div class="sc green"><div class="sc-lbl">Day KG</div><div class="sc-val">${Math.round(dKG)}<span>kg</span></div><div class="sc-sub">All departments</div></div>
+    <div class="sc orange"><div class="sc-lbl">${DEPT_ICONS[entDept]} ${entDept} Revenue</div><div class="sc-val">${fmtMoney(depQR)}</div><div class="sc-sub">${Math.round(depKG)} kg</div></div>
     <div class="sc purple"><div class="sc-lbl">${DEPT_ICONS[entDept]} ${entDept} Pieces</div><div class="sc-val">${depPCS.toLocaleString()}<span>pcs</span></div><div class="sc-sub">Total items counted</div></div>`;
   // Render daily department summary
   renderDailyDeptSummary(m, day);
@@ -6410,8 +6410,25 @@ function preloadCurrentMonthPrices() {
   var py = cm === 1 ? CY - 1 : CY;
   getVerifiedPrices(CY, cm, function(){});
   getVerifiedPrices(py, pm, function(){});
-  // Also sync targets
+  // Sync targets for current year
   if (typeof syncTargetsFromFB === 'function') syncTargetsFromFB(CY);
+  // Sync EOM checklist for current + last 3 months so Year Health is accurate
+  (function() {
+    for (var i = 0; i < 4; i++) {
+      var mo = cm - i;
+      var yr = CY;
+      if (mo <= 0) { mo += 12; yr--; }
+      loadEomChecklist(yr, mo); // triggers Firebase sync in background
+    }
+  })();
+  // Sync backup index for accurate backup status
+  if (window._fbLoadKey) {
+    window._fbLoadKey('pearl/backup/index').then(function(fbIdx) {
+      if (fbIdx && Array.isArray(fbIdx) && fbIdx.length > 0) {
+        try { _STORE.setItem('pearl_backup_index', JSON.stringify(fbIdx)); } catch(e) {}
+      }
+    }).catch(function(){});
+  }
 }
 
 
@@ -7751,7 +7768,7 @@ function renderReport() {
           '<td style="padding:9px 12px;border-bottom:1px solid #e2e8f0;font-weight:600">' +
             MONTH_NAMES[mi-1] + (isCur ? ' ◀ Current' : '') + '</td>' +
           '<td style="padding:9px 12px;border-bottom:1px solid #e2e8f0;text-align:right;color:' + (hasD?'#0d1b2e':'#94a3b8') + '">' + (hasD ? fmtMoney(md.qr) : '—') + '</td>' +
-          '<td style="padding:9px 12px;border-bottom:1px solid #e2e8f0;text-align:right;color:' + (hasD?'#0d1b2e':'#94a3b8') + '">' + (hasD ? md.kg.toFixed(1) : '—') + '</td>' +
+          '<td style="padding:9px 12px;border-bottom:1px solid #e2e8f0;text-align:right;color:' + (hasD?'#0d1b2e':'#94a3b8') + '">' + (hasD ? (md.kg > 0 ? Math.round(md.kg) : '—') : '—') + '</td>' +
           '<td style="padding:9px 12px;border-bottom:1px solid #e2e8f0;text-align:right;color:' + (hasD?'#0d1b2e':'#94a3b8') + '">' + (hasD ? md.pcs.toLocaleString() : '—') + '</td>' +
           '<td style="padding:9px 12px;border-bottom:1px solid #e2e8f0;text-align:right;font-size:11px;color:#64748b">' + (hasD ? fmtMoney(md.qr/nd) : '—') + '</td>' +
           '<td style="padding:9px 12px;border-bottom:1px solid #e2e8f0;text-align:right;font-size:11px;color:#64748b">' + (hasD ? (md.kg/nd).toFixed(1) : '—') + '</td>' +
@@ -7825,7 +7842,7 @@ function renderReport() {
           '<div style="width:60px;background:#e2e8f0;border-radius:4px;height:6px">' +
             '<div style="width:' + pct.toFixed(1) + '%;background:' + col + ';height:100%;border-radius:4px"></div></div>' +
           pct.toFixed(1) + '%</div></td>' +
-        '<td style="padding:10px 14px;border-bottom:1px solid #e2e8f0;text-align:right">' + (d.kg>0?d.kg.toFixed(1):'—') + '</td>' +
+        '<td style="padding:10px 14px;border-bottom:1px solid #e2e8f0;text-align:right">' + (d.kg > 0 ? Math.round(d.kg) : '—') + '</td>' +
         '<td style="padding:10px 14px;border-bottom:1px solid #e2e8f0;text-align:right">' + (d.pcs>0?d.pcs.toLocaleString():'—') + '</td>' +
         '<td style="padding:10px 14px;border-bottom:1px solid #e2e8f0;text-align:right;font-size:11px;color:#64748b">' + (d.pcs>0?fmtMoney(d.qr/d.pcs):'—') + '</td>' +
         '<td style="padding:10px 14px;border-bottom:1px solid #e2e8f0;text-align:right;font-size:11px;color:#64748b">' + (d.pcs>0?(d.kg/d.pcs).toFixed(3):'—') + '</td>' +
@@ -9789,9 +9806,20 @@ function loadBenchSettings() {
 }
 function saveBenchSettings() {
   var tr = parseInt(document.getElementById('bench-total-rooms')?.value) || 0;
+  if (tr < 1) return;
   var s = { totalRooms: tr };
   try { _STORE.setItem(benchSettingsKey(), JSON.stringify(s)); } catch(e) {}
   if (window._fbSaveKey) window._fbSaveKey('pearl/benchmark/settings', s);
+  // Update global so dashboard occupancy % is also correct
+  _TOTAL_ROOMS = tr;
+  // Also update hotel settings so it persists everywhere
+  try {
+    var hotel = JSON.parse(_STORE.getItem('pearl_hotel_settings') || '{}');
+    hotel.rooms = tr;
+    _STORE.setItem('pearl_hotel_settings', JSON.stringify(hotel));
+    if (window._fbSaveKey) window._fbSaveKey('pearl/settings/hotel', hotel);
+  } catch(e) {}
+  toast('✅ Total rooms updated to ' + tr, 'ok');
 }
 
 function renderBenchmark() {
@@ -9799,10 +9827,13 @@ function renderBenchmark() {
   var days = dim(CY, m);
   var occ  = loadBenchOcc(CY, m);
   var settings = loadBenchSettings();
-  // Use global _TOTAL_ROOMS as primary source
-  var totalRooms = _TOTAL_ROOMS || parseInt(document.getElementById('bench-total-rooms')?.value) || settings.totalRooms || 161;
+  // Priority: user input in field > saved settings > global > default
+  var inputVal = parseInt(document.getElementById('bench-total-rooms')?.value) || 0;
+  var totalRooms = inputVal || settings.totalRooms || _TOTAL_ROOMS || 161;
+  // Update global to stay in sync
+  if (totalRooms !== _TOTAL_ROOMS) _TOTAL_ROOMS = totalRooms;
   var tri2 = document.getElementById('bench-total-rooms');
-  if (tri2) tri2.value = totalRooms;
+  if (tri2 && !inputVal) tri2.value = totalRooms; // only set if field is empty
 
   // Build occupancy entry grid — dual input (rooms + %)
   var totalRoomsNow = _TOTAL_ROOMS || totalRooms || 161;
@@ -9887,7 +9918,7 @@ function renderBenchmark() {
     var cardData = [
       { icon: '📊', label: 'Avg Occupancy', val: avgOcc.toFixed(1) + '%', sub: 'Days with data', grad: 'linear-gradient(135deg,#0369a1,#0284c7)', shadow: 'rgba(2,132,199,.3)' },
       { icon: '💰', label: 'Total Revenue', val: fmtMoney(totalRev), sub: MONTH_NAMES[m-1] + ' ' + CY, grad: 'linear-gradient(135deg,#15803d,#16a34a)', shadow: 'rgba(22,163,74,.3)' },
-      { icon: '⚖️', label: 'Total KG', val: totalKg.toFixed(2) + ' kg', sub: MONTH_NAMES[m-1] + ' ' + CY, grad: 'linear-gradient(135deg,#b45309,#d97706)', shadow: 'rgba(217,119,6,.3)' },
+      { icon: '⚖️', label: 'Total KG', val: Math.round(totalKg) + ' kg', sub: MONTH_NAMES[m-1] + ' ' + CY, grad: 'linear-gradient(135deg,#b45309,#d97706)', shadow: 'rgba(217,119,6,.3)' },
       { icon: '🛏️', label: 'Revenue / Room', val: avgRevPOR > 0 ? fmtMoney(avgRevPOR) : '—', sub: 'Avg per occupied room', grad: 'linear-gradient(135deg,#6d28d9,#7c3aed)', shadow: 'rgba(124,58,237,.3)' },
       { icon: '📦', label: 'KG / Room', val: avgKgPOR > 0 ? avgKgPOR.toFixed(3) + ' kg' : '—', sub: 'Avg per occupied room', grad: 'linear-gradient(135deg,#0e7490,#0891b2)', shadow: 'rgba(8,145,178,.3)' },
       { icon: '📅', label: 'Days Tracked', val: dayData.filter(function(x){ return x.occPct > 0; }).length + ' / ' + days, sub: 'Occupancy entered', grad: 'linear-gradient(135deg,#334155,#475569)', shadow: 'rgba(71,85,105,.3)' },
@@ -9914,7 +9945,7 @@ function renderBenchmark() {
   var labels = dayData.map(function(x){ return x.d; });
   var occData = dayData.map(function(x){ return x.occPct || null; });
   var revData  = dayData.map(function(x){ return x.rev > 0 ? parseFloat(x.rev.toFixed(2)) : null; });
-  var kgData   = dayData.map(function(x){ return x.kg  > 0 ? parseFloat(x.kg.toFixed(2))  : null; });
+  var kgData   = dayData.map(function(x){ return x.kg  > 0 ? parseFloat(Math.round(x.kg))  : null; });
 
   function buildChart(canvasId, chartRef, label1, data1, color1, label2, data2, color2, yLabel1, yLabel2, gradStart, gradEnd) {
     var ctx = document.getElementById(canvasId);
@@ -10814,7 +10845,7 @@ function renderTrends() {
     html += '<tr style="background:' + (isBest?'#f0fdf4':bg3) + '">' +
       '<td style="padding:8px 12px;font-weight:700;color:#0d1b2e">' + row.label + (isBest?' 🏆':'') + '</td>' +
       '<td style="padding:8px 12px;text-align:right;font-weight:700;color:#0369a1">' + (row.qr>0?f2(row.qr):'—') + '</td>' +
-      '<td style="padding:8px 12px;text-align:right;color:#d97706">' + (row.kg>0?row.kg.toFixed(1)+'kg':'—') + '</td>' +
+      '<td style="padding:8px 12px;text-align:right;color:#d97706">' + (row.kg>0?Math.round(row.kg)+'kg':'—') + '</td>' +
       '<td style="padding:8px 12px;text-align:right;font-weight:700;color:' + col3 + '">' + (row.qr>0?(diff3>=0?'+':'')+pct3.toFixed(1)+'%':'—') + '</td>' +
       '<td style="padding:8px 12px">' +
         '<div style="background:#e2e8f0;border-radius:4px;height:8px;width:120px">' +
@@ -13744,9 +13775,9 @@ function mobRenderDash() {
   if (cards) {
     var cardData = [
       { label:'Monthly Revenue', val:fmtMoney(tot.qr), sub:MONTH_NAMES[m-1], grad:'linear-gradient(135deg,#0369a1,#0284c7)', shadow:'rgba(2,132,199,.25)' },
-      { label:'Total KG', val:tot.kg.toFixed(1)+' kg', sub:'All depts', grad:'linear-gradient(135deg,#b45309,#d97706)', shadow:'rgba(217,119,6,.25)' },
+      { label:'Total KG', val:Math.round(tot.kg)+' kg', sub:'All depts', grad:'linear-gradient(135deg,#b45309,#d97706)', shadow:'rgba(217,119,6,.25)' },
       { label:'Avg Daily Rev', val:fmtMoney(avgQR), sub:act+' active days', grad:'linear-gradient(135deg,#15803d,#16a34a)', shadow:'rgba(22,163,74,.25)' },
-      { label:'Avg Daily KG', val:avgKG.toFixed(1)+' kg', sub:'Per working day', grad:'linear-gradient(135deg,#334155,#475569)', shadow:'rgba(71,85,105,.25)' }
+      { label:'Avg Daily KG', val:Math.round(avgKG)+' kg', sub:'Per working day', grad:'linear-gradient(135deg,#334155,#475569)', shadow:'rgba(71,85,105,.25)' }
     ];
     cards.innerHTML = cardData.map(function(c) {
       return '<div style="background:'+c.grad+';border-radius:14px;padding:14px 12px;box-shadow:0 6px 18px '+c.shadow+'">' +
@@ -13992,8 +14023,8 @@ function mobUpdateStats(m, day) {
     var dn = DAY_NAMES[new Date(CY,m-1,day).getDay()];
     statsEl.innerHTML = [
       {label:'Day Total',val:fmtMoney(dQR),sub:'All depts · '+dn+' '+day,col:'#0284c7',bg:'#eff6ff'},
-      {label:'Day KG',val:dKG.toFixed(2)+' kg',sub:'All departments',col:'#16a34a',bg:'#f0fdf4'},
-      {label:_mobEntDept+' Rev',val:fmtMoney(depQR),sub:depKG.toFixed(2)+' kg',col:'#d97706',bg:'#fffbeb'},
+      {label:'Day KG',val:Math.round(dKG)+' kg',sub:'All departments',col:'#16a34a',bg:'#f0fdf4'},
+      {label:_mobEntDept+' Rev',val:fmtMoney(depQR),sub:Math.round(depKG)+' kg',col:'#d97706',bg:'#fffbeb'},
       {label:_mobEntDept+' Pcs',val:depPCS+'',sub:'Total pieces',col:'#7c3aed',bg:'#f5f3ff'}
     ].map(function(c) {
       return '<div style="background:'+c.bg+';border-radius:12px;padding:11px 12px;border-left:3px solid '+c.col+'">' +
@@ -14115,13 +14146,13 @@ function mobRenderFinance() {
       html+='<tr style="background:'+(isToday?'#eff6ff':bg)+'">' +
         '<td style="padding:8px 10px;font-weight:700;color:#0d1b2e">'+DAY_NAMES[new Date(CY,m-1,d).getDay()].slice(0,3)+' '+d+(isToday?' •':'')+' </td>' +
         '<td style="padding:8px 10px;text-align:right;color:#15803d;font-weight:600">'+(dt.qr>0?f2(dt.qr):'—')+'</td>' +
-        '<td style="padding:8px 10px;text-align:right;color:#b45309">'+(dt.kg>0?dt.kg.toFixed(1):'—')+'</td>' +
+        '<td style="padding:8px 10px;text-align:right;color:#b45309">'+(dt.kg>0?Math.round(dt.kg):'—')+'</td>' +
       '</tr>';
     }
     html+='<tr style="background:#0d1b2e;color:#c9a84c;font-weight:800">' +
       '<td style="padding:9px 10px">TOTAL</td>' +
       '<td style="padding:9px 10px;text-align:right">'+f2(tot.qr)+'</td>' +
-      '<td style="padding:9px 10px;text-align:right">'+tot.kg.toFixed(1)+'</td>' +
+      '<td style="padding:9px 10px;text-align:right">'+Math.round(tot.kg)+'</td>' +
     '</tr></tbody></table>';
     tbl.innerHTML=html;
   }
@@ -17878,10 +17909,35 @@ function eomKey(y, m) {
 }
 
 function loadEomChecklist(y, m) {
+  var key   = eomKey(y, m);
+  var fbPath = 'pearl/settings/eom_' + y + '_' + m;
+  var defaults = { financePosted: false, reportExported: false };
+  var local = defaults;
   try {
-    var stored = JSON.parse(_STORE.getItem(eomKey(y,m)) || 'null');
-    return stored || { financePosted: false, reportExported: false };
-  } catch(e) { return { financePosted: false, reportExported: false }; }
+    var stored = JSON.parse(_STORE.getItem(key) || 'null');
+    if (stored) local = stored;
+  } catch(e) {}
+
+  // Background sync from Firebase — updates localStorage for next read
+  if (window._fbLoadKey) {
+    window._fbLoadKey(fbPath).then(function(fbData) {
+      if (fbData && typeof fbData === 'object') {
+        // Firebase is authoritative for manual ticks
+        try { _STORE.setItem(key, JSON.stringify(fbData)); } catch(e) {}
+        // If Finance Posted changed, re-render year health if visible
+        if (fbData.financePosted !== local.financePosted) {
+          var hp = document.getElementById('year-health-panel');
+          if (hp && hp.style.display !== 'none' && typeof renderYearHealth === 'function') {
+            renderYearHealth();
+          }
+        }
+      } else if (local.financePosted) {
+        // Push local to Firebase if Firebase is empty
+        if (window._fbSaveKey) window._fbSaveKey(fbPath, local);
+      }
+    }).catch(function(){});
+  }
+  return local;
 }
 
 function saveEomChecklist(y, m, data) {
