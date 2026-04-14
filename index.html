@@ -4636,8 +4636,12 @@ function loadHotelSettings() {
     _TOTAL_ROOMS = stored.rooms || 161;
     _HOTEL_NAME  = stored.name  || '';
   } catch(e) { _TOTAL_ROOMS = 161; _HOTEL_NAME = ''; }
-  // Apply name to UI immediately from localStorage
-  if (_HOTEL_NAME && typeof applyHotelNameToUI === 'function') applyHotelNameToUI(_HOTEL_NAME);
+  // Apply name to UI — use setTimeout to ensure DOM is ready
+  if (_HOTEL_NAME) {
+    setTimeout(function() {
+      if (typeof applyHotelNameToUI === 'function') applyHotelNameToUI(_HOTEL_NAME);
+    }, 100);
+  }
   // Also try Firebase
   if (window._fbDB) {
     window._fbDB.ref('pearl/hotel').once('value').then(function(snap) {
@@ -5690,8 +5694,16 @@ function bootApp(user) {
 function _bootApp(user) {
   document.getElementById('pg-login').style.display = 'none';
   document.getElementById('pg-app').style.display = 'flex';
-    if (window._stopLoginCanvas) window._stopLoginCanvas();
+  if (window._stopLoginCanvas) window._stopLoginCanvas();
   document.getElementById('tn-name').textContent = user;
+  // Apply hotel name to nav bar NOW that DOM is visible
+  // Read from localStorage directly (fastest, no Firebase needed)
+  try {
+    var _hs = JSON.parse(_STORE.getItem('pearl_hotel_settings') || '{}');
+    if (_hs.name && typeof applyHotelNameToUI === 'function') {
+      applyHotelNameToUI(_hs.name);
+    }
+  } catch(e) {}
   var nd2 = document.getElementById('tn-name-display'); if(nd2) nd2.textContent = user;
   var role = _SESSION.getItem('ph_role') || 'admin';
   // Register presence in Firebase
