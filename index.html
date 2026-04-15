@@ -986,8 +986,43 @@ var _fbDB = null;
 <div id="pg-login">
   <canvas id="login-canvas"></canvas>
   <div class="login-card">
-    <div class="l-logo" style="position:relative;width:160px;height:160px;margin:0 auto">
-      <canvas id="rs-logo-canvas" width="160" height="160" style="display:block"></canvas>
+    <div class="l-logo" style="position:relative;width:160px;height:160px;margin:0 auto;display:flex;align-items:center;justify-content:center">
+      <svg width="160" height="160" viewBox="0 0 160 160" style="position:absolute;top:0;left:0">
+        <!-- Dark circle background -->
+        <circle cx="80" cy="80" r="72" fill="rgba(8,18,34,0.85)"/>
+        <!-- Outer gold border -->
+        <circle cx="80" cy="80" r="72" fill="none" stroke="rgba(201,168,76,0.7)" stroke-width="1.5"/>
+        <!-- Inner subtle ring -->
+        <circle cx="80" cy="80" r="66" fill="none" stroke="rgba(201,168,76,0.2)" stroke-width="0.8"/>
+        <!-- Gold arc — 300 degrees, gap at bottom-left -->
+        <circle cx="80" cy="80" r="72" fill="none"
+          stroke="url(#goldArc)" stroke-width="2.5" stroke-linecap="round"
+          stroke-dasharray="452 503"
+          stroke-dashoffset="63"
+          transform="rotate(-120 80 80)"/>
+        <!-- Gradient definition for arc -->
+        <defs>
+          <linearGradient id="goldArc" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stop-color="rgba(201,168,76,0)"/>
+            <stop offset="40%"  stop-color="rgba(201,168,76,0.8)"/>
+            <stop offset="85%"  stop-color="rgba(220,185,90,1)"/>
+            <stop offset="100%" stop-color="rgba(255,220,120,1)"/>
+          </linearGradient>
+          <!-- Glow filter -->
+          <filter id="glow">
+            <feGaussianBlur stdDeviation="2" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <!-- Glowing tip dot -->
+        <circle cx="80" cy="8" r="4" fill="rgba(255,220,140,0.9)" filter="url(#glow)"
+          transform="rotate(60 80 80)"/>
+      </svg>
+      <!-- RS text overlay -->
+      <div style="position:relative;z-index:1;text-align:center;line-height:1">
+        <div style="font-family:Georgia,'Times New Roman',serif;font-style:italic;font-weight:700;font-size:52px;color:#c9a84c;text-shadow:0 0 18px rgba(201,168,76,0.4);letter-spacing:2px">RS</div>
+        <div style="font-family:Georgia,serif;font-size:13px;font-weight:600;color:rgba(201,168,76,0.75);letter-spacing:5px;margin-top:2px">2026</div>
+      </div>
     </div>
     <div class="l-sysname">
       <h1 id="login-system-name">RS LaundryPro</h1>
@@ -5696,7 +5731,6 @@ function _bootApp(user) {
   document.getElementById('pg-login').style.display = 'none';
   document.getElementById('pg-app').style.display = 'flex';
   if (window._stopLoginCanvas) window._stopLoginCanvas();
-  if (window._stopRSLogo) window._stopRSLogo();
   document.getElementById('tn-name').textContent = user;
   // Apply hotel name + total rooms NOW that DOM is visible
   // Read from localStorage directly (fastest, no Firebase needed)
@@ -21428,128 +21462,6 @@ function deptHasData(y, m, dept, day) {
 }
 
 // Returns array of {dept, day, label} for missing required dept/day combos
-
-// ── RS Logo Animation ─────────────────────────────────────────
-(function() {
-  function initRSLogo() {
-    var canvas = document.getElementById('rs-logo-canvas');
-    if (!canvas) return;
-    var ctx = canvas.getContext('2d');
-    var W = 160, H = 160, cx = 80, cy = 80;
-    var angle = 0;
-    var raf = null;
-
-    function draw() {
-      ctx.clearRect(0, 0, W, H);
-
-      // Outer dark circle background
-      ctx.beginPath();
-      ctx.arc(cx, cy, 72, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(8, 18, 34, 0.85)';
-      ctx.fill();
-
-      // Outer gold border circle (static)
-      ctx.beginPath();
-      ctx.arc(cx, cy, 72, 0, Math.PI * 2);
-      ctx.strokeStyle = 'rgba(201,168,76,0.35)';
-      ctx.lineWidth = 1.2;
-      ctx.stroke();
-
-      // Inner gold border circle (static, slightly smaller)
-      ctx.beginPath();
-      ctx.arc(cx, cy, 68, 0, Math.PI * 2);
-      ctx.strokeStyle = 'rgba(201,168,76,0.15)';
-      ctx.lineWidth = 0.5;
-      ctx.stroke();
-
-      // ROTATING ARC — main gold arc, 240 degrees, rotates slowly
-      ctx.save();
-      ctx.translate(cx, cy);
-      ctx.rotate(angle);
-      var arcStart = 0;
-      var arcEnd   = Math.PI * 1.55; // ~280 degrees
-      var grad = ctx.createLinearGradient(
-        Math.cos(arcStart)*72, Math.sin(arcStart)*72,
-        Math.cos(arcEnd)*72,   Math.sin(arcEnd)*72
-      );
-      grad.addColorStop(0,   'rgba(201,168,76,0)');
-      grad.addColorStop(0.3, 'rgba(201,168,76,0.7)');
-      grad.addColorStop(0.7, 'rgba(220,185,90,1)');
-      grad.addColorStop(1,   'rgba(255,220,120,1)');
-      ctx.beginPath();
-      ctx.arc(0, 0, 72, arcStart, arcEnd);
-      ctx.strokeStyle = grad;
-      ctx.lineWidth = 2.5;
-      ctx.lineCap = 'round';
-      ctx.stroke();
-
-      // Glowing tip at the end of the arc
-      var tipX = Math.cos(arcEnd) * 72;
-      var tipY = Math.sin(arcEnd) * 72;
-      var glow = ctx.createRadialGradient(tipX, tipY, 0, tipX, tipY, 8);
-      glow.addColorStop(0, 'rgba(255,230,140,0.9)');
-      glow.addColorStop(1, 'rgba(201,168,76,0)');
-      ctx.fillStyle = glow;
-      ctx.beginPath();
-      ctx.arc(tipX, tipY, 8, 0, Math.PI*2);
-      ctx.fill();
-
-      // Second smaller counter-rotating arc (subtle)
-      ctx.rotate(-angle * 2.3);
-      ctx.beginPath();
-      ctx.arc(0, 0, 62, 0, Math.PI * 0.6);
-      ctx.strokeStyle = 'rgba(201,168,76,0.18)';
-      ctx.lineWidth = 1;
-      ctx.lineCap = 'round';
-      ctx.stroke();
-
-      ctx.restore();
-
-      // RS text — italic serif gold
-      ctx.font = 'italic bold 52px Georgia, "Times New Roman", serif';
-      ctx.fillStyle = '#c9a84c';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      // Subtle text shadow / glow
-      ctx.shadowColor = 'rgba(201,168,76,0.4)';
-      ctx.shadowBlur  = 12;
-      ctx.fillText('RS', cx, cy - 8);
-      ctx.shadowBlur = 0;
-
-      // 2026 text — spaced letters
-      ctx.font = '600 13px "Georgia", serif';
-      ctx.fillStyle = 'rgba(201,168,76,0.75)';
-      ctx.letterSpacing = '4px';
-      ctx.fillText('2 0 2 6', cx, cy + 26);
-
-      // Advance rotation
-      angle += 0.010; // faster per frame since we run at 20fps
-    }
-
-    var _lastLogoFrame = 0;
-    function loop(ts) {
-      // Run at ~20fps instead of 60fps — saves 2/3 of CPU
-      if (ts - _lastLogoFrame >= 50) {
-        _lastLogoFrame = ts;
-        draw();
-      }
-      raf = requestAnimationFrame(loop);
-    }
-
-    // Stop when logged in
-    window._stopRSLogo = function() {
-      if (raf) cancelAnimationFrame(raf);
-      raf = null;
-    };
-
-    loop();
-  }
-
-  document.addEventListener('DOMContentLoaded', function() {
-    // Small delay to ensure canvas is in DOM
-    setTimeout(initRSLogo, 100);
-  });
-})();
 
 // ── Service Worker for offline support ──
 if ('serviceWorker' in navigator) {
