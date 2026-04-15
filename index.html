@@ -19110,6 +19110,11 @@ function _goToFxFromReminder() {
 function _closeFxReminder() {
   var el = document.getElementById('_fx_reminder');
   if (el) el.remove();
+  // Mark dismissed for today so it won't reappear
+  try {
+    var todayKey = 'pearl_fx_reminder_' + new Date().toISOString().slice(0,10);
+    _STORE.setItem(todayKey, '1');
+  } catch(e) {}
 }
 
 function _goToFxSettings() {
@@ -19172,9 +19177,19 @@ function openFxConverter(qarAmount) {
 
 // ── Rate update reminder (runs on login) ──────────────────────
 function checkFxRateReminder() {
+  // Delay check to allow Firebase async load to complete
+  setTimeout(function() { _doCheckFxRateReminder(); }, 2000);
+}
+
+function _doCheckFxRateReminder() {
   if (!_FX_REMINDER_DAYS || _FX_REMINDER_DAYS <= 0) return;
+
+  // Don't show more than once per day — check this FIRST
+  var todayKey = 'pearl_fx_reminder_' + new Date().toISOString().slice(0,10);
+  if (_STORE.getItem(todayKey)) return;
+
   if (!_FX_LAST_UPDATED) {
-    // Never updated — show first-time nudge after 3 days
+    // Never updated — show first-time nudge after 3 days of use
     var installKey = 'pearl_fx_install_date';
     var installed  = _STORE.getItem(installKey);
     if (!installed) { try { _STORE.setItem(installKey, new Date().toISOString()); } catch(e) {} return; }
@@ -19185,9 +19200,6 @@ function checkFxRateReminder() {
     if (daysSince2 < _FX_REMINDER_DAYS) return;
   }
 
-  // Don't show more than once per day
-  var todayKey = 'pearl_fx_reminder_' + new Date().toISOString().slice(0,10);
-  if (_STORE.getItem(todayKey)) return;
   try { _STORE.setItem(todayKey, '1'); } catch(e) {}
 
   // Show toast with action button
