@@ -15799,6 +15799,34 @@ function onPlanChange() {
   recalcPlan();
 }
 
+// Reality check — validates plan values and shows warnings
+function runRealityCheck() {
+  var wrap = document.getElementById('plan-reality-check');
+  if (!wrap) return;
+  var warnings = [];
+
+  // Check if any month has unrealistically high growth
+  var rows = document.querySelectorAll('[id^="plan-row-"]');
+  rows.forEach(function(row) {
+    var growthEl = row.querySelector('[id^="plan-growth-"]');
+    if (growthEl) {
+      var g = parseFloat(growthEl.value) || 0;
+      if (g > 50) warnings.push('Growth rate ' + g + '% seems very high for one month');
+      if (g < -50) warnings.push('Decline ' + g + '% seems very steep for one month');
+    }
+  });
+
+  if (warnings.length > 0) {
+    wrap.innerHTML = '<div style="background:#fef3c7;border:1.5px solid #f59e0b;border-radius:8px;padding:10px 14px;font-size:12px;color:#92400e;font-weight:600">' +
+      '⚠️ ' + warnings.join('<br>⚠️ ') + '</div>';
+    wrap.style.display = 'block';
+  } else {
+    wrap.style.display = 'none';
+    wrap.innerHTML = '';
+  }
+}
+
+
 function recalcPlan() {
   if (!_planData.months || _planData.months.length === 0) return;
   var baseY = _planData.baseYear;
