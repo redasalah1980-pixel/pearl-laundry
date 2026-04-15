@@ -2366,6 +2366,7 @@ var _fbDB = null;
           <option value="month">📅 This Month</option>
           <option value="next">📆 Next Month</option>
           <option value="year">📊 Full Year</option>
+          <option value="budget">💰 Annual Budget</option>
           <option value="plan">📋 Plan Next Year</option>
           <option value="whatif">🎮 What-If Simulation</option>
         </select>
@@ -13455,6 +13456,41 @@ function renderGuide() {
     ],
 
 
+    // ── 59. ANNUAL BUDGET MANAGER ────────────────────────────────
+    ['💰 Annual Budget Manager',
+     'The Annual Budget Manager lets you set your full-year revenue budget in one place — month by month. ' +
+     'Budgets automatically become the monthly revenue targets on the Dashboard.' +
+     '<br><br><strong>How to access:</strong>' +
+     step([
+       'Go to <strong>🔮 Forecast</strong> tab',
+       'Change View to <strong>💰 Annual Budget</strong>',
+       'Select the year'
+     ]) +
+     '<br><strong>What you see:</strong>' +
+     ul([
+       'A table of all 12 months with budget input, actual revenue, progress bar and status',
+       'Total year budget vs actual at the bottom',
+       'Year progress percentage'
+     ]) +
+     '<br><strong>Setting budgets:</strong>' +
+     step([
+       'Type the budget for each month directly in the input fields',
+       'Press Enter on any row to save that month instantly',
+       'Or fill all months first then click <strong>💾 Save All Targets</strong>'
+     ]) +
+     '<br><strong>Quick Fill tools:</strong>' +
+     ul([
+       '<strong>⚖️ Fill Evenly</strong> — enter an annual total (e.g. 900,000) and it divides equally across all 12 months',
+       '<strong>📈 Apply Growth</strong> — enter a % and it applies growth to existing values, or distributes an annual total with seasonal weights',
+       '<strong>Growth %</strong> field — set the growth rate (default 5%)'
+     ]) +
+     '<br><strong>Auto-sync to Dashboard:</strong><br>' +
+     'When you save budgets here, they immediately become the monthly revenue targets on the Dashboard. ' +
+     'The target bar, remaining amount, and daily pace all update automatically.' +
+     tip('Set your full-year budget at the start of each year. You can always come back and adjust individual months as the year progresses.')
+    ],
+
+
   ];
 
   var style = '<style>' +
@@ -15067,7 +15103,7 @@ function renderForecast() {
 
   // Show/hide month selector
   var mWrap = document.getElementById('fc-month-wrap');
-  if (mWrap) mWrap.style.display = (view === 'year') ? 'none' : 'flex';
+  if (mWrap) mWrap.style.display = (view === 'year' || view === 'budget') ? 'none' : 'flex';
 
   var y   = parseInt(yrEl?.value || CY);
   var m   = parseInt(mEl?.value || new Date().getMonth()+1);
@@ -15079,6 +15115,7 @@ function renderForecast() {
     var nextY = m === 12 ? y + 1 : y;
     wrap.innerHTML = renderNextMonthForecast(y, m, nextM, nextY, prevY);
   }
+  else if (view === 'budget') { renderAnnualBudget(y); return; }
   else if (view === 'plan')  renderPlanNextYear(y);
   else if (view === 'whatif') renderWhatIf(y, m);
   else wrap.innerHTML = renderYearForecast(y, prevY);
@@ -15427,6 +15464,281 @@ function renderNextMonthForecast(y, m, nextM, nextY, prevY) {
 }
 
 // ── Section 3: Full Year Forecast ──
+// ════════════════════════════════════════════════════════════════
+//  ANNUAL BUDGET MANAGER
+//  Set full-year budget month by month
+//  Auto-syncs to monthly revenue targets everywhere
+// ════════════════════════════════════════════════════════════════
+
+function renderAnnualBudget(y) {
+  var wrap = document.getElementById('forecast-wrap');
+  if (!wrap) return;
+
+  var totalBudget = 0, totalActual = 0;
+  var months = [];
+  for (var m = 1; m <= 12; m++) {
+    var tgt    = loadTarget(y, m);
+    var budget = tgt ? (tgt.revenue || 0) : 0;
+    var actual = monthTotals(y, m).qr;
+    totalBudget += budget;
+    totalActual += actual;
+    months.push({ m: m, budget: budget, actual: actual });
+  }
+
+  var today  = new Date();
+  var curM   = today.getMonth() + 1;
+  var curY   = today.getFullYear();
+
+  wrap.innerHTML = '';
+
+  // ── Header card ──
+  var hdr = document.createElement('div');
+  hdr.style.cssText = 'background:linear-gradient(135deg,#0d1b2e,#1e3a5f);border-radius:14px;padding:20px 24px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px';
+  var yearPct = totalBudget > 0 ? (totalActual / totalBudget * 100).toFixed(1) : '0.0';
+  hdr.innerHTML =
+    '<div>' +
+      '<div style="font-size:18px;font-weight:900;color:#c9a84c;margin-bottom:4px">💰 Annual Budget — ' + y + '</div>' +
+      '<div style="font-size:12px;color:rgba(255,255,255,.6)">Set monthly targets · auto-syncs to dashboard and reports</div>' +
+    '</div>' +
+    '<div style="display:flex;gap:20px;flex-wrap:wrap">' +
+      '<div style="text-align:right">' +
+        '<div style="font-size:22px;font-weight:900;color:#fff">' + fmtMoney(totalBudget) + '</div>' +
+        '<div style="font-size:10px;color:rgba(255,255,255,.5);letter-spacing:1px">TOTAL BUDGET</div>' +
+      '</div>' +
+      '<div style="text-align:right">' +
+        '<div style="font-size:22px;font-weight:900;color:#c9a84c">' + fmtMoney(totalActual) + '</div>' +
+        '<div style="font-size:10px;color:rgba(255,255,255,.5);letter-spacing:1px">ACTUAL SO FAR</div>' +
+      '</div>' +
+      '<div style="text-align:right">' +
+        '<div style="font-size:22px;font-weight:900;color:' + (parseFloat(yearPct)>=100?'#4ade80':'#fbbf24') + '">' + yearPct + '%</div>' +
+        '<div style="font-size:10px;color:rgba(255,255,255,.5);letter-spacing:1px">YEAR PROGRESS</div>' +
+      '</div>' +
+    '</div>';
+  wrap.appendChild(hdr);
+
+  // ── Quick fill tools ──
+  var tools = document.createElement('div');
+  tools.style.cssText = 'background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap';
+  tools.innerHTML =
+    '<div style="font-size:11px;font-weight:800;color:#64748b;letter-spacing:.8px;flex-shrink:0">QUICK FILL</div>' +
+    '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">' +
+      '<input type="number" id="budget-annual-total" placeholder="Annual total (e.g. 900000)" min="0" step="1000"' +
+        ' style="padding:7px 12px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#0d1b2e;width:200px;outline:none">' +
+      '<button onclick="budgetFillEvenly()" style="padding:7px 14px;background:#eff6ff;border:1.5px solid #bfdbfe;color:#1d4ed8;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer">⚖️ Fill Evenly</button>' +
+      '<button onclick="budgetApplyGrowth()" style="padding:7px 14px;background:#f0fdf4;border:1.5px solid #86efac;color:#16a34a;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer">📈 Apply Growth</button>' +
+      '<input type="number" id="budget-growth-rate" placeholder="Growth %" step="0.5" value="5"' +
+        ' style="padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;color:#0d1b2e;width:90px;outline:none">' +
+    '</div>' +
+    '<button onclick="budgetSaveAll(' + y + ')" style="margin-left:auto;padding:9px 20px;background:linear-gradient(135deg,#0d1b2e,#1e3a5f);color:#c9a84c;border:none;border-radius:8px;font-size:13px;font-weight:800;cursor:pointer;flex-shrink:0">💾 Save All Targets</button>';
+  wrap.appendChild(tools);
+
+  // ── Month table ──
+  var card = document.createElement('div');
+  card.style.cssText = 'background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;overflow:hidden';
+
+  // Table header
+  var thead = document.createElement('div');
+  thead.style.cssText = 'display:grid;grid-template-columns:120px 1fr 1fr 1fr 100px;padding:10px 16px;background:#f8fafc;border-bottom:1.5px solid #e2e8f0;gap:0';
+  thead.innerHTML =
+    '<div style="font-size:10px;font-weight:800;color:#64748b;letter-spacing:.8px">MONTH</div>' +
+    '<div style="font-size:10px;font-weight:800;color:#1d4ed8;letter-spacing:.8px;text-align:right">BUDGET (QR)</div>' +
+    '<div style="font-size:10px;font-weight:800;color:#64748b;letter-spacing:.8px;text-align:right">ACTUAL (QR)</div>' +
+    '<div style="font-size:10px;font-weight:800;color:#64748b;letter-spacing:.8px;text-align:center">PROGRESS</div>' +
+    '<div style="font-size:10px;font-weight:800;color:#64748b;letter-spacing:.8px;text-align:right">STATUS</div>';
+  card.appendChild(thead);
+
+  // Month rows
+  months.forEach(function(mo) {
+    var isPast    = (y < curY) || (y === curY && mo.m < curM);
+    var isCurrent = (y === curY && mo.m === curM);
+    var isFuture  = (y > curY) || (y === curY && mo.m > curM);
+    var pct       = mo.budget > 0 ? Math.min(100, mo.actual / mo.budget * 100) : 0;
+    var barCol    = pct >= 100 ? '#16a34a' : pct >= 75 ? '#d97706' : pct > 0 ? '#dc2626' : '#e2e8f0';
+    var rowBg     = isCurrent ? '#fffbeb' : (mo.m % 2 === 0 ? '#f8fafc' : '#fff');
+
+    var row = document.createElement('div');
+    row.style.cssText = 'display:grid;grid-template-columns:120px 1fr 1fr 1fr 100px;padding:10px 16px;border-bottom:1px solid #f1f5f9;align-items:center;gap:0;background:' + rowBg;
+
+    // Month name
+    var mnDiv = document.createElement('div');
+    mnDiv.style.cssText = 'font-size:13px;font-weight:' + (isCurrent?'800':'600') + ';color:#0d1b2e;display:flex;align-items:center;gap:6px';
+    mnDiv.innerHTML = MONTH_NAMES[mo.m-1] + (isCurrent?' <span style="font-size:9px;background:#c9a84c;color:#0d1b2e;padding:1px 6px;border-radius:8px;font-weight:700">NOW</span>':'');
+    row.appendChild(mnDiv);
+
+    // Budget input
+    var budDiv = document.createElement('div');
+    budDiv.style.cssText = 'text-align:right';
+    var inp = document.createElement('input');
+    inp.type = 'number';
+    inp.id   = 'budget-inp-' + mo.m;
+    inp.min  = '0';
+    inp.step = '1000';
+    inp.value = mo.budget > 0 ? mo.budget : '';
+    inp.placeholder = '0';
+    inp.style.cssText = 'width:130px;padding:6px 10px;border:1.5px solid ' + (mo.budget>0?'#c9a84c':'#e2e8f0') + ';border-radius:7px;font-size:14px;font-weight:700;color:#0d1b2e;text-align:right;outline:none;background:' + (mo.budget>0?'#fffbeb':'#fff');
+    inp.onfocus = function(){ this.style.borderColor='#c9a84c'; this.style.background='#fffbeb'; };
+    inp.onblur  = function(){ if(!this.value){ this.style.borderColor='#e2e8f0'; this.style.background='#fff'; } };
+    inp.onkeydown = (function(m_){ return function(e){ if(e.key==='Enter'){ budgetSaveMonth(' + y + ',m_); this.blur(); } }; })(mo.m);
+    budDiv.appendChild(inp);
+    row.appendChild(budDiv);
+
+    // Actual
+    var actDiv = document.createElement('div');
+    actDiv.style.cssText = 'text-align:right;font-size:13px;font-weight:' + (mo.actual>0?'700':'400') + ';color:' + (mo.actual>0?'#0d1b2e':'#94a3b8');
+    actDiv.textContent = mo.actual > 0 ? fmtMoney(mo.actual) : (isFuture ? '—' : '0.00');
+    row.appendChild(actDiv);
+
+    // Progress bar
+    var progDiv = document.createElement('div');
+    progDiv.style.cssText = 'padding:0 12px';
+    if (mo.budget > 0) {
+      var barWrap = document.createElement('div');
+      barWrap.style.cssText = 'background:#f1f5f9;border-radius:10px;height:8px;overflow:hidden;margin-bottom:3px';
+      var fill = document.createElement('div');
+      fill.style.cssText = 'background:' + barCol + ';height:100%;width:' + pct.toFixed(1) + '%;border-radius:10px;transition:width .4s';
+      barWrap.appendChild(fill);
+      var pctLbl = document.createElement('div');
+      pctLbl.style.cssText = 'font-size:10px;color:#64748b;text-align:center';
+      pctLbl.textContent = mo.actual > 0 ? pct.toFixed(1) + '%' : (isFuture ? '—' : '0%');
+      progDiv.appendChild(barWrap);
+      progDiv.appendChild(pctLbl);
+    } else {
+      progDiv.innerHTML = '<div style="font-size:10px;color:#94a3b8;text-align:center">No budget</div>';
+    }
+    row.appendChild(progDiv);
+
+    // Status badge
+    var statDiv = document.createElement('div');
+    statDiv.style.cssText = 'text-align:right';
+    var badge = '';
+    if (!mo.budget) {
+      badge = '<span style="font-size:10px;color:#94a3b8">Not set</span>';
+    } else if (isFuture) {
+      badge = '<span style="font-size:10px;font-weight:700;color:#64748b">Upcoming</span>';
+    } else if (isCurrent) {
+      badge = '<span style="font-size:10px;font-weight:700;color:#d97706">🔄 In progress</span>';
+    } else if (pct >= 100) {
+      badge = '<span style="font-size:10px;font-weight:700;color:#16a34a">✅ ' + pct.toFixed(1) + '%</span>';
+    } else {
+      badge = '<span style="font-size:10px;font-weight:700;color:#dc2626">⚠️ ' + pct.toFixed(1) + '%</span>';
+    }
+    statDiv.innerHTML = badge;
+    row.appendChild(statDiv);
+
+    card.appendChild(row);
+  });
+
+  // Total row
+  var totalRow = document.createElement('div');
+  totalRow.style.cssText = 'display:grid;grid-template-columns:120px 1fr 1fr 1fr 100px;padding:12px 16px;background:#0d1b2e;gap:0;align-items:center';
+  var yearActPct = totalBudget > 0 ? (totalActual/totalBudget*100).toFixed(1) : '—';
+  totalRow.innerHTML =
+    '<div style="font-size:13px;font-weight:800;color:#c9a84c">FULL YEAR</div>' +
+    '<div style="text-align:right;font-size:15px;font-weight:900;color:#c9a84c">' + fmtMoney(totalBudget) + '</div>' +
+    '<div style="text-align:right;font-size:15px;font-weight:900;color:#fff">' + fmtMoney(totalActual) + '</div>' +
+    '<div style="padding:0 12px;font-size:13px;font-weight:800;color:' + (parseFloat(yearActPct)>=100?'#4ade80':'#fbbf24') + ';text-align:center">' + yearActPct + (yearActPct!=='—'?'%':'') + '</div>' +
+    '<div style="text-align:right;font-size:11px;color:rgba(255,255,255,.6)">' + (totalBudget>0?'Budget set':'—') + '</div>';
+  card.appendChild(totalRow);
+
+  wrap.appendChild(card);
+
+  // Help note
+  var note = document.createElement('div');
+  note.style.cssText = 'margin-top:12px;padding:10px 16px;background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:9px;font-size:12px;color:#1d4ed8;font-weight:600';
+  note.innerHTML = '💡 <strong>Tip:</strong> Budgets set here automatically become the monthly revenue targets on the Dashboard. No need to set them separately. Changes save to Firebase and sync to all devices.';
+  wrap.appendChild(note);
+}
+
+// ── Save all 12 months at once ──
+function budgetSaveAll(y) {
+  var saved = 0;
+  for (var m = 1; m <= 12; m++) {
+    var inp = document.getElementById('budget-inp-' + m);
+    if (!inp) continue;
+    var val = parseFloat(inp.value) || 0;
+    if (val > 0) {
+      saveTarget(y, m, { revenue: val });
+      saved++;
+    }
+  }
+  // Refresh dashboard target if on dashboard
+  invalidateTabCache('dashboard');
+  if (curTab === 'dashboard' && typeof renderTargetBar === 'function') {
+    var dashM = parseInt(document.getElementById('dash-month')?.value || new Date().getMonth()+1);
+    renderTargetBar(monthTotals(CY, dashM).qr, dashM);
+  }
+  renderAnnualBudget(y);
+  toast('✅ ' + saved + ' monthly targets saved — dashboard updated', 'ok');
+}
+
+// ── Save single month ──
+function budgetSaveMonth(y, m) {
+  var inp = document.getElementById('budget-inp-' + m);
+  if (!inp) return;
+  var val = parseFloat(inp.value) || 0;
+  if (val > 0) {
+    saveTarget(y, m, { revenue: val });
+    toast('✅ ' + MONTH_NAMES[m-1] + ' target saved: ' + fmtMoney(val), 'ok');
+    invalidateTabCache('dashboard');
+  }
+}
+
+// ── Fill evenly: divide annual total across 12 months ──
+function budgetFillEvenly() {
+  var totalInp = document.getElementById('budget-annual-total');
+  var total = parseFloat(totalInp?.value) || 0;
+  if (total <= 0) { toast('⚠️ Enter an annual total first', 'err'); return; }
+  var monthly = Math.round(total / 12);
+  for (var m = 1; m <= 12; m++) {
+    var inp = document.getElementById('budget-inp-' + m);
+    if (inp) {
+      inp.value = monthly;
+      inp.style.borderColor = '#c9a84c';
+      inp.style.background  = '#fffbeb';
+    }
+  }
+  toast('✅ ' + fmtMoney(monthly) + '/month filled — click 💾 Save All to confirm', 'ok');
+}
+
+// ── Apply growth rate from a base month or evenly ──
+function budgetApplyGrowth() {
+  var growthInp = document.getElementById('budget-growth-rate');
+  var growth = parseFloat(growthInp?.value) || 5;
+  var totalInp = document.getElementById('budget-annual-total');
+  var base = parseFloat(totalInp?.value) || 0;
+
+  if (base <= 0) {
+    // No total entered — apply growth to existing budget values
+    var found = false;
+    for (var m = 1; m <= 12; m++) {
+      var inp = document.getElementById('budget-inp-' + m);
+      if (inp && parseFloat(inp.value) > 0) {
+        var newVal = Math.round(parseFloat(inp.value) * (1 + growth/100));
+        inp.value = newVal;
+        inp.style.borderColor = '#16a34a';
+        inp.style.background  = '#f0fdf4';
+        found = true;
+      }
+    }
+    if (!found) { toast('⚠️ Enter an annual total or existing budget values first', 'err'); return; }
+    toast('✅ ' + growth + '% growth applied to existing values — click 💾 Save All to confirm', 'ok');
+  } else {
+    // Use annual total as base, distribute with seasonal weights
+    var weights = [0.078, 0.072, 0.085, 0.082, 0.083, 0.082, 0.088, 0.090, 0.086, 0.085, 0.078, 0.081];
+    for (var m2 = 1; m2 <= 12; m2++) {
+      var monthBudget = Math.round(base * weights[m2-1]);
+      var inp2 = document.getElementById('budget-inp-' + m2);
+      if (inp2) {
+        inp2.value = monthBudget;
+        inp2.style.borderColor = '#16a34a';
+        inp2.style.background  = '#f0fdf4';
+      }
+    }
+    toast('✅ ' + fmtMoney(base) + ' distributed with seasonal weights — click 💾 Save All to confirm', 'ok');
+  }
+}
+
+
 function renderYearForecast(y, prevY) {
   var html = '';
 
