@@ -4195,6 +4195,7 @@ function attachFbListener(y) {
         if (mergedStr !== localStr) {
           _DB[y] = merged;
           try { _STORE.setItem(lsKey(y), mergedStr); } catch(e) {}
+          invalidateMonthTotalsCache(); // data changed — clear calc cache
           if (isMobile()) {
             try { mobRenderDash(); } catch(e) {}
             try { mobRenderEntry(); } catch(e) {}
@@ -6099,7 +6100,10 @@ var _TAB_CACHE_MS  = 30000; // 30 seconds — re-render if stale
 function refreshTab() {
   var now   = Date.now();
   var last  = _tabRenderTime[curTab] || 0;
-  var stale = (now - last) > _TAB_CACHE_MS;
+  // Per-tab cache times: heavy calculation tabs get longer cache
+  var heavyTabs = { 'forecast':180000, 'analytics':120000, 'report':120000, 'benchmark':90000 };
+  var cacheMs   = heavyTabs[curTab] || _TAB_CACHE_MS;
+  var stale     = (now - last) > cacheMs;
   var alwaysRender = ['entry','backup','dashboard'];
   if (alwaysRender.indexOf(curTab) === -1 && !stale) return;
   _tabRenderTime[curTab] = now;
@@ -16148,6 +16152,33 @@ function renderYearForecast(y, prevY) {
       '<div style="font-size:11px;opacity:.75;margin-top:4px">' +
         (projVsBudget > 0 ? 'Projection at ' + projVsBudget.toFixed(1) + '% of budget' : 'Budget set') +
       '</div>' +
+    '</div>';
+  }
+
+  // Card 4: Daily pace needed to hit budget
+  if (totalBudget > 0) {
+    var today3     = new Date();
+    var daysLeft   = Math.max(0, Math.ceil((new Date(today3.getFullYear(), 11, 31) - today3) / 86400000));
+    var remaining  = Math.max(0, totalBudget - totalActual);
+    var paceNeeded = daysLeft > 0 ? remaining / daysLeft : 0;
+    var paceCol    = paceNeeded < 3000 ? '135deg,#15803d,#16a34a' : paceNeeded < 5000 ? '135deg,#b45309,#d97706' : '135deg,#991b1b,#dc2626';
+    html += '<div style="background:linear-gradient(' + paceCol + ');border-radius:14px;padding:18px;color:#fff">' +
+      '<div style="font-size:10px;font-weight:800;opacity:.7;margin-bottom:6px;letter-spacing:.8px">DAILY PACE NEEDED</div>' +
+      '<div style="font-size:24px;font-weight:900">' + fmtMoney(paceNeeded) + '</div>' +
+      '<div style="font-size:11px;opacity:.75;margin-top:4px">' + daysLeft + ' days left · QAR ' + Math.round(remaining).toLocaleString() + ' to budget</div>' +
+    '</div>';
+  }
+
+  // Card 5: Gap to budget
+  if (totalBudget > 0) {
+    var gap     = totalForecast - totalBudget;
+    var gapPct  = (gap / totalBudget * 100);
+    var gapCol  = gap >= 0 ? '135deg,#15803d,#16a34a' : '135deg,#991b1b,#dc2626';
+    var gapSign = gap >= 0 ? '+' : '';
+    html += '<div style="background:linear-gradient(' + gapCol + ');border-radius:14px;padding:18px;color:#fff">' +
+      '<div style="font-size:10px;font-weight:800;opacity:.7;margin-bottom:6px;letter-spacing:.8px">FORECAST VS BUDGET</div>' +
+      '<div style="font-size:24px;font-weight:900">' + gapSign + fmtMoney(gap) + '</div>' +
+      '<div style="font-size:11px;opacity:.75;margin-top:4px">' + gapSign + gapPct.toFixed(1) + '% vs full year budget</div>' +
     '</div>';
   }
 
