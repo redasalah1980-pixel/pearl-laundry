@@ -19819,8 +19819,8 @@ function renderFxConvert() {
 function _goToFxFromReminder() {
   var el = document.getElementById('_fx_reminder');
   if (el) el.remove();
-  showTab('settings');
-  setTimeout(function(){ switchStab('currency'); }, 200);
+  openSettings();
+  setTimeout(function(){ switchStab('currency'); }, 300);
 }
 
 function _closeFxReminder() {
@@ -19835,8 +19835,8 @@ function _closeFxReminder() {
 
 function _goToFxSettings() {
   _closeFxModal();
-  showTab('settings');
-  setTimeout(function(){ switchStab('currency'); }, 200);
+  openSettings();
+  setTimeout(function(){ switchStab('currency'); }, 300);
 }
 
 function _closeFxModal() {
