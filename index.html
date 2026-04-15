@@ -5768,8 +5768,17 @@ function _bootApp(user) {
     var _m = parseInt(document.getElementById('dash-month')?.value || new Date().getMonth()+1);
     if (typeof renderDashOccQuick === 'function') renderDashOccQuick(_m);
   }, 300);
-  // Sync targets for all 12 months from Firebase on login
-  for (var _tm = 1; _tm <= 12; _tm++) { loadTargetFB(CY, _tm); }
+  // Sync targets staggered — don't fire 12 Firebase calls simultaneously
+  (function() {
+    var _tm = 1;
+    function loadNextTarget() {
+      if (_tm > 12) return;
+      loadTargetFB(CY, _tm);
+      _tm++;
+      setTimeout(loadNextTarget, 120); // 120ms apart = spread over ~1.4s
+    }
+    setTimeout(loadNextTarget, 1500); // start after 1.5s delay
+  })();
   // Now show error badge if any errors were caught during boot
   setTimeout(_updateErrBadge, 500);
   // Missing dept morning check (runs 4s after login so data is loaded)
@@ -5845,7 +5854,7 @@ function changeYear(y) {
     var py = cm === 1 ? CY - 1 : CY;
     // Pre-load and verify prices from Firebase (prevents old prices showing)
     if (typeof preloadCurrentMonthPrices === 'function') {
-      setTimeout(preloadCurrentMonthPrices, 300);
+      setTimeout(preloadCurrentMonthPrices, 4000); // delay so UI loads first
     }
   })();
   buildSelectors();
@@ -20450,8 +20459,12 @@ function deleteDept(dept) {
       ctx.fillRect(0, 0, W, H);
     }
 
-    function draw() {
+    var _lastStarFrame = 0;
+    function draw(ts) {
       if (!running) return;
+      // Run at 30fps — good enough for stars, saves 50% CPU
+      if (ts && ts - _lastStarFrame < 33) { raf = requestAnimationFrame(draw); return; }
+      _lastStarFrame = ts || 0;
       t++;
       ctx.clearRect(0, 0, W, H);
       drawBG();
@@ -21510,11 +21523,16 @@ function deptHasData(y, m, dept, day) {
       ctx.fillText('2 0 2 6', cx, cy + 26);
 
       // Advance rotation
-      angle += 0.006;
+      angle += 0.010; // faster per frame since we run at 20fps
     }
 
-    function loop() {
-      draw();
+    var _lastLogoFrame = 0;
+    function loop(ts) {
+      // Run at ~20fps instead of 60fps — saves 2/3 of CPU
+      if (ts - _lastLogoFrame >= 50) {
+        _lastLogoFrame = ts;
+        draw();
+      }
       raf = requestAnimationFrame(loop);
     }
 
