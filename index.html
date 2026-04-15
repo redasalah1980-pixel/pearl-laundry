@@ -4135,6 +4135,14 @@ function getKgForCalc(d, i, y, m, day) {
 }
 
 // FIX: setVal writes to cache and marks dirty, saveDay() commits to localStorage
+// Cache for monthTotals — cleared when data changes
+var _monthTotalsCache = {};
+
+function invalidateMonthTotalsCache(y, m) {
+  if (y && m) delete _monthTotalsCache[y + '_' + m];
+  else _monthTotalsCache = {};
+}
+
 function setVal(y, m, d, i, day, v) {
   const db = loadDB(y);
   const key = m + '-' + d + '-' + i + '-' + day;
@@ -4947,14 +4955,6 @@ function dayTotals(y, m, day) {
 }
 
 // FIX: monthTotals — single pass through cache, correct revenue calc
-// Cache for monthTotals — cleared when data changes
-var _monthTotalsCache = {};
-
-function invalidateMonthTotalsCache(y, m) {
-  if (y && m) delete _monthTotalsCache[y + '_' + m];
-  else _monthTotalsCache = {};
-}
-
 function monthTotals(y, m) {
   var cacheKey = y + '_' + m;
   if (_monthTotalsCache[cacheKey]) return _monthTotalsCache[cacheKey];
@@ -6644,6 +6644,9 @@ function invalidatePriceCache(y, m) {
 }
 
 // Boot: pre-load prices for current month into verified cache
+// Storage key for imported P&L monthly totals
+function plKey(y, m) { return 'pearl_pl_' + y + '_' + m; }
+
 // Load imported P&L monthly totals from Firebase on boot
 function loadPLImportFromFB(y) {
   if (!window._fbLoadKey) return;
@@ -14864,9 +14867,6 @@ function applyFMI() {
 // ══════════════════════════════════════════════════════════════
 
 // Get full month revenue — uses locked prices
-// Storage key for imported P&L monthly totals
-function plKey(y, m) { return 'pearl_pl_' + y + '_' + m; }
-
 function getMonthRevenue(y, m) {
   // Check for directly imported P&L data first (100% accurate)
   try {
