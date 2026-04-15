@@ -15761,27 +15761,88 @@ function renderYearForecast(y, prevY) {
     var isPast = (y < today2.getFullYear()) || (y === today2.getFullYear() && m2 < today2.getMonth()+1);
     var isCurrent = (y === today2.getFullYear() && m2 === today2.getMonth()+1);
     var avgD = activeDays2 > 0 ? actual / activeDays2 : 0;
-    var fc = isPast ? actual : (isCurrent ? (avgD * nd2) : (lastY > 0 ? lastY * (actual > 0 ? actual/lastY : 1) : 0));
+
+    // IMPROVED FORECAST LOGIC:
+    // Past months: use actual revenue
+    // Current month: project from daily pace × remaining days
+    // Future months: use YoY if available, else use current year avg daily pace × days
+    var fc;
+    if (isPast) {
+      fc = actual;
+    } else if (isCurrent) {
+      fc = avgD > 0 ? avgD * nd2 : 0;
+    } else {
+      // Future month — prefer YoY, fallback to current pace
+      if (lastY > 0) {
+        // Apply YoY growth from months we have data for
+        var yoyGrowthFactor = (totalActual > 0 && monthsWithData > 0) ? 1.0 : 1.0;
+        // Calculate avg growth from completed months
+        var completedPairs = 0, growthSum = 0;
+        for (var gi = 1; gi < m2; gi++) {
+          var gAct = getMonthRevenue(y, gi);
+          var gLy  = getMonthRevenue(prevY, gi);
+          if (gAct > 0 && gLy > 0) { growthSum += gAct/gLy; completedPairs++; }
+        }
+        yoyGrowthFactor = completedPairs > 0 ? growthSum/completedPairs : 1.0;
+        fc = lastY * yoyGrowthFactor;
+      } else {
+        // No last year data — use current year daily avg × days in month
+        var overallAvgDay = monthsWithData > 0 ? totalActual / (monthsWithData * 30) : 0;
+        fc = overallAvgDay * nd2;
+      }
+    }
+
     var tgtM = loadTarget(y, m2);
     var tgtV = tgtM && tgtM.revenue ? tgtM.revenue : 0;
     totalActual += actual;
     totalForecast += fc;
     if (actual > 0) monthsWithData++;
-    monthData.push({ m: m2, actual: actual, fc: fc, lastY: lastY, tgt: tgtV, isPast: isPast, isCurrent: isCurrent });
+    monthData.push({ m: m2, actual: actual, fc: fc, lastY: lastY, tgt: tgtV, isPast: isPast, isCurrent: isCurrent, avgD: avgD, nd: nd2 });
   }
 
-  html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-bottom:20px">';
+  // Budget total from targets
+  var totalBudget = 0;
+  for (var bi = 1; bi <= 12; bi++) {
+    var bt = loadTarget(y, bi);
+    totalBudget += (bt && bt.revenue) ? bt.revenue : 0;
+  }
+
+  // Summary cards — 4 clear metrics
+  var paceBasedFull = monthsWithData > 0 ? (totalActual / monthsWithData) * 12 : 0;
+  var projVsBudget  = totalBudget > 0 ? (totalForecast / totalBudget * 100) : 0;
+  html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:20px">';
+
+  // Card 1: Actual YTD
   html += '<div style="background:linear-gradient(135deg,#0369a1,#0284c7);border-radius:14px;padding:18px;color:#fff">' +
-    '<div style="font-size:10px;font-weight:800;opacity:.7;margin-bottom:6px">ACTUAL YTD</div>' +
-    '<div style="font-size:22px;font-weight:900">' + fmtMoney(totalActual) + '</div>' +
+    '<div style="font-size:10px;font-weight:800;opacity:.7;margin-bottom:6px;letter-spacing:.8px">ACTUAL YTD</div>' +
+    '<div style="font-size:24px;font-weight:900">' + fmtMoney(totalActual) + '</div>' +
     '<div style="font-size:11px;opacity:.65;margin-top:4px">' + monthsWithData + ' months of data</div>' +
   '</div>';
-  html += '<div style="background:linear-gradient(135deg,#6d28d9,#7c3aed);border-radius:14px;padding:18px;color:#fff">' +
-    '<div style="font-size:10px;font-weight:800;opacity:.7;margin-bottom:6px">PROJECTED FULL YEAR</div>' +
-    '<div style="font-size:22px;font-weight:900">' + fmtMoney(totalForecast) + '</div>' +
-    '<div style="font-size:11px;opacity:.65;margin-top:4px">Based on pace + history</div>' +
+
+  // Card 2: Projected Full Year
+  var projCol = projVsBudget >= 100 ? '135deg,#15803d,#16a34a' : projVsBudget >= 80 ? '135deg,#b45309,#d97706' : '135deg,#991b1b,#dc2626';
+  html += '<div style="background:linear-gradient(' + projCol + ');border-radius:14px;padding:18px;color:#fff">' +
+    '<div style="font-size:10px;font-weight:800;opacity:.7;margin-bottom:6px;letter-spacing:.8px">PROJECTED FULL YEAR</div>' +
+    '<div style="font-size:24px;font-weight:900">' + fmtMoney(totalForecast) + '</div>' +
+    '<div style="font-size:11px;opacity:.75;margin-top:4px">Actual + forecast for remaining months</div>' +
   '</div>';
 
+  // Card 3: Full Year Budget (if set)
+  if (totalBudget > 0) {
+    var bdgCol = projVsBudget >= 100 ? '135deg,#15803d,#16a34a' : '135deg,#6d28d9,#7c3aed';
+    html += '<div style="background:linear-gradient(' + bdgCol + ');border-radius:14px;padding:18px;color:#fff">' +
+      '<div style="font-size:10px;font-weight:800;opacity:.7;margin-bottom:6px;letter-spacing:.8px">FULL YEAR BUDGET</div>' +
+      '<div style="font-size:24px;font-weight:900">' + fmtMoney(totalBudget) + '</div>' +
+      '<div style="font-size:11px;opacity:.75;margin-top:4px">' +
+        (projVsBudget > 0 ? 'Projection at ' + projVsBudget.toFixed(1) + '% of budget' : 'Budget set') +
+      '</div>' +
+    '</div>';
+  }
+
+  html += '</div>';
+
+  var lyTotal = 0;
+  for (var mi = 1; mi <= 12; mi++) lyTotal += getMonthRevenue(prevY, mi);
   var lyTotal = 0;
   for (var mi = 1; mi <= 12; mi++) lyTotal += getMonthRevenue(prevY, mi);
   if (lyTotal > 0) {
