@@ -4146,6 +4146,8 @@ function setVal(y, m, d, i, day, v) {
     db[key] = v;
   }
   _dirty = true;
+  // Invalidate monthTotals cache for this month
+  invalidateMonthTotalsCache(y, m);
 }
 
 // Lock price+kg at save time
@@ -4944,7 +4946,18 @@ function dayTotals(y, m, day) {
 }
 
 // FIX: monthTotals — single pass through cache, correct revenue calc
+// Cache for monthTotals — cleared when data changes
+var _monthTotalsCache = {};
+
+function invalidateMonthTotalsCache(y, m) {
+  if (y && m) delete _monthTotalsCache[y + '_' + m];
+  else _monthTotalsCache = {};
+}
+
 function monthTotals(y, m) {
+  var cacheKey = y + '_' + m;
+  if (_monthTotalsCache[cacheKey]) return _monthTotalsCache[cacheKey];
+
   const nd = dim(y, m);
   let qr = 0, kg = 0, pcs = 0;
   const byDept = {};
@@ -4954,7 +4967,6 @@ function monthTotals(y, m) {
       for (let day = 0; day < nd; day++) {
         const v = getVal(y, m, d, i, day);
         if (v > 0) {
-          // Use date-aware pricing so schedules are respected
           const pr = getPriceForCalc(d, i, y, m, day + 1);
           const kw = getKgForCalc(d, i, y, m, day + 1);
           dq += v * pr;
@@ -4966,7 +4978,9 @@ function monthTotals(y, m) {
     byDept[d] = { qr: dq, kg: dk, pcs: dp };
     qr += dq; kg += dk; pcs += dp;
   });
-  return { qr, kg, pcs, byDept };
+  const result = { qr, kg, pcs, byDept };
+  _monthTotalsCache[cacheKey] = result;
+  return result;
 }
 
 // ════════════════════════════════════════════════════════════════
