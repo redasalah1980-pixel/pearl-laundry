@@ -5157,10 +5157,9 @@ function clearAuditLog() {
 }
 
 function switchStab(name) {
-  ['admin','team','access','audit','currency','hotel','licence','diag'].forEach(function(t) {
+  ['admin','team','access','audit','currency','hotel','licence','diag','import'].forEach(function(t) {
     var btn = document.getElementById('stab-'+t);
     var pan = document.getElementById('spanel-'+t);
-  if (t === 'import') { setTimeout(renderImportPreview, 50); }
     if (btn) btn.classList.toggle('on', t===name);
     if (pan) pan.style.display = t===name ? '' : 'none';
   });
@@ -5172,6 +5171,7 @@ function switchStab(name) {
   if (name === 'audit') renderAuditLog();
   if (name === 'currency') openCurrencySettings();
   if (name === 'hotel') openHotelSettings();
+  if (name === 'import') { setTimeout(renderImportPreview, 50); }
   if (name === 'diag') {
     var ban = document.getElementById('diag-banner');
     var res = document.getElementById('diag-results');
