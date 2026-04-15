@@ -5961,7 +5961,8 @@ function changeYear(y) {
     var py = cm === 1 ? CY - 1 : CY;
     // Pre-load and verify prices from Firebase (prevents old prices showing)
     if (typeof preloadCurrentMonthPrices === 'function') {
-      setTimeout(preloadCurrentMonthPrices, 4000); // delay so UI loads first
+      setTimeout(preloadCurrentMonthPrices, 4000);
+  loadPLImportFromFB(2025); // load imported P&L data from Firebase // delay so UI loads first
     }
   })();
   buildSelectors();
@@ -6639,6 +6640,20 @@ function invalidatePriceCache(y, m) {
 }
 
 // Boot: pre-load prices for current month into verified cache
+// Load imported P&L monthly totals from Firebase on boot
+function loadPLImportFromFB(y) {
+  if (!window._fbLoadKey) return;
+  window._fbLoadKey('pearl/pl_import/' + y).then(function(fb) {
+    if (!fb) return;
+    for (var m = 1; m <= 12; m++) {
+      if (fb['pl_' + m]) {
+        try { _STORE.setItem(plKey(y, m), String(fb['pl_' + m])); } catch(e) {}
+      }
+    }
+    invalidateMonthTotalsCache();
+  }).catch(function(){});
+}
+
 function preloadCurrentMonthPrices() {
   var today = new Date();
   var cm = today.getMonth() + 1;
@@ -14845,7 +14860,15 @@ function applyFMI() {
 // ══════════════════════════════════════════════════════════════
 
 // Get full month revenue — uses locked prices
+// Storage key for imported P&L monthly totals
+function plKey(y, m) { return 'pearl_pl_' + y + '_' + m; }
+
 function getMonthRevenue(y, m) {
+  // Check for directly imported P&L data first (100% accurate)
+  try {
+    var pl = _STORE.getItem(plKey(y, m));
+    if (pl !== null) return parseFloat(pl);
+  } catch(e) {}
   return monthTotals(y, m).qr;
 }
 
@@ -15956,19 +15979,17 @@ function renderImportPreview() {
 function checkImportStatus() {
   var msg = document.getElementById('import-status-msg');
   if (!msg) return;
-  var db2025 = _DB[2025];
-  if (!db2025 || Object.keys(db2025).length === 0) {
-    // Try loading from localStorage
-    try {
-      var stored = JSON.parse(_STORE.getItem(lsKey(2025)) || '{}');
-      if (stored && Object.keys(stored).length > 0) {
-        msg.innerHTML = '✅ <strong style="color:#16a34a">2025 data found in system</strong> — ' + Object.keys(stored).length + ' data points. You can re-import to refresh.';
-        return;
-      }
-    } catch(e) {}
-    msg.innerHTML = '⚠️ <strong style="color:#d97706">No 2025 data in system</strong> — ready to import.';
+  // Check for P&L direct import (new method)
+  var found = 0;
+  var total = 0;
+  for (var m = 1; m <= 12; m++) {
+    var v = _STORE.getItem(plKey(2025, m));
+    if (v !== null) { found++; total += parseFloat(v); }
+  }
+  if (found > 0) {
+    msg.innerHTML = '✅ <strong style="color:#16a34a">2025 P&L data imported</strong> — ' + found + '/12 months · Total QAR ' + total.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2}) + '. You can re-import to refresh.';
   } else {
-    msg.innerHTML = '✅ <strong style="color:#16a34a">2025 data found in system</strong> — ' + Object.keys(db2025).length + ' data points. You can re-import to refresh.';
+    msg.innerHTML = '⚠️ <strong style="color:#d97706">No 2025 data in system</strong> — ready to import.';
   }
 }
 
@@ -15978,99 +15999,48 @@ function runDataImport2025() {
   var prog = document.getElementById('import-progress');
   var res  = document.getElementById('import-result');
 
-  if (!confirm('Import 2025 P&L data as historical baseline?\n\nThis will write daily estimates for all 12 months of 2025.\nMonthly totals will match official P&L figures exactly.\n\nContinue?')) return;
+  if (!confirm('Import 2025 P&L data as historical baseline?\n\nMonthly totals will match official P&L figures exactly.\n\nContinue?')) return;
 
   btn.disabled = true;
   btn.style.opacity = '0.5';
   prog.style.display = 'block';
   res.style.display  = 'none';
 
-  // Build the data
-  var db = {};
-  var DEPTS = DEPT_KEYS; // use the system's actual dept keys
-  var totalPoints = 0;
-
-  for (var m = 1; m <= 12; m++) {
-    var monthTotal  = _IMPORT_2025_PL[m];
-    var daysInMonth = dim(2025, m);
-
-    DEPTS.forEach(function(dept) {
-      // Get dept percentage — map system dept keys to our percentages
-      var pctKey = dept;
-      if (dept === 'Rooms Linen') pctKey = 'Rooms Linen';
-      var pct = _IMPORT_2025_DEPT_PCT[pctKey] || 0;
-      if (pct === 0) return;
-
-      var deptMonthTotal = monthTotal * pct;
-      var deptItems      = MASTER[dept];
-      if (!deptItems || deptItems.length === 0) return;
-
-      // Get price for this dept (use current prices as proxy for 2025)
-      var deptDailyTotal = deptMonthTotal / daysInMonth;
-
-      // Distribute across items proportionally by their price weight
-      var totalPriceWeight = 0;
-      deptItems.forEach(function(item) {
-        totalPriceWeight += (item[1] || 1);
-      });
-      if (totalPriceWeight === 0) return;
-
-      deptItems.forEach(function(item, i) {
-        var itemPrice  = item[1] || 1;
-        var itemWeight = itemPrice / totalPriceWeight;
-        var itemDailyRev = deptDailyTotal * itemWeight;
-        var qty = itemPrice > 0 ? Math.round(itemDailyRev / itemPrice) : 0;
-        if (qty <= 0) return;
-
-        for (var d = 0; d < daysInMonth; d++) {
-          var key = m + '-' + dept + '-' + i + '-' + d;
-          db[key] = qty;
-          totalPoints++;
-        }
-      });
-    });
-  }
-
-  // Save to localStorage and Firebase
   setTimeout(function() {
     try {
-      _DB[2025] = db;
-      _STORE.setItem(lsKey(2025), JSON.stringify(db));
+      var fbPayload = {};
+
+      // Save exact P&L monthly totals — no rounding, no approximation
+      for (var m = 1; m <= 12; m++) {
+        var monthTotal = _IMPORT_2025_PL[m];
+        try { _STORE.setItem(plKey(2025, m), String(monthTotal)); } catch(e2) {}
+        fbPayload['pl_' + m] = monthTotal;
+      }
+
       // Save to Firebase
       if (window._fbSaveKey) {
-        window._fbSaveKey('pearl/data/2025', db).then(function() {
-          btn.disabled  = false;
-          btn.style.opacity = '1';
-          prog.style.display = 'none';
-          res.style.display  = 'block';
-          res.style.color    = '#16a34a';
-          res.innerHTML = '✅ <strong>Import complete!</strong> ' + totalPoints.toLocaleString() + ' data points written for 2025. YoY comparisons and forecasting now have a full baseline year. Go to Forecast → Full Year to see the results.';
-          checkImportStatus();
-          invalidateTabCache('analytics');
-          invalidateTabCache('forecast');
-          toast('✅ 2025 historical data imported successfully', 'ok');
-        }).catch(function(e) {
-          // Still saved to localStorage
-          btn.disabled  = false;
-          btn.style.opacity = '1';
-          prog.style.display = 'none';
-          res.style.display  = 'block';
-          res.style.color    = '#d97706';
-          res.innerHTML = '⚠️ Saved to local storage (' + totalPoints.toLocaleString() + ' points). Firebase sync pending — will retry on next login.';
-          checkImportStatus();
-        });
-      } else {
-        btn.disabled  = false;
-        btn.style.opacity = '1';
-        prog.style.display = 'none';
-        res.style.display  = 'block';
-        res.style.color    = '#16a34a';
-        res.innerHTML = '✅ <strong>Import complete!</strong> ' + totalPoints.toLocaleString() + ' data points written locally.';
-        checkImportStatus();
-        toast('✅ 2025 data imported', 'ok');
+        window._fbSaveKey('pearl/pl_import/2025', fbPayload);
       }
+
+      // Clear all caches
+      invalidateMonthTotalsCache();
+      invalidateTabCache('analytics');
+      invalidateTabCache('forecast');
+
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      prog.style.display = 'none';
+      res.style.display  = 'block';
+      res.style.color    = '#16a34a';
+      res.innerHTML =
+        '✅ <strong>Import complete!</strong> All 12 months saved with exact P&L figures. ' +
+        'Total: <strong>QAR 997,798.46</strong>. ' +
+        'Go to <strong>Forecast → Full Year</strong> to see YoY comparisons.';
+      checkImportStatus();
+      toast('✅ 2025 P&L data imported — exact figures', 'ok');
+
     } catch(e) {
-      btn.disabled  = false;
+      btn.disabled = false;
       btn.style.opacity = '1';
       prog.style.display = 'none';
       res.style.display  = 'block';
