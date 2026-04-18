@@ -3610,6 +3610,15 @@ var _fbDB = null;
         ℹ️ Each line: <strong>Item Name, Price (QR), Weight (KG)</strong> — e.g. <code>Bath Towel, 1.05, 0.756</code><br>
         The new department will appear in Daily Entry, Dashboard, Monthly Overview, Reports, and Finance immediately.
       </div>
+      <div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:9px;padding:12px 14px;display:flex;align-items:center;gap:12px">
+        <span style="font-size:20px">📅</span>
+        <div style="flex:1">
+          <div style="font-size:11px;font-weight:800;color:#15803d;margin-bottom:3px">START DATE — Active From</div>
+          <div style="font-size:10px;color:#64748b;margin-bottom:6px">Dept only appears in Entry from this date. Leave blank = starts today.</div>
+          <input type="date" id="new-dept-startdate"
+            style="padding:6px 10px;border:1.5px solid #86efac;border-radius:7px;font-size:13px;font-weight:600;color:#15803d;outline:none;background:#fff">
+        </div>
+      </div>
     </div>
     <div style="display:flex;gap:10px;margin-top:20px">
       <button onclick="closeAddDept()" style="flex:1;padding:13px;border:1.5px solid #e2e8f0;border-radius:9px;background:#f7f9fc;font-size:13px;font-weight:600;color:#6b7a8d;cursor:pointer">Cancel</button>
