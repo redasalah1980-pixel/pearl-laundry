@@ -5878,11 +5878,12 @@ function _bootApp(user) {
     if (_savedRooms > 0) _TOTAL_ROOMS = _savedRooms;
   } catch(e) {}
   showTab(firstTab);
-  // Re-render occ row after short delay to pick up correct room count
+  // Re-render dashboard after short delay — Firebase data may not be ready yet on first render
   setTimeout(function() {
     var _m = parseInt(document.getElementById('dash-month')?.value || new Date().getMonth()+1);
-    if (typeof renderDashOccQuick === 'function') renderDashOccQuick(_m);
-  }, 300);
+    invalidateMonthTotalsCache(CY, _m);
+    if (typeof renderDash === 'function') renderDash();
+  }, 1500);
   // Sync targets staggered — don't fire 12 Firebase calls simultaneously
   (function() {
     var _tm = 1;
@@ -6138,6 +6139,9 @@ function invalidateTabCache(tabName) {
 //  DASHBOARD
 // ════════════════════════════════════════════════════════════════
 function renderDash() {
+  // Always invalidate current month cache so we get fresh data
+  var _dm = parseInt(document.getElementById('dash-month')?.value || new Date().getMonth()+1);
+  invalidateMonthTotalsCache(CY, _dm);
   // Show/hide end-of-month checklist
   var _eomInfo = shouldShowEomChecklist();
   var _eomContainer = document.getElementById('eom-checklist-container');
