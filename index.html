@@ -11324,27 +11324,60 @@ function generateInsights(m) {
   var qr  = monthTotals(CY, m).qr;
   var tgt = loadTarget(CY, m);
 
-  // Below 50% of target warning
+  // Below 50% of target warning — click goes to Forecast tab
   if (tgt && tgt.revenue > 0) {
     var pct = qr / tgt.revenue * 100;
     if (pct < 50) {
       var today = new Date();
       var daysLeft = (today.getMonth()+1 === m && today.getFullYear() === CY) ? nd - today.getDate() + 1 : 0;
       if (daysLeft > 5) {
-        insights.push({ level:'warning', icon:'⚠️', msg:'Revenue below 50% of target', detail: qr.toFixed(0) + ' QR of ' + tgt.revenue.toFixed(0) + ' QR target (' + pct.toFixed(1) + '%)' });
+        insights.push({
+          level:'warning', icon:'⚠️',
+          msg:'Revenue below 50% of target',
+          detail: qr.toFixed(0) + ' QR of ' + tgt.revenue.toFixed(0) + ' QR target (' + pct.toFixed(1) + '%)',
+          actionLabel: '→ View Forecast',
+          action: function(){ showTab('forecast'); }
+        });
       }
+    }
+    // Above target — positive
+    if (pct >= 100) {
+      insights.push({
+        level:'positive', icon:'🎉',
+        msg:'Target reached! ' + pct.toFixed(1) + '% of target',
+        detail: fmtMoney(qr) + ' vs target ' + fmtMoney(tgt.revenue),
+        actionLabel: '→ View Report',
+        action: function(){ showTab('report'); }
+      });
     }
   }
 
-  // Missing days warning
+  // Missing days warning — click goes to Entry tab on first missing day
   var today2 = new Date();
   if (today2.getFullYear() === CY && today2.getMonth()+1 === m) {
-    var missingCount = 0;
+    var missingDays2 = [];
     for (var d = 1; d < today2.getDate(); d++) {
-      if (dayTotals(CY, m, d).qr === 0) missingCount++;
+      if (dayTotals(CY, m, d).qr === 0) missingDays2.push(d);
     }
-    if (missingCount > 0) {
-      insights.push({ level:'warning', icon:'📅', msg: missingCount + ' day' + (missingCount>1?'s':'') + ' missing data', detail: 'Check entry tab for missing days' });
+    if (missingDays2.length > 0) {
+      var firstMissing = missingDays2[0];
+      var _m2 = m;
+      insights.push({
+        level:'warning', icon:'📅',
+        msg: missingDays2.length + ' day' + (missingDays2.length>1?'s':'') + ' missing data',
+        detail: 'Days: ' + missingDays2.slice(0,5).join(', ') + (missingDays2.length>5?' ...':''),
+        actionLabel: '→ Go to Entry',
+        action: (function(fm, m_){ return function(){
+          showTab('entry');
+          setTimeout(function(){
+            var ms = document.getElementById('ent-month');
+            var ds = document.getElementById('ent-day');
+            if (ms) ms.value = m_;
+            if (ds) ds.value = fm;
+            renderEntry();
+          }, 300);
+        }; })(firstMissing, _m2)
+      });
     }
   }
 
@@ -11372,12 +11405,16 @@ function renderInsightBadge(m) {
     var p = document.createElement('div');
     p.id = '_insight_popup';
     p.style.cssText = 'position:absolute;top:calc(100% + 8px);right:0;background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.15);z-index:600;min-width:280px;max-width:380px;overflow:hidden';
-    var rows = insights.map(function(ins) {
+    var rows = insights.map(function(ins, idx2) {
       var lc = ins.level==='warning'?'#dc2626':'#16a34a';
-      return '<div style="padding:12px 14px;border-bottom:1px solid #f1f5f9;display:flex;gap:10px;align-items:flex-start">' +
+      var bg2 = ins.level==='warning'?'#fff5f5':'#f0fdf4';
+      return '<div id="_ins_row_' + idx2 + '" style="padding:12px 14px;border-bottom:1px solid #f1f5f9;display:flex;gap:10px;align-items:flex-start;cursor:' + (ins.action?'pointer':'default') + ';background:#fff;transition:background .15s"' +
+        (ins.action ? ' onmouseover="this.style.background=\'' + bg2 + '\'" onmouseout="this.style.background=\'#fff\'" onclick="_insightAction(' + idx2 + ')"' : '') + '>' +
         '<span style="font-size:18px">' + ins.icon + '</span>' +
-        '<div><div style="font-size:12px;font-weight:700;color:' + lc + '">' + ins.msg + '</div>' +
-        '<div style="font-size:11px;color:#64748b;margin-top:2px">' + ins.detail + '</div></div></div>';
+        '<div style="flex:1"><div style="font-size:12px;font-weight:700;color:' + lc + '">' + ins.msg + '</div>' +
+        '<div style="font-size:11px;color:#64748b;margin-top:2px">' + ins.detail + '</div></div>' +
+        (ins.actionLabel ? '<div style="font-size:10px;font-weight:700;color:' + lc + ';white-space:nowrap;align-self:center">' + ins.actionLabel + '</div>' : '') +
+        '</div>';
     }).join('');
     p.innerHTML = '<div style="background:#0d1b2e;padding:10px 14px;font-size:11px;font-weight:800;color:#c9a84c">🧠 Insights — ' + MONTH_NAMES[m-1] + ' ' + CY + '</div>' + rows;
     badge.appendChild(p);
@@ -11387,6 +11424,18 @@ function renderInsightBadge(m) {
   };
   el.innerHTML = '';
   el.appendChild(badge);
+  // Store actions for click handler
+  window._currentInsights = insights;
+}
+
+function _insightAction(idx) {
+  var ins = window._currentInsights && window._currentInsights[idx];
+  if (!ins || !ins.action) return;
+  // Close popup
+  var popup = document.getElementById('_insight_popup');
+  if (popup) popup.remove();
+  // Execute action
+  ins.action();
 }
 
 
