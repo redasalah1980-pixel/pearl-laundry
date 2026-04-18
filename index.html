@@ -1504,14 +1504,34 @@ var _fbDB = null;
         <input type="hidden" id="new-dept-color-full" value="#1A5276">
       </div>
       <div style="margin-bottom:14px">
-        <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:5px;letter-spacing:.8px">ITEMS (one per line: Name, Price, Weight)</div>
-        <div style="font-size:11px;color:#94a3b8;margin-bottom:6px">Example: Bath Towel, 1.05, 0.756</div>
-        <textarea id="new-dept-items-full" rows="5" placeholder="Bath Towel, 1.05, 0.756&#10;Hand Towel, 0.68, 0.229&#10;Face Towel, 0.32, 0.060"
-          style="width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;color:#0d1b2e;outline:none;resize:vertical;box-sizing:border-box;font-family:monospace"></textarea>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <div style="font-size:10px;font-weight:700;color:#64748b;letter-spacing:.8px">ITEMS</div>
+          <button type="button" onclick="deptAddRow()" style="padding:4px 12px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">➕ Add Row</button>
+        </div>
+        <!-- Column headers -->
+        <div style="display:grid;grid-template-columns:1fr 90px 90px 32px;gap:6px;padding:6px 8px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:8px 8px 0 0;border-bottom:none">
+          <div style="font-size:10px;font-weight:700;color:#64748b;letter-spacing:.6px">ITEM NAME</div>
+          <div style="font-size:10px;font-weight:700;color:#1d4ed8;letter-spacing:.6px;text-align:right">PRICE QR</div>
+          <div style="font-size:10px;font-weight:700;color:#16a34a;letter-spacing:.6px;text-align:right">WEIGHT KG</div>
+          <div></div>
+        </div>
+        <!-- Rows container -->
+        <div id="dept-items-rows" style="border:1.5px solid #e2e8f0;border-radius:0 0 8px 8px;overflow:hidden"></div>
+        <!-- Hidden field for compatibility -->
+        <input type="hidden" id="new-dept-items-full" value="">
+      </div>
+      <div style="margin-bottom:14px;display:flex;align-items:center;gap:14px;background:#f0fdf4;border:1.5px solid #86efac;border-radius:8px;padding:10px 14px">
+        <span style="font-size:16px">📅</span>
+        <div style="flex:1">
+          <div style="font-size:10px;font-weight:700;color:#15803d;margin-bottom:4px;letter-spacing:.8px">START DATE — Active From (optional)</div>
+          <div style="font-size:11px;color:#64748b;margin-bottom:6px">Dept only appears in Entry from this date. Leave blank = starts today.</div>
+          <input type="date" id="new-dept-startdate-full"
+            style="padding:6px 10px;border:1.5px solid #86efac;border-radius:7px;font-size:13px;font-weight:600;color:#15803d;outline:none;background:#fff">
+        </div>
       </div>
       <div style="display:flex;gap:10px">
         <button onclick="doAddDeptFull()" style="flex:1;padding:12px;background:linear-gradient(135deg,#0d1b2e,#1e3a5f);color:#c9a84c;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer">✅ Create Department</button>
-        <button onclick="document.getElementById('items-add-dept-form').style.display='none'" style="padding:12px 20px;background:#f1f5f9;color:#64748b;border:none;border-radius:9px;font-size:13px;cursor:pointer">Cancel</button>
+        <button onclick="document.getElementById('items-add-dept-form').style.display='none';deptInitRows()" style="padding:12px 20px;background:#f1f5f9;color:#64748b;border:none;border-radius:9px;font-size:13px;cursor:pointer">Cancel</button>
       </div>
     </div>
 
@@ -20568,6 +20588,7 @@ function initItemsTab() {
 }
 
 function showAddDeptForm() {
+  setTimeout(deptInitRows, 50);
   initItemsTab();
   var f = document.getElementById('items-add-dept-form');
   if (f) { f.style.display='block'; f.scrollIntoView({behavior:'smooth',block:'start'}); }
@@ -20587,22 +20608,92 @@ function showAddItemForm() {
   }
 }
 
+// ── Dept Items Row Table ──────────────────────────────────────
+var _deptRowCount = 0;
+
+function deptInitRows() {
+  _deptRowCount = 0;
+  var container = document.getElementById('dept-items-rows');
+  if (!container) return;
+  container.innerHTML = '';
+  // Start with 3 empty rows
+  deptAddRow(); deptAddRow(); deptAddRow();
+}
+
+function deptAddRow(name, price, kg) {
+  var container = document.getElementById('dept-items-rows');
+  if (!container) return;
+  _deptRowCount++;
+  var id = _deptRowCount;
+  var bg = id % 2 === 0 ? '#f8fafc' : '#fff';
+  var row = document.createElement('div');
+  row.id = 'dept-row-' + id;
+  row.style.cssText = 'display:grid;grid-template-columns:1fr 90px 90px 32px;gap:6px;padding:6px 8px;background:' + bg + ';border-bottom:1px solid #f1f5f9;align-items:center';
+  var nameInp  = document.createElement('input');
+  nameInp.type = 'text'; nameInp.id = 'dri-name-'+id;
+  nameInp.placeholder = 'e.g. Bath Towel'; nameInp.value = name||'';
+  nameInp.style.cssText = 'width:100%;padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:13px;font-weight:600;color:#0d1b2e;outline:none;box-sizing:border-box';
+  nameInp.onfocus = function(){ this.style.borderColor='#c9a84c'; };
+  nameInp.onblur  = function(){ this.style.borderColor='#e2e8f0'; };
+
+  var priceInp = document.createElement('input');
+  priceInp.type = 'number'; priceInp.id = 'dri-price-'+id;
+  priceInp.placeholder = '0.00'; priceInp.step = '0.0001'; priceInp.min = '0';
+  priceInp.value = price||'';
+  priceInp.style.cssText = 'width:100%;padding:7px 8px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:13px;font-weight:600;color:#1d4ed8;outline:none;box-sizing:border-box;text-align:right';
+  priceInp.onfocus = function(){ this.style.borderColor='#3b82f6'; };
+  priceInp.onblur  = function(){ this.style.borderColor='#e2e8f0'; };
+
+  var kgInp = document.createElement('input');
+  kgInp.type = 'number'; kgInp.id = 'dri-kg-'+id;
+  kgInp.placeholder = '0.000'; kgInp.step = '0.001'; kgInp.min = '0';
+  kgInp.value = kg||'';
+  kgInp.style.cssText = 'width:100%;padding:7px 8px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:13px;font-weight:600;color:#16a34a;outline:none;box-sizing:border-box;text-align:right';
+  kgInp.onfocus = function(){ this.style.borderColor='#16a34a'; };
+  kgInp.onblur  = function(){ this.style.borderColor='#e2e8f0'; };
+
+  var delBtn = document.createElement('button');
+  delBtn.type = 'button';
+  delBtn.style.cssText = 'width:28px;height:28px;background:#fee2e2;border:none;border-radius:6px;color:#dc2626;font-size:14px;cursor:pointer;font-weight:700';
+  delBtn.textContent = '✕';
+  delBtn.onclick = function(){ deptRemoveRow(id); };
+
+  row.appendChild(nameInp); row.appendChild(priceInp); row.appendChild(kgInp); row.appendChild(delBtn);
+  container.appendChild(row);
+}
+
+function deptRemoveRow(id) {
+  var row = document.getElementById('dept-row-' + id);
+  if (row) row.remove();
+}
+
+function deptGetItems() {
+  var items = [];
+  var container = document.getElementById('dept-items-rows');
+  if (!container) return items;
+  container.querySelectorAll('[id^="dept-row-"]').forEach(function(row) {
+    var rid = row.id.replace('dept-row-', '');
+    var name  = (document.getElementById('dri-name-'  + rid)?.value || '').trim();
+    var price = parseFloat(document.getElementById('dri-price-' + rid)?.value || 0) || 0;
+    var kg    = parseFloat(document.getElementById('dri-kg-'    + rid)?.value || 0) || 0;
+    if (name) items.push({ name: name, price: price, kg: kg });
+  });
+  return items;
+}
+
+
 function doAddDeptFull() {
   var name      = (document.getElementById('new-dept-name-full').value||'').trim();
   var icon      = document.getElementById('new-dept-icon-full').value||'📦';
   var color     = document.getElementById('new-dept-color-full').value||'#1A5276';
-  var raw       = (document.getElementById('new-dept-items-full').value||'').trim();
   var startDate = (document.getElementById('new-dept-startdate-full')?.value||'').trim();
   if (!startDate) startDate = new Date().toISOString().slice(0,10);
   if (!name) { toast('⚠️ Enter a department name','err'); return; }
   if (MASTER[name]) { toast('Department "'+name+'" already exists','err'); return; }
-  var items = [];
-  raw.split('\n').forEach(function(line) {
-    var p = line.trim().split(',');
-    var n = (p[0]||'').trim();
-    if (n) items.push([n, parseFloat((p[1]||'0').trim())||0, parseFloat((p[2]||'0').trim())||0, startDate]);
-  });
-  if (!items.length) { toast('⚠️ Add at least one item','err'); return; }
+  // Read items from row table
+  var rowItems = deptGetItems();
+  if (!rowItems.length) { toast('⚠️ Add at least one item','err'); return; }
+  var items = rowItems.map(function(it){ return [it.name, it.price, it.kg, startDate]; });
   MASTER[name]=items; DEPT_ICONS[name]=icon; DEPT_COLORS[name]=color; DEPT_KEYS.push(name);
   var custom = loadCustom();
   if (!custom.depts) custom.depts=[];
@@ -20614,6 +20705,7 @@ function doAddDeptFull() {
   document.getElementById('items-add-dept-form').style.display='none';
   var sd = document.getElementById('new-dept-startdate-full');
   if (sd) sd.value = '';
+  deptInitRows();
   renderItemsDeptList();
   toast('✅ "'+name+'" created · starts '+startDate,'ok');
 }
