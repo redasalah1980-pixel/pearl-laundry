@@ -20588,29 +20588,34 @@ function showAddItemForm() {
 }
 
 function doAddDeptFull() {
-  var name  = (document.getElementById('new-dept-name-full').value||'').trim();
-  var icon  = document.getElementById('new-dept-icon-full').value||'📦';
-  var color = document.getElementById('new-dept-color-full').value||'#1A5276';
-  var raw   = (document.getElementById('new-dept-items-full').value||'').trim();
+  var name      = (document.getElementById('new-dept-name-full').value||'').trim();
+  var icon      = document.getElementById('new-dept-icon-full').value||'📦';
+  var color     = document.getElementById('new-dept-color-full').value||'#1A5276';
+  var raw       = (document.getElementById('new-dept-items-full').value||'').trim();
+  var startDate = (document.getElementById('new-dept-startdate-full')?.value||'').trim();
+  if (!startDate) startDate = new Date().toISOString().slice(0,10);
   if (!name) { toast('⚠️ Enter a department name','err'); return; }
   if (MASTER[name]) { toast('Department "'+name+'" already exists','err'); return; }
   var items = [];
   raw.split('\n').forEach(function(line) {
     var p = line.trim().split(',');
     var n = (p[0]||'').trim();
-    if (n) items.push([n, parseFloat((p[1]||'0').trim())||0, parseFloat((p[2]||'0').trim())||0]);
+    if (n) items.push([n, parseFloat((p[1]||'0').trim())||0, parseFloat((p[2]||'0').trim())||0, startDate]);
   });
   if (!items.length) { toast('⚠️ Add at least one item','err'); return; }
   MASTER[name]=items; DEPT_ICONS[name]=icon; DEPT_COLORS[name]=color; DEPT_KEYS.push(name);
   var custom = loadCustom();
   if (!custom.depts) custom.depts=[];
-  custom.depts.push({name:name,icon:icon,color:color,items:items});
+  custom.depts.push({name:name, icon:icon, color:color, items:items, startDate:startDate});
   saveCustom(custom);
   if (window._fbSaveKey) window._fbSaveKey('pearl/custom',custom);
   buildSelectors();
+  // Reset form including start date
   document.getElementById('items-add-dept-form').style.display='none';
+  var sd = document.getElementById('new-dept-startdate-full');
+  if (sd) sd.value = '';
   renderItemsDeptList();
-  toast('✅ "'+name+'" created with '+items.length+' items','ok');
+  toast('✅ "'+name+'" created · starts '+startDate,'ok');
 }
 
 // Get start date for an item (stored in MASTER[dept][i][3])
