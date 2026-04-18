@@ -1409,8 +1409,18 @@ var _fbDB = null;
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
       <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:200px">
         <h1 style="margin:0;font-size:20px;font-weight:900;color:#0d1b2e">Dashboard</h1>
-        <select id="dash-month" onchange="renderDash()"
+        <select id="dash-month" onchange="renderDash();clearDashRange()"
           style="padding:6px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-weight:700;color:#0d1b2e;background:#fff;cursor:pointer"></select>
+        <!-- Date range filter -->
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+          <span style="font-size:10px;font-weight:700;color:#64748b;letter-spacing:.8px">FROM</span>
+          <input type="date" id="dash-range-from" onchange="renderDash()"
+            style="padding:5px 8px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:12px;font-weight:600;color:#0d1b2e;outline:none;background:#fff">
+          <span style="font-size:10px;font-weight:700;color:#64748b;letter-spacing:.8px">TO</span>
+          <input type="date" id="dash-range-to" onchange="renderDash()"
+            style="padding:5px 8px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:12px;font-weight:600;color:#0d1b2e;outline:none;background:#fff">
+          <button onclick="clearDashRange()" id="dash-range-clear" style="display:none;padding:4px 10px;background:#fee2e2;border:1px solid #fca5a5;color:#dc2626;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer">✕ Clear</button>
+        </div>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
         <div id="dash-insight-badge"></div>
@@ -1520,7 +1530,7 @@ var _fbDB = null;
     <div style="background:#fef3c7;border:1.5px solid #f59e0b;border-radius:8px;padding:8px 12px;margin-bottom:14px;font-size:11px;font-weight:700;color:#92400e">
       ⚠️ New items are always added to the <strong>bottom of the list</strong>. This protects your historical data.
     </div>
-      <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;margin-bottom:14px">
+      <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;margin-bottom:12px">
         <div>
           <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:5px;letter-spacing:.8px">ITEM NAME *</div>
           <input type="text" id="new-item-name-full" placeholder="e.g. King Bottom Sheet"
@@ -1535,6 +1545,15 @@ var _fbDB = null;
           <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:5px;letter-spacing:.8px">WEIGHT (KG)</div>
           <input type="number" id="new-item-kg-full" placeholder="0.000" step="0.001" min="0"
             style="width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;font-weight:600;color:#16a34a;outline:none;box-sizing:border-box;text-align:right">
+        </div>
+      </div>
+      <div style="margin-bottom:14px;display:flex;align-items:center;gap:14px;background:#f0fdf4;border:1.5px solid #86efac;border-radius:8px;padding:10px 14px">
+        <span style="font-size:16px">📅</span>
+        <div style="flex:1">
+          <div style="font-size:10px;font-weight:700;color:#15803d;margin-bottom:4px;letter-spacing:.8px">START FROM (optional)</div>
+          <div style="font-size:11px;color:#64748b;margin-bottom:6px">Item will only appear in Entry tab from this date onwards. Leave blank to show from today.</div>
+          <input type="date" id="new-item-startdate"
+            style="padding:6px 10px;border:1.5px solid #86efac;border-radius:7px;font-size:13px;font-weight:600;color:#15803d;outline:none;background:#fff">
         </div>
       </div>
       <div style="display:flex;gap:10px">
@@ -1662,6 +1681,14 @@ var _fbDB = null;
         <select id="mon-month" onchange="renderMonthly()"></select></div>
       <div class="ctrl-group"><div class="ctrl-label">Department</div>
         <select id="mon-dept" onchange="renderMonthly()"></select></div>
+      <div class="ctrl-group"><div class="ctrl-label">From Day</div>
+        <input type="number" id="mon-from-day" min="1" max="31" placeholder="1" onchange="renderMonthly()"
+          style="padding:6px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;width:70px;outline:none"></div>
+      <div class="ctrl-group"><div class="ctrl-label">To Day</div>
+        <input type="number" id="mon-to-day" min="1" max="31" placeholder="31" onchange="renderMonthly()"
+          style="padding:6px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;width:70px;outline:none"></div>
+      <button onclick="document.getElementById('mon-from-day').value='';document.getElementById('mon-to-day').value='';renderMonthly();"
+        style="padding:7px 14px;background:#fee2e2;border:1px solid #fca5a5;color:#dc2626;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;align-self:flex-end">✕ Reset</button>
       <!-- Export dropdown -->
       <div style="margin-left:auto;position:relative;display:inline-block">
         <button onclick="toggleMonthlyExportMenu(event)" style="display:flex;align-items:center;gap:8px;padding:10px 18px;background:linear-gradient(135deg,#0d1b2e,#1e3a5f);color:#c9a84c;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 2px 8px rgba(0,0,0,.15)" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
@@ -6146,6 +6173,52 @@ function invalidateTabCache(tabName) {
 // ════════════════════════════════════════════════════════════════
 //  DASHBOARD
 // ════════════════════════════════════════════════════════════════
+// ── Dashboard date range filter ───────────────────────────────
+function getDashRange(m) {
+  var fromEl = document.getElementById('dash-range-from');
+  var toEl   = document.getElementById('dash-range-to');
+  var fromVal = fromEl ? fromEl.value : '';
+  var toVal   = toEl   ? toEl.value   : '';
+  // Default: full month
+  var nd = dim(CY, m);
+  var fromDay = 1, toDay = nd;
+  if (fromVal) {
+    var fd = new Date(fromVal);
+    if (fd.getFullYear() === CY && fd.getMonth()+1 === m) fromDay = fd.getDate();
+  }
+  if (toVal) {
+    var td = new Date(toVal);
+    if (td.getFullYear() === CY && td.getMonth()+1 === m) toDay = td.getDate();
+  }
+  var hasRange = fromVal || toVal;
+  // Show/hide clear button
+  var clr = document.getElementById('dash-range-clear');
+  if (clr) clr.style.display = hasRange ? 'block' : 'none';
+  return { fromDay: fromDay, toDay: Math.min(toDay, nd), hasRange: hasRange };
+}
+
+function clearDashRange() {
+  var f = document.getElementById('dash-range-from');
+  var t = document.getElementById('dash-range-to');
+  if (f) f.value = '';
+  if (t) t.value = '';
+  var clr = document.getElementById('dash-range-clear');
+  if (clr) clr.style.display = 'none';
+  renderDash();
+}
+
+// Range-aware dayTotals sum
+function rangeTotals(y, m, fromDay, toDay) {
+  var qr = 0, kg = 0, pcs = 0, activeDays = 0;
+  for (var d = fromDay; d <= toDay; d++) {
+    var dt = dayTotals(y, m, d);
+    if (dt.qr > 0) { activeDays++; }
+    qr += dt.qr; kg += dt.kg; pcs += dt.pcs;
+  }
+  return { qr: qr, kg: kg, pcs: pcs, activeDays: activeDays };
+}
+
+
 function renderDash() {
   // Always invalidate current month cache so we get fresh data
   var _dm = parseInt(document.getElementById('dash-month')?.value || new Date().getMonth()+1);
@@ -6165,9 +6238,27 @@ function renderDash() {
   renderYearHealth();
 
   const m = parseInt(document.getElementById('dash-month')?.value || new Date().getMonth() + 1);
-  const {qr, kg, pcs, byDept} = monthTotals(CY, m);
-  const nd = dim(CY, m); let act = 0;
-  for (let d = 1; d <= nd; d++) { if (dayTotals(CY, m, d).qr > 0) act++; }
+  var _range = getDashRange(m);
+  var _fromDay = _range.fromDay, _toDay = _range.toDay;
+  // Use range totals if date filter is active
+  var _rt = rangeTotals(CY, m, _fromDay, _toDay);
+  const qr = _rt.qr, kg = _rt.kg, pcs = _rt.pcs;
+  let act = _rt.activeDays;
+  const nd = dim(CY, m);
+  const byDept = (function() {
+    var bd = {};
+    DEPT_KEYS.forEach(function(d) {
+      var dqr=0,dkg=0,dpcs=0;
+      MASTER[d].forEach(function(_,i){
+        for(var day=_fromDay;day<=_toDay;day++){
+          var v=getVal(CY,m,d,i,day-1);
+          if(v>0){dqr+=v*(loadPRM(CY,m)[d]?.[i]?.[1]??MASTER[d][i][1]);dkg+=v*(MASTER[d][i][2]||0);dpcs+=v;}
+        }
+      });
+      bd[d]={qr:dqr,kg:dkg,pcs:dpcs};
+    });
+    return bd;
+  })();
 
   // Finance Posted Total = prev month last day carry + days 1..(nd-1) of this month
   // Read directly from previous year/month actual last-day data
@@ -6776,6 +6867,8 @@ function renderEntryTable() {
   // Get prices — monthly version if available, year prices as fallback
   var _entPR = hasMonthlyPrices(CY, m) ? loadPRM(CY, m) : PRICES;
   items.forEach((_, i) => {
+    // Skip items not yet active for this date
+    if (!itemVisibleForDate(entDept, i, CY, m, day)) return;
     const nm = getN(entDept, i);
     const pr = _entPR[entDept]?.[i]?.[1] ?? MASTER[entDept][i][1];
     const kg = _entPR[entDept]?.[i]?.[2] ?? MASTER[entDept][i][2];
@@ -7857,7 +7950,11 @@ function renderMonthly() {
   var m    = parseInt(document.getElementById('mon-month')?.value || new Date().getMonth() + 1);
   var dsel = document.getElementById('mon-dept')?.value || 'ALL';
   var nd   = dim(CY, m);
-  var days = Array.from({length: nd}, function(_, i) { return i + 1; });
+  var fromDay = parseInt(document.getElementById('mon-from-day')?.value) || 1;
+  var toDay   = parseInt(document.getElementById('mon-to-day')?.value)   || nd;
+  fromDay = Math.max(1, Math.min(fromDay, nd));
+  toDay   = Math.max(fromDay, Math.min(toDay, nd));
+  var days = Array.from({length: toDay - fromDay + 1}, function(_, i) { return fromDay + i; });
 
   // Use monthly prices if available
   var mpr = hasMonthlyPrices(CY, m) ? loadPRM(CY, m) : PRICES;
@@ -20476,17 +20573,43 @@ function doAddDeptFull() {
   toast('✅ "'+name+'" created with '+items.length+' items','ok');
 }
 
+// Get start date for an item (stored in MASTER[dept][i][3])
+function getItemStartDate(dept, i) {
+  var item = MASTER[dept] && MASTER[dept][i];
+  if (!item || !item[3]) return null;
+  return item[3]; // 'YYYY-MM-DD' string
+}
+
+// Check if item should be visible for a given year/month/day
+function itemVisibleForDate(dept, i, y, m, day) {
+  var startDate = getItemStartDate(dept, i);
+  if (!startDate) return true; // no restriction
+  var itemStart = new Date(startDate);
+  var checkDate = new Date(y, m-1, day || 1);
+  return checkDate >= itemStart;
+}
+
+
 function doAddItemFull() {
   if (!_itemsEditDept) return;
-  var name  = (document.getElementById('new-item-name-full').value||'').trim();
-  var price = parseFloat(document.getElementById('new-item-price-full').value)||0;
-  var kg    = parseFloat(document.getElementById('new-item-kg-full').value)||0;
+  var name      = (document.getElementById('new-item-name-full').value||'').trim();
+  var price     = parseFloat(document.getElementById('new-item-price-full').value)||0;
+  var kg        = parseFloat(document.getElementById('new-item-kg-full').value)||0;
+  var startDate = (document.getElementById('new-item-startdate')?.value||'').trim();
   if (!name) { toast('⚠️ Enter an item name','err'); return; }
-  if (!_itemsEdits[_itemsEditDept]) _itemsEdits[_itemsEditDept]=MASTER[_itemsEditDept].map(function(it){return [it[0],it[1],it[2]];});
-  _itemsEdits[_itemsEditDept].push([name,price,kg]);
+  if (!_itemsEdits[_itemsEditDept]) _itemsEdits[_itemsEditDept]=MASTER[_itemsEditDept].map(function(it){return [it[0],it[1],it[2],it[3]||''];});
+  // Store as [name, price, kg, startDate]
+  if (!startDate) startDate = new Date().toISOString().slice(0,10); // default: today
+  _itemsEdits[_itemsEditDept].push([name, price, kg, startDate]);
   document.getElementById('items-add-item-form').style.display='none';
+  // Reset fields including date
+  ['new-item-name-full','new-item-price-full','new-item-kg-full'].forEach(function(id){
+    var el = document.getElementById(id); if(el) el.value='';
+  });
+  var sd = document.getElementById('new-item-startdate');
+  if (sd) sd.value = '';
   renderItemsEditorRows();
-  toast('+  "'+name+'" added — click 💾 Save to confirm','ok');
+  toast('+  "'+name+'" added' + (startDate ? ' · starts '+startDate : '') + ' — click 💾 Save to confirm','ok');
 }
 
 
