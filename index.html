@@ -4226,8 +4226,9 @@ function setVal(y, m, d, i, day, v) {
     db[key] = v;
   }
   _dirty = true;
-  // Invalidate monthTotals cache for this month
+  // Invalidate both caches for this month/day
   invalidateMonthTotalsCache(y, m);
+  invalidateDayTotalsCache(y, m, day+1);
 }
 
 // Lock price+kg at save time
@@ -4276,6 +4277,7 @@ function attachFbListener(y) {
           _DB[y] = merged;
           try { _STORE.setItem(lsKey(y), mergedStr); } catch(e) {}
           invalidateMonthTotalsCache(); // data changed — clear calc cache
+          invalidateDayTotalsCache(); // clear day totals cache too
           if (isMobile()) {
             try { mobRenderDash(); } catch(e) {}
             try { mobRenderEntry(); } catch(e) {}
@@ -5017,7 +5019,17 @@ function f2(n) {
 function f4(n) { return (+n).toFixed(4); }
 
 // FIX: dayTotals now uses cached reads — fast
+var _dayTotalsCache = {};
+
+function invalidateDayTotalsCache(y, m, day) {
+  if (y && m && day) delete _dayTotalsCache[y+'_'+m+'_'+day];
+  else if (y && m) { Object.keys(_dayTotalsCache).forEach(function(k){ if(k.startsWith(y+'_'+m+'_')) delete _dayTotalsCache[k]; }); }
+  else _dayTotalsCache = {};
+}
+
 function dayTotals(y, m, day) {
+  var ck = y + '_' + m + '_' + day;
+  if (_dayTotalsCache[ck]) return _dayTotalsCache[ck];
   let qr = 0, kg = 0;
   DEPT_KEYS.forEach(d => MASTER[d].forEach((_, i) => {
     const v = getVal(y, m, d, i, day - 1);
@@ -5026,7 +5038,9 @@ function dayTotals(y, m, day) {
       kg += v * getKgForCalc(d, i, y, m, day);
     }
   }));
-  return { qr, kg };
+  const result = { qr, kg };
+  _dayTotalsCache[ck] = result;
+  return result;
 }
 
 // FIX: monthTotals — single pass through cache, correct revenue calc
@@ -5876,6 +5890,53 @@ function bootApp(user) {
   // Sync settings from Firebase first, then boot
   syncSettingsFromFirebase(function() { _bootApp(user); });
 }
+// ── Background pre-computation ────────────────────────────────
+// Pre-compute all months so Forecast/Analytics are instant
+var _precomputeTimer = null;
+
+function precomputeAllMonths() {
+  // Run in small chunks to avoid blocking UI
+  var months = [];
+  for (var m = 1; m <= 12; m++) {
+    months.push({ y: CY, m: m });
+    months.push({ y: CY-1, m: m });
+  }
+  var idx = 0;
+  function computeNext() {
+    if (idx >= months.length) return;
+    var item = months[idx++];
+    // Only compute if not already cached
+    var ck = item.y + '_' + item.m;
+    if (!_monthTotalsCache[ck]) {
+      monthTotals(item.y, item.m); // result auto-cached inside monthTotals
+    }
+    // Also pre-compute dayTotals for current month
+    if (item.y === CY && item.m === new Date().getMonth()+1) {
+      var nd = dim(item.y, item.m);
+      for (var d = 1; d <= nd; d++) {
+        var dk = item.y+'_'+item.m+'_'+d;
+        if (!_dayTotalsCache[dk]) dayTotals(item.y, item.m, d);
+      }
+    }
+    setTimeout(computeNext, 10); // yield 10ms between months
+  }
+  computeNext();
+}
+
+function schedulePrecompute() {
+  if (_precomputeTimer) clearTimeout(_precomputeTimer);
+  // Run after 3s on login, then every 5 min
+  _precomputeTimer = setTimeout(function() {
+    precomputeAllMonths();
+    setInterval(function() {
+      invalidateMonthTotalsCache();
+      invalidateDayTotalsCache();
+      precomputeAllMonths();
+    }, 300000); // refresh every 5 minutes
+  }, 3000);
+}
+
+
 function _bootApp(user) {
   document.getElementById('pg-login').style.display = 'none';
   document.getElementById('pg-app').style.display = 'flex';
@@ -5946,6 +6007,7 @@ function _bootApp(user) {
     if (_savedRooms > 0) _TOTAL_ROOMS = _savedRooms;
   } catch(e) {}
   showTab(firstTab);
+  schedulePrecompute(); // pre-compute all months in background
   // Re-render dashboard after short delay — Firebase data may not be ready yet on first render
   setTimeout(function() {
     var _m = parseInt(document.getElementById('dash-month')?.value || new Date().getMonth()+1);
@@ -6177,7 +6239,7 @@ function refreshTab() {
   var now   = Date.now();
   var last  = _tabRenderTime[curTab] || 0;
   // Per-tab cache times: heavy calculation tabs get longer cache
-  var heavyTabs = { 'forecast':180000, 'analytics':120000, 'report':120000, 'benchmark':90000 };
+  var heavyTabs = { 'forecast':600000, 'analytics':600000, 'report':300000, 'benchmark':120000 }; // 10min/10min/5min/2min
   var cacheMs   = heavyTabs[curTab] || _TAB_CACHE_MS;
   var stale     = (now - last) > cacheMs;
   var alwaysRender = ['entry','backup','dashboard'];
@@ -6187,12 +6249,12 @@ function refreshTab() {
   if (curTab === 'dashboard') { renderDash(); return; }
   if (curTab === 'entry')     { renderEntry(); return; }
   if (curTab === 'monthly')   { renderMonthly(); return; }
-  if (curTab === 'report')    { renderReport(); return; }
+  if (curTab === 'report')    { setTimeout(renderReport, 0); return; }
   if (curTab === 'finance')   { renderFinance(); return; }
   if (curTab === 'prices')    { renderPriceTable(); return; }
   if (curTab === 'benchmark') { initBenchmark(); return; }
-  if (curTab === 'analytics') { renderAnalytics(); showAnalyticsTab('charts'); return; }
-  if (curTab === 'forecast')  { renderForecast(); return; }
+  if (curTab === 'analytics') { setTimeout(function(){ renderAnalytics(); showAnalyticsTab('charts'); }, 0); return; }
+  if (curTab === 'forecast')  { setTimeout(renderForecast, 0); return; }
   if (curTab === 'guide')     { renderGuide(); return; }
   if (curTab === 'items')     { renderItemsDeptList(); closeItemsEditor(); initItemsTab(); return; }
 }
@@ -6253,8 +6315,9 @@ function rangeTotals(y, m, fromDay, toDay) {
 
 
 function renderDash() {
-  // Always invalidate current month cache so we get fresh data
+  // Invalidate caches for current month only when needed
   var _dm = parseInt(document.getElementById('dash-month')?.value || new Date().getMonth()+1);
+  // Only clear if data might have changed (not on cached tab re-renders)
   invalidateMonthTotalsCache(CY, _dm);
   // Show/hide end-of-month checklist
   var _eomInfo = shouldShowEomChecklist();
