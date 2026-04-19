@@ -3644,6 +3644,19 @@ var _fbDB = null;
 
 <!-- File input isolated at body level to prevent accidental triggers -->
 <input type="file" id="xl-file-input" accept=".xlsx,.xls" style="position:fixed;top:-9999px;left:-9999px;opacity:0;pointer-events:none" onchange="handleXLFile(this)">
+
+  <!-- App bundle -->
+  <script>
+    // Guide loaded lazily — only when Help tab opens
+    function renderGuide() {
+      if (window._guideLoaded) { if (typeof _renderGuideContent === 'function') _renderGuideContent(); return; }
+      window._guideLoaded = true;
+      var s = document.createElement('script');
+      s.src = 'js/guide.js?' + Date.now();
+      s.onload = function() { if (typeof _renderGuideContent === 'function') _renderGuideContent(); };
+      document.head.appendChild(s);
+    }
+  </script>
 <script>
 // RS LaundryPro — bundle.js
 // Core: data, config, utilities
@@ -4337,7 +4350,7 @@ var _moreMenuOpen    = false;
 var _reportsActive   = false;
 var _moreActive      = false;
 var _reportsTabs     = ['monthly','report','finance'];
-var _moreTabIds      = ['backup','guide'];
+var _moreTabIds      = ['guide','benchmark','prices'];
 
 function toggleReportsMenu() { _reportsMenuOpen ? closeReportsMenu() : openReportsMenu(); }
 function openReportsMenu() {
@@ -12192,7 +12205,7 @@ var _moreMenuOpen    = false;
 var _reportsActive   = false;
 var _moreActive      = false;
 var _reportsTabs     = ['monthly','report','finance'];
-var _moreTabIds      = ['backup','guide'];
+var _moreTabIds      = ['guide','benchmark','prices'];
 
 function toggleReportsMenu() { _reportsMenuOpen ? closeReportsMenu() : openReportsMenu(); }
 function openReportsMenu() {
