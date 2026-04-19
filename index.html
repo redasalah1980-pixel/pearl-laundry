@@ -819,114 +819,7 @@ table.price-t tr:hover td{background:var(--grey3)}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script>
-// ══ FIREBASE SETUP ═══════════════════════════════════════════
-var _fbDB = null;
 
-(function() {
-  try {
-    var firebaseConfig = {
-      apiKey: "AIzaSyAbHaR7a3m8Fek--2xl0LUjAuoaNyK3uJw",
-      authDomain: "pearl-management-system.firebaseapp.com",
-      databaseURL: "https://pearl-management-system-default-rtdb.europe-west1.firebasedatabase.app",
-      projectId: "pearl-management-system",
-      storageBucket: "pearl-management-system.firebasestorage.app",
-      messagingSenderId: "399463917678",
-      appId: "1:399463917678:web:512fcaf07f2bd74af9de7f"
-    };
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    _fbDB = firebase.database();
-
-    // ── Read/write helpers ──────────────────────────────────
-    window._fbSaveKey = function(path, value) {
-      return _fbDB.ref(path).set(value)
-        .then(function() { return true; })
-        .catch(function(e) { console.error('FB write error', e); return false; });
-    };
-    window._fbLoadKey = function(path) {
-      return _fbDB.ref(path).once('value')
-        .then(function(snap) { return snap.exists() ? snap.val() : null; })
-        .catch(function(e) { console.error('FB read error', e); return null; });
-    };
-
-    // ── Live connection indicator ───────────────────────────
-    function _updateConnUI(online) {
-      var dot = document.getElementById('fb-dot');
-      var lbl = document.getElementById('fb-label');
-      if (!dot || !lbl) return;
-      if (online) {
-        dot.style.background = '#22c55e';
-        dot.style.boxShadow  = '0 0 0 3px rgba(34,197,94,.25)';
-        lbl.textContent      = 'Live';
-        lbl.style.color      = '#86efac';
-      } else {
-        dot.style.background = '#ef4444';
-        dot.style.boxShadow  = '0 0 0 3px rgba(239,68,68,.25)';
-        lbl.textContent      = 'Offline';
-        lbl.style.color      = '#fca5a5';
-      }
-    }
-    _fbDB.ref('.info/connected').on('value', function(snap) {
-      _updateConnUI(snap.val() === true);
-    });
-
-    // ── Presence system ─────────────────────────────────────
-    window._registerPresence = function(userName) {
-      if (!userName) return;
-      // Use a stable session key stored in sessionStorage so refreshing the same
-      // tab reuses the same presence slot — prevents duplicate entries
-      var existingId = sessionStorage.getItem('pearl_sess_id');
-      if (!existingId) {
-        existingId = 'sess_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
-        sessionStorage.setItem('pearl_sess_id', existingId);
-      }
-      // Remove any old presence for this session first
-      if (window._presenceRef) {
-        try { window._presenceRef.remove(); } catch(e) {}
-      }
-      if (window._presenceInterval) clearInterval(window._presenceInterval);
-      var presRef = _fbDB.ref('pearl/presence/' + existingId);
-      presRef.set({ name: userName, ts: Date.now(), active: true });
-      presRef.onDisconnect().remove();
-      window._presenceRef = presRef;
-      window._presenceInterval = setInterval(function() {
-        presRef.set({ name: userName, ts: Date.now(), active: true });
-      }, 30000);
-    };
-    window._unregisterPresence = function() {
-      if (window._presenceRef) window._presenceRef.remove();
-      if (window._presenceInterval) clearInterval(window._presenceInterval);
-      sessionStorage.removeItem('pearl_sess_id');
-    };
-    window._watchPresence = function() {
-      _fbDB.ref('pearl/presence').on('value', function(snap) {
-        var data = snap.val() || {};
-        var now = Date.now();
-        // Clean stale entries (older than 2 min) from Firebase
-        Object.keys(data).forEach(function(key) {
-          var u = data[key];
-          if (!u || !u.name || (now - u.ts) > 120000) {
-            _fbDB.ref('pearl/presence/' + key).remove();
-          }
-        });
-        var users = Object.values(data).filter(function(u) {
-          return u && u.name && (now - u.ts) < 120000;
-        });
-        window._onlineUsers = users;
-        if (typeof updateOnlineUI === 'function') updateOnlineUI(users);
-      });
-    };
-
-    // ── Signal ready ────────────────────────────────────────
-    window._fbReady = true;
-    window.dispatchEvent(new Event('fb-ready'));
-
-  } catch(err) {
-    console.error('Firebase init failed:', err);
-    // App still works — just no cloud sync
-  }
-})();
-</script>
 </head>
 <body>
 
@@ -3646,17 +3539,115 @@ var _fbDB = null;
 <input type="file" id="xl-file-input" accept=".xlsx,.xls" style="position:fixed;top:-9999px;left:-9999px;opacity:0;pointer-events:none" onchange="handleXLFile(this)">
 
   <!-- App bundle -->
-  <script>
-    // Guide loaded lazily — only when Help tab opens
-    function renderGuide() {
-      if (window._guideLoaded) { if (typeof _renderGuideContent === 'function') _renderGuideContent(); return; }
-      window._guideLoaded = true;
-      var s = document.createElement('script');
-      s.src = 'js/guide.js?' + Date.now();
-      s.onload = function() { if (typeof _renderGuideContent === 'function') _renderGuideContent(); };
-      document.head.appendChild(s);
+  
+<script>
+// ══ FIREBASE SETUP ═══════════════════════════════════════════
+var _fbDB = null;
+
+(function() {
+  try {
+    var firebaseConfig = {
+      apiKey: "AIzaSyAbHaR7a3m8Fek--2xl0LUjAuoaNyK3uJw",
+      authDomain: "pearl-management-system.firebaseapp.com",
+      databaseURL: "https://pearl-management-system-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "pearl-management-system",
+      storageBucket: "pearl-management-system.firebasestorage.app",
+      messagingSenderId: "399463917678",
+      appId: "1:399463917678:web:512fcaf07f2bd74af9de7f"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    _fbDB = firebase.database();
+
+    // ── Read/write helpers ──────────────────────────────────
+    window._fbSaveKey = function(path, value) {
+      return _fbDB.ref(path).set(value)
+        .then(function() { return true; })
+        .catch(function(e) { console.error('FB write error', e); return false; });
+    };
+    window._fbLoadKey = function(path) {
+      return _fbDB.ref(path).once('value')
+        .then(function(snap) { return snap.exists() ? snap.val() : null; })
+        .catch(function(e) { console.error('FB read error', e); return null; });
+    };
+
+    // ── Live connection indicator ───────────────────────────
+    function _updateConnUI(online) {
+      var dot = document.getElementById('fb-dot');
+      var lbl = document.getElementById('fb-label');
+      if (!dot || !lbl) return;
+      if (online) {
+        dot.style.background = '#22c55e';
+        dot.style.boxShadow  = '0 0 0 3px rgba(34,197,94,.25)';
+        lbl.textContent      = 'Live';
+        lbl.style.color      = '#86efac';
+      } else {
+        dot.style.background = '#ef4444';
+        dot.style.boxShadow  = '0 0 0 3px rgba(239,68,68,.25)';
+        lbl.textContent      = 'Offline';
+        lbl.style.color      = '#fca5a5';
+      }
     }
-  </script>
+    _fbDB.ref('.info/connected').on('value', function(snap) {
+      _updateConnUI(snap.val() === true);
+    });
+
+    // ── Presence system ─────────────────────────────────────
+    window._registerPresence = function(userName) {
+      if (!userName) return;
+      // Use a stable session key stored in sessionStorage so refreshing the same
+      // tab reuses the same presence slot — prevents duplicate entries
+      var existingId = sessionStorage.getItem('pearl_sess_id');
+      if (!existingId) {
+        existingId = 'sess_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+        sessionStorage.setItem('pearl_sess_id', existingId);
+      }
+      // Remove any old presence for this session first
+      if (window._presenceRef) {
+        try { window._presenceRef.remove(); } catch(e) {}
+      }
+      if (window._presenceInterval) clearInterval(window._presenceInterval);
+      var presRef = _fbDB.ref('pearl/presence/' + existingId);
+      presRef.set({ name: userName, ts: Date.now(), active: true });
+      presRef.onDisconnect().remove();
+      window._presenceRef = presRef;
+      window._presenceInterval = setInterval(function() {
+        presRef.set({ name: userName, ts: Date.now(), active: true });
+      }, 30000);
+    };
+    window._unregisterPresence = function() {
+      if (window._presenceRef) window._presenceRef.remove();
+      if (window._presenceInterval) clearInterval(window._presenceInterval);
+      sessionStorage.removeItem('pearl_sess_id');
+    };
+    window._watchPresence = function() {
+      _fbDB.ref('pearl/presence').on('value', function(snap) {
+        var data = snap.val() || {};
+        var now = Date.now();
+        // Clean stale entries (older than 2 min) from Firebase
+        Object.keys(data).forEach(function(key) {
+          var u = data[key];
+          if (!u || !u.name || (now - u.ts) > 120000) {
+            _fbDB.ref('pearl/presence/' + key).remove();
+          }
+        });
+        var users = Object.values(data).filter(function(u) {
+          return u && u.name && (now - u.ts) < 120000;
+        });
+        window._onlineUsers = users;
+        if (typeof updateOnlineUI === 'function') updateOnlineUI(users);
+      });
+    };
+
+    // ── Signal ready ────────────────────────────────────────
+    window._fbReady = true;
+    window.dispatchEvent(new Event('fb-ready'));
+
+  } catch(err) {
+    console.error('Firebase init failed:', err);
+    // App still works — just no cloud sync
+  }
+})();
+</script>
 <script>
 // RS LaundryPro — bundle.js
 // Core: data, config, utilities
@@ -17370,31 +17361,46 @@ function renderBackupTab() {
     summary.innerHTML = html;
   }
 
-  // Cloud backup status
+  // Cloud backup status — read from index for accurate timestamp
   var statusEl = document.getElementById('backup-cloud-status');
   if (statusEl) {
-    var lastLocal = _STORE.getItem('pearl_last_cloud_backup');
+    // Show cached immediately
+    var cachedIdx = null;
+    try { cachedIdx = JSON.parse(_STORE.getItem('pearl_backup_index') || 'null'); } catch(e) {}
+    function _showBackupStatus(index) {
+      if (!statusEl) return;
+      if (index && index.length > 0) {
+        var latest = index[0];
+        var d = new Date(latest.savedAt);
+        statusEl.innerHTML = '✅ Last cloud backup: <strong>' + d.toLocaleString() + '</strong>' +
+          ' · Saved by: ' + (latest.savedBy || 'Admin') +
+          ' · ' + (latest.years || 2) + ' year(s) backed up';
+        statusEl.style.cssText = 'background:#f0fdf4;border:1.5px solid #86efac;border-radius:8px;padding:10px 14px;font-size:13px;font-weight:600;color:#15803d';
+      } else {
+        statusEl.innerHTML = '⚠️ No cloud backup yet. Click <strong>Save Cloud Backup Now</strong>.';
+        statusEl.style.cssText = 'background:#fffbeb;border:1.5px solid #fde68a;border-radius:8px;padding:10px 14px;font-size:13px;font-weight:600;color:#92400e';
+      }
+    }
+    // Show from cache instantly
+    if (cachedIdx) _showBackupStatus(cachedIdx);
+    else statusEl.innerHTML = '⏳ Checking...';
+    // Then refresh from Firebase in background
     if (window._fbLoadKey) {
-      window._fbLoadKey('pearl/backup/latest').then(function(bk) {
-        if (bk && bk.exportedAt) {
-          var d = new Date(bk.exportedAt);
-          statusEl.innerHTML = '✅ Last cloud backup: <strong>' + d.toLocaleString() + '</strong> · Exported by: ' + (bk.exportedBy || 'Admin') +
-            ' · ' + Object.keys(bk.data || {}).length + ' year(s) backed up';
-          statusEl.style.background = '#f0fdf4';
-          statusEl.style.borderColor = '#86efac';
-          statusEl.style.color = '#15803d';
-        } else {
-          statusEl.innerHTML = '⚠️ No cloud backup found yet. Click <strong>Save Cloud Backup Now</strong> to create one.';
-          statusEl.style.background = '#fffbeb';
-          statusEl.style.borderColor = '#fde68a';
-          statusEl.style.color = '#92400e';
+      window._fbLoadKey('pearl/backup/index').then(function(idx) {
+        var result = [];
+        if (Array.isArray(idx)) result = idx;
+        else if (idx && typeof idx === 'object') result = Object.values(idx);
+        result.sort(function(a,b){ return (b.savedAt||'').localeCompare(a.savedAt||''); });
+        if (result.length > 0) {
+          try { _STORE.setItem('pearl_backup_index', JSON.stringify(result)); } catch(e) {}
+          _showBackupStatus(result);
         }
       }).catch(function() {
-        statusEl.innerHTML = '🔴 Cannot reach Firebase. Check internet connection.';
-        statusEl.style.color = '#dc2626';
+        if (!cachedIdx) {
+          statusEl.innerHTML = '🔴 Cannot reach Firebase.';
+          statusEl.style.color = '#dc2626';
+        }
       });
-    } else {
-      statusEl.innerHTML = lastLocal ? '✅ Last backup: ' + lastLocal : '⚠️ Firebase not connected.';
     }
   }
 }
