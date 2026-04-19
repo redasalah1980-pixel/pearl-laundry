@@ -16560,41 +16560,44 @@ function saveCloudBackup() {
   }
   var backup = getFullBackupObject();
   showBackupMsg('backup-cloud-msg', '⏳ Saving to cloud...', 'info');
-  // Save latest + create versioned snapshot
-  window._fbSaveKey('pearl/backup/latest', backup);
 
-  var ts      = new Date().toISOString();
-  var verId   = ts.replace(/[:.]/g, '-');
-  var user    = (_SESSION ? _SESSION.getItem('ph_user') : null) || 'Admin';
-  var years   = backup.data ? Object.keys(backup.data).length : 0;
-  var size    = JSON.stringify(backup).length;
+  var ts     = new Date().toISOString();
+  var verId  = ts.replace(/[:.]/g, '-');
+  var user   = (_SESSION ? _SESSION.getItem('ph_user') : null) || 'Admin';
+  var years  = backup.data ? Object.keys(backup.data).length : 0;
+  var size   = JSON.stringify(backup).length;
   var verMeta = { id: verId, savedAt: ts, savedBy: user, years: years, size: size };
 
-  // Load index → add new → trim to 10 → save
-  (window._fbLoadKey ? window._fbLoadKey('pearl/backup/index') : Promise.resolve(null))
-  .then(function(idx) {
-    var index = Array.isArray(idx) ? idx : [];
-    index.unshift(verMeta);
-    if (index.length > _MAX_BACKUP_VERSIONS) {
-      var removed = index.splice(_MAX_BACKUP_VERSIONS);
-      removed.forEach(function(old) {
-        if (window._fbDB) window._fbDB.ref('pearl/backup/versions/' + old.id).remove();
-      });
-    }
-    return Promise.all([
-      window._fbSaveKey('pearl/backup/versions/' + verId, backup),
-      window._fbSaveKey('pearl/backup/index', index)
-    ]).then(function() {
-      try { _STORE.setItem('pearl_backup_index', JSON.stringify(index)); } catch(e) {}
-      var ts2 = new Date().toLocaleString();
-      _STORE.setItem('pearl_last_cloud_backup', ts2);
-      showBackupMsg('backup-cloud-msg', '✅ Cloud backup saved at ' + ts2 + ' — version ' + index.length + ' of ' + _MAX_BACKUP_VERSIONS + ' kept', 'ok');
-      toast('☁️ Backup saved — version ' + index.length + ' stored', 'ok');
-      // Render directly with the new index — no Firebase reload needed
-      _renderBackupIndexDirect(index);
+  // Build updated index from cache (no Firebase read needed)
+  var index = [];
+  try { index = JSON.parse(_STORE.getItem('pearl_backup_index') || '[]'); } catch(e) {}
+  if (!Array.isArray(index)) index = [];
+  index.unshift(verMeta);
+  if (index.length > _MAX_BACKUP_VERSIONS) {
+    var removed = index.splice(_MAX_BACKUP_VERSIONS);
+    // Remove old versions from Firebase in background (non-blocking)
+    removed.forEach(function(old) {
+      if (window._fbDB) window._fbDB.ref('pearl/backup/versions/' + old.id).remove();
     });
-  }).catch(function(err) {
-    showBackupMsg('backup-cloud-msg', '❌ Cloud save failed: ' + (err.message || err), 'err');
+  }
+
+  // Save to localStorage immediately so UI updates instantly
+  try { _STORE.setItem('pearl_backup_index', JSON.stringify(index)); } catch(e) {}
+  var ts2 = new Date().toLocaleString();
+  _STORE.setItem('pearl_last_cloud_backup', ts2);
+
+  // Show success and update UI immediately — don't wait for Firebase
+  showBackupMsg('backup-cloud-msg', '✅ Cloud backup saved at ' + ts2 + ' — version ' + index.length + ' of ' + _MAX_BACKUP_VERSIONS + ' kept', 'ok');
+  toast('☁️ Backup saved — version ' + index.length + ' stored', 'ok');
+  _renderBackupIndexDirect(index);
+
+  // Save to Firebase in background (single write — versioned snapshot only)
+  // No need to save to /latest separately — versions have full data
+  Promise.all([
+    window._fbSaveKey('pearl/backup/versions/' + verId, backup),
+    window._fbSaveKey('pearl/backup/index', index)
+  ]).catch(function(err) {
+    showBackupMsg('backup-cloud-msg', '⚠️ Saved locally but cloud sync failed: ' + (err.message || err), 'err');
   });
 }
 
