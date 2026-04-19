@@ -3903,32 +3903,42 @@ function loadDB(y) {
 // ── Timestamp-safe merge: for each data key, the version with the newer timestamp wins ──
 // ── Monthly Targets ───────────────────────────────────────────
 function targetKey(y, m) { return 'pearl_target_' + y + '_' + m; }
+var _targetCache = {}; // in-memory cache for targets
+
 function loadTarget(y, m) {
+  var ck = y + '_' + m;
+  // Return from memory cache first — fastest
+  if (_targetCache[ck] !== undefined) return _targetCache[ck];
+
   var key = targetKey(y, m);
   var fbPath = 'pearl/targets/' + y + '/' + m;
   try {
     var local = JSON.parse(_STORE.getItem(key) || 'null');
-    // Always background-sync from Firebase to keep fresh
+    _targetCache[ck] = local; // cache it
+    // Background sync from Firebase — only once per session
     if (window._fbLoadKey) {
       window._fbLoadKey(fbPath).then(function(fbVal) {
         if (fbVal && fbVal.revenue > 0) {
           try { _STORE.setItem(key, JSON.stringify(fbVal)); } catch(e) {}
-          // Re-render dash target bar if this is the displayed month
+          _targetCache[ck] = fbVal; // update cache
           var dashM = parseInt(document.getElementById('dash-month')?.value || 0);
           if (dashM === m) {
             var inp = document.getElementById('dash-target');
             if (inp && (!local || !local.revenue)) {
               inp.value = fbVal.revenue.toLocaleString();
-              if (typeof renderTargetBar === 'function') {
-                renderTargetBar(window._lastDashQR || 0, m);
-              }
+              if (typeof renderTargetBar === 'function') renderTargetBar(window._lastDashQR || 0, m);
             }
           }
         }
       }).catch(function(){});
     }
     return local;
-  } catch(e) { return null; }
+  } catch(e) { _targetCache[ck] = null; return null; }
+}
+
+function invalidateTargetCache(y, m) {
+  if (y && m) delete _targetCache[y + '_' + m];
+  else _targetCache = {};
 }
 
 // Force sync all targets for current year from Firebase
@@ -3948,6 +3958,7 @@ function syncTargetsFromFB(y) {
 function saveTarget(y, m, data) {
   try { _STORE.setItem(targetKey(y, m), JSON.stringify(data)); } catch(e) {}
   if (window._fbSaveKey) window._fbSaveKey('pearl/targets/' + y + '/' + m, data);
+  invalidateTargetCache(y, m); // clear cache so next read gets fresh value
 }
 function loadTargetFB(y, m) {
   if (window._fbLoadKey) {
@@ -4226,9 +4237,10 @@ function setVal(y, m, d, i, day, v) {
     db[key] = v;
   }
   _dirty = true;
-  // Invalidate both caches for this month/day
+  // Invalidate all caches for this month/day
   invalidateMonthTotalsCache(y, m);
   invalidateDayTotalsCache(y, m, day+1);
+  delete _activeDaysCache[y + '_' + m];
 }
 
 // Lock price+kg at save time
@@ -4278,6 +4290,7 @@ function attachFbListener(y) {
           try { _STORE.setItem(lsKey(y), mergedStr); } catch(e) {}
           invalidateMonthTotalsCache(); // data changed — clear calc cache
           invalidateDayTotalsCache(); // clear day totals cache too
+          _activeDaysCache = {}; // clear active days cache too
           if (isMobile()) {
             try { mobRenderDash(); } catch(e) {}
             try { mobRenderEntry(); } catch(e) {}
@@ -5895,7 +5908,7 @@ function bootApp(user) {
 var _precomputeTimer = null;
 
 function precomputeAllMonths() {
-  // Run in small chunks to avoid blocking UI
+  // Pre-compute ALL months for both years in background
   var months = [];
   for (var m = 1; m <= 12; m++) {
     months.push({ y: CY, m: m });
@@ -5905,20 +5918,18 @@ function precomputeAllMonths() {
   function computeNext() {
     if (idx >= months.length) return;
     var item = months[idx++];
-    // Only compute if not already cached
     var ck = item.y + '_' + item.m;
-    if (!_monthTotalsCache[ck]) {
-      monthTotals(item.y, item.m); // result auto-cached inside monthTotals
+    // Compute monthTotals (caches automatically)
+    if (!_monthTotalsCache[ck]) monthTotals(item.y, item.m);
+    // Compute dayTotals for ALL months (not just current) for getActiveDays
+    var nd = dim(item.y, item.m);
+    for (var d = 1; d <= nd; d++) {
+      var dk = item.y+'_'+item.m+'_'+d;
+      if (!_dayTotalsCache[dk]) dayTotals(item.y, item.m, d);
     }
-    // Also pre-compute dayTotals for current month
-    if (item.y === CY && item.m === new Date().getMonth()+1) {
-      var nd = dim(item.y, item.m);
-      for (var d = 1; d <= nd; d++) {
-        var dk = item.y+'_'+item.m+'_'+d;
-        if (!_dayTotalsCache[dk]) dayTotals(item.y, item.m, d);
-      }
-    }
-    setTimeout(computeNext, 10); // yield 10ms between months
+    // Compute getActiveDays (caches automatically)
+    if (_activeDaysCache[ck] === undefined) getActiveDays(item.y, item.m);
+    setTimeout(computeNext, 15); // 15ms yield between months
   }
   computeNext();
 }
@@ -15208,9 +15219,14 @@ function getMonthRevenue(y, m) {
 }
 
 // Get days with data in a month
+var _activeDaysCache = {};
+
 function getActiveDays(y, m) {
+  var ck = y + '_' + m;
+  if (_activeDaysCache[ck] !== undefined) return _activeDaysCache[ck];
   var nd = dim(y, m), count = 0;
   for (var d = 1; d <= nd; d++) { if (dayTotals(y, m, d).qr > 0) count++; }
+  _activeDaysCache[ck] = count;
   return count;
 }
 
@@ -18443,8 +18459,8 @@ function saveCloudBackup() {
       _STORE.setItem('pearl_last_cloud_backup', ts2);
       showBackupMsg('backup-cloud-msg', '✅ Cloud backup saved at ' + ts2 + ' — version ' + index.length + ' of ' + _MAX_BACKUP_VERSIONS + ' kept', 'ok');
       toast('☁️ Backup saved — version ' + index.length + ' stored', 'ok');
-      renderBackupTab();
-      renderBackupHistory();
+      // Render directly with the new index — no Firebase reload needed
+      _renderBackupIndexDirect(index);
     });
   }).catch(function(err) {
     showBackupMsg('backup-cloud-msg', '❌ Cloud save failed: ' + (err.message || err), 'err');
@@ -19013,30 +19029,41 @@ function _doDeleteBackup(verId) {
 function renderBackupHistory() {
   var wrap = document.getElementById('backup-history-wrap');
   if (!wrap) return;
-  wrap.innerHTML = '<div style="text-align:center;padding:16px;color:#94a3b8;font-size:12px">⏳ Loading from Firebase...</div>';
 
+  // Show cached version INSTANTLY — no loading spinner
+  var cached = null;
+  try { cached = JSON.parse(_STORE.getItem('pearl_backup_index') || 'null'); } catch(e) {}
+  if (cached && cached.length > 0) {
+    cached.sort(function(a,b){ return (b.savedAt||'').localeCompare(a.savedAt||''); });
+    _renderBackupIndexDirect(cached);
+  } else {
+    wrap.innerHTML = '<div style="text-align:center;padding:16px;color:#94a3b8;font-size:12px">⏳ Loading...</div>';
+  }
+
+  // Then silently sync from Firebase in background
   if (window._fbLoadKey) {
     window._fbLoadKey('pearl/backup/index').then(function(idx) {
       var result = [];
       if (Array.isArray(idx)) result = idx;
       else if (idx && typeof idx === 'object') result = Object.values(idx);
+      if (!result.length) return;
       result.sort(function(a,b){ return (b.savedAt||'').localeCompare(a.savedAt||''); });
       try { _STORE.setItem('pearl_backup_index', JSON.stringify(result)); } catch(e) {}
-      _renderBackupIndexDirect(result);
-    }).catch(function() {
-      var cached = null;
-      try { cached = JSON.parse(_STORE.getItem('pearl_backup_index') || 'null'); } catch(e) {}
-      _renderBackupIndexDirect(cached || []);
-    });
-  } else {
-    var cached2 = null;
-    try { cached2 = JSON.parse(_STORE.getItem('pearl_backup_index') || 'null'); } catch(e) {}
-    _renderBackupIndexDirect(cached2 || []);
+      // Only re-render if different from what's shown
+      var cachedStr = JSON.stringify(cached || []);
+      if (JSON.stringify(result) !== cachedStr) {
+        _renderBackupIndexDirect(result);
+      }
+    }).catch(function(){});
   }
 }
 
 // Re-render backup history from a known-good index (no Firebase reload needed)
 function _renderBackupIndexDirect(index) {
+  // Always sort newest first before rendering
+  if (Array.isArray(index)) {
+    index = index.slice().sort(function(a,b){ return (b.savedAt||'').localeCompare(a.savedAt||''); });
+  }
   var wrap = document.getElementById('backup-history-wrap');
   if (!wrap) { renderBackupHistory(); return; }
 
