@@ -1132,6 +1132,7 @@ var _fbDB = null;
       <div class="tn-tab" id="nav-items"     onclick="showTab('items')">📦 Items</div>
       <div class="tn-tab" id="nav-analytics" onclick="showTab('analytics')">📈 Analytics</div>
       <div class="tn-tab" id="nav-forecast"  onclick="showTab('forecast')">🔮 Forecast</div>
+      <div class="tn-tab" id="nav-planning" onclick="showTab('planning')">🎯 Planning</div>
 
       <!-- More dropdown -->
       <div id="nav-more-wrap" style="position:relative;display:flex;align-items:stretch">
@@ -2418,6 +2419,33 @@ var _fbDB = null;
 
 
   <!-- GUIDE -->
+  <!-- Planning Tab -->
+  <div class="pg" id="tab-planning">
+    <div class="ph">
+      <h1>🎯 Planning</h1>
+      <p>Annual budget, next year planning and what-if simulations</p>
+    </div>
+    <div class="ctrl" style="flex-wrap:wrap;gap:10px;align-items:flex-end;margin-bottom:20px">
+      <div class="ctrl-group">
+        <div class="ctrl-label">Year</div>
+        <select id="pl-year" onchange="renderPlanning()" style="font-size:13px;font-weight:600"></select>
+      </div>
+      <div class="ctrl-group">
+        <div class="ctrl-label">View</div>
+        <select id="pl-view" onchange="renderPlanning()" style="font-size:13px;font-weight:600">
+          <option value="budget">💰 Annual Budget</option>
+          <option value="plan">📋 Plan Next Year</option>
+          <option value="whatif">🎮 What-If Simulation</option>
+        </select>
+      </div>
+      <button onclick="renderPlanning()" style="padding:8px 18px;background:#0d1b2e;color:#c9a84c;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">🔄 Refresh</button>
+    </div>
+    <div id="planning-wrap"></div>
+    <div style="text-align:center;padding:18px 0 10px;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;margin-top:32px">
+      © Reda Salah · <span class="footer-system-name">RS LaundryPro</span> · All Rights Reserved
+    </div>
+  </div>
+
   <div class="pg" id="tab-guide" style="padding:0;max-width:100%">
     <div style="display:flex;height:calc(100vh - 54px)">
       <!-- Sidebar -->
@@ -2454,9 +2482,6 @@ var _fbDB = null;
           <option value="month">📅 This Month</option>
           <option value="next">📆 Next Month</option>
           <option value="year">📊 Full Year</option>
-          <option value="budget">💰 Annual Budget</option>
-          <option value="plan">📋 Plan Next Year</option>
-          <option value="whatif">🎮 What-If Simulation</option>
         </select>
       </div>
       <div class="ctrl-group" id="fc-month-wrap">
@@ -5123,6 +5148,7 @@ var ALL_TABS = [
   {id:'items',     label:'📦 Items',           locked: false},
   {id:'analytics', label:'📈 Analytics',       locked: false},
   {id:'forecast',  label:'🔮 Forecast',        locked: false},
+  {id:'planning',  label:'🎯 Planning',        locked: false},
   {id:'guide',     label:'💡 Help Center',     locked: false},
   {id:'backup',    label:'🛡️ Backup',          locked: false},
 ];
@@ -5596,7 +5622,7 @@ function saveAccessSettings() {
   var role = _SESSION.getItem('ph_role') || 'admin';
   if (role !== 'admin') {
     var navTabs = document.querySelectorAll('.tn-tab');
-    var tabIds  = ['dashboard','entry','monthly','report','finance','prices','analytics','guide'];
+    var tabIds  = ['dashboard','entry','monthly','report','finance','prices','analytics','forecast','planning','guide'];
     navTabs.forEach(function(btn, i) {
       var tid = tabIds[i]; if (!tid) return;
       btn.style.display = (allowed.indexOf(tid) !== -1) ? '' : 'none';
@@ -5998,7 +6024,7 @@ function _bootApp(user) {
     }
   }
   var navTabs = document.querySelectorAll('.tn-tab');
-  var tabIds  = ['dashboard','entry','monthly','report','finance','prices','analytics','guide'];
+  var tabIds  = ['dashboard','entry','monthly','report','finance','prices','analytics','forecast','planning','guide'];
   navTabs.forEach(function(btn, i) {
     var tid = tabIds[i];
     if (!tid) return;
@@ -6250,7 +6276,7 @@ function refreshTab() {
   var now   = Date.now();
   var last  = _tabRenderTime[curTab] || 0;
   // Per-tab cache times: heavy calculation tabs get longer cache
-  var heavyTabs = { 'forecast':600000, 'analytics':600000, 'report':300000, 'benchmark':120000 }; // 10min/10min/5min/2min
+  var heavyTabs = { 'forecast':600000, 'analytics':600000, 'planning':600000, 'report':300000, 'benchmark':120000 }; // 10min/10min/5min/2min
   var cacheMs   = heavyTabs[curTab] || _TAB_CACHE_MS;
   var stale     = (now - last) > cacheMs;
   var alwaysRender = ['entry','backup','dashboard'];
@@ -6267,6 +6293,7 @@ function refreshTab() {
   if (curTab === 'analytics') { setTimeout(function(){ renderAnalytics(); showAnalyticsTab('charts'); }, 0); return; }
   if (curTab === 'forecast')  { setTimeout(renderForecast, 0); return; }
   if (curTab === 'guide')     { renderGuide(); return; }
+  if (curTab === 'planning')  { setTimeout(renderPlanning, 0); return; }
   if (curTab === 'items')     { renderItemsDeptList(); closeItemsEditor(); initItemsTab(); return; }
 }
 
@@ -13972,6 +13999,40 @@ function renderGuide() {
     ],
 
 
+    // ── 60. PLANNING TAB ─────────────────────────────────────────
+    ['🎯 Planning Tab',
+     'The Planning tab contains tools for budgeting and simulating future performance. These are separated from the Forecast tab to keep both tabs fast and responsive.' +
+     '<br><br><strong>How to access:</strong> Click <strong>🎯 Planning</strong> in the navigation bar.' +
+     '<br><br><strong>Three views available:</strong>' +
+     ul([
+       '<strong>💰 Annual Budget</strong> — Set your full-year revenue budget month by month. Budgets auto-sync to the Dashboard revenue target bar so you never need to set monthly targets separately.',
+       '<strong>📋 Plan Next Year</strong> — Build a detailed plan for next year using growth rates, occupancy projections, and historical trends.',
+       '<strong>🎮 What-If Simulation</strong> — Test scenarios: what if occupancy increases by 10%? What if you raise prices? See projected revenue impact instantly.'
+     ]) +
+     '<br><strong>Why separate from Forecast?</strong><br>' +
+     'Forecast tab is used daily — this month, next month. Planning is used occasionally for strategic decisions. Keeping them separate means both tabs open faster.' +
+     tip('Set your Annual Budget at the start of each year. Once saved, the Dashboard revenue target bar updates automatically for every month — no need to set targets one by one.')
+    ],
+
+    // ── 61. FORECAST TAB (updated) ───────────────────────────────
+    ['🔮 Forecast Tab — What Changed',
+     'The Forecast tab has been streamlined to focus on daily operational forecasting.' +
+     '<br><br><strong>Three views now in Forecast:</strong>' +
+     ul([
+       '<strong>📅 This Month</strong> — Current month projection based on daily pace, YoY trends, and occupancy. Shows confidence level and forecast methodology.',
+       '<strong>📆 Next Month</strong> — Next month forecast using historical patterns and current trajectory.',
+       '<strong>📊 Full Year</strong> — Full year projection: actual YTD + forecast for remaining months using YoY growth factor.'
+     ]) +
+     '<br><strong>Moved to Planning tab:</strong>' +
+     ul([
+       'Annual Budget Manager',
+       'Plan Next Year',
+       'What-If Simulation'
+     ]) +
+     tip('Forecast tab now opens instantly because it only calculates 3 lightweight views. For budgeting and scenario planning, use the 🎯 Planning tab.')
+    ],
+
+
   ];
 
   var style = '<style>' +
@@ -15573,6 +15634,32 @@ function renderRiskIndicators(filterMonth) {
   wrap.innerHTML = html;
 }
 
+// ════════════════════════════════════════════════════════════════
+//  PLANNING TAB — Annual Budget, Plan Next Year, What-If
+// ════════════════════════════════════════════════════════════════
+function renderPlanning() {
+  var wrap = document.getElementById('planning-wrap');
+  if (!wrap) return;
+
+  var yrEl = document.getElementById('pl-year');
+  var view = document.getElementById('pl-view')?.value || 'budget';
+
+  if (yrEl && yrEl.options.length === 0) buildYearOpts(yrEl, CY);
+  var y = parseInt(yrEl?.value || CY);
+  var prevY = y - 1;
+
+  if (view === 'budget') { renderAnnualBudget(y); return; }
+  else if (view === 'plan') { renderPlanNextYear(y); return; }
+  else if (view === 'whatif') { wrap.innerHTML = renderWhatIfHTML(y, new Date().getMonth()+1); return; }
+}
+
+function renderWhatIfHTML(y, m) {
+  // Delegate to existing renderWhatIf
+  var wrap = document.getElementById('planning-wrap');
+  if (wrap) renderWhatIf(y, m);
+}
+
+
 function renderForecast() {
   var wrap = document.getElementById('forecast-wrap');
   if (!wrap) return;
@@ -15962,7 +16049,7 @@ function renderNextMonthForecast(y, m, nextM, nextY, prevY) {
 // ════════════════════════════════════════════════════════════════
 
 function renderAnnualBudget(y) {
-  var wrap = document.getElementById('forecast-wrap');
+  var wrap = document.getElementById('planning-wrap') || document.getElementById('forecast-wrap');
   if (!wrap) return;
 
   var totalBudget = 0, totalActual = 0;
