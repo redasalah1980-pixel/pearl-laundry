@@ -1279,6 +1279,8 @@ table.price-t tr:hover td{background:var(--grey3)}
       <div style="display:flex;align-items:center;gap:8px">
         <div id="dash-insight-badge"></div>
         <div id="dash-notif"></div>
+        <button onclick="emailDashboard()" title="Email dashboard summary"
+          style="padding:6px 12px;background:#0d1b2e;color:#c9a84c;border:1.5px solid rgba(201,168,76,.4);border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">📧 Email</button>
         <button onclick="toggleYearHealth()"
           style="padding:8px 14px;background:#fff;border:1.5px solid #e2e8f0;color:#64748b;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer"
           id="btn-year-health" title="View year health">📋 Health</button>
@@ -1555,6 +1557,8 @@ table.price-t tr:hover td{background:var(--grey3)}
         <select id="mon-month" onchange="renderMonthly()"></select></div>
       <div class="ctrl-group"><div class="ctrl-label">Department</div>
         <select id="mon-dept" onchange="renderMonthly()"></select></div>
+      <button onclick="emailMonthly()" title="Email monthly report"
+        style="padding:7px 14px;background:#0d1b2e;color:#c9a84c;border:1.5px solid rgba(201,168,76,.4);border-radius:7px;font-size:12px;font-weight:700;cursor:pointer">📧 Email Report</button>
       <div class="ctrl-group"><div class="ctrl-label">From Day</div>
         <input type="number" id="mon-from-day" min="1" max="31" placeholder="1" onchange="renderMonthly()"
           style="padding:6px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:13px;font-weight:600;width:70px;outline:none"></div>
@@ -1621,6 +1625,8 @@ table.price-t tr:hover td{background:var(--grey3)}
     <div class="ctrl" style="flex-wrap:wrap;gap:8px">
       <div class="ctrl-group"><div class="ctrl-label">Month</div>
         <select id="fin-month" onchange="renderFinance()"></select></div>
+      <button onclick="emailFinance()" title="Email finance summary"
+        style="padding:7px 14px;background:#0d1b2e;color:#c9a84c;border:1.5px solid rgba(201,168,76,.4);border-radius:7px;font-size:12px;font-weight:700;cursor:pointer">📧 Email</button>
       <button class="btn-save gold" onclick="financeExportExcel()">&#x2B07; Excel (Posting)</button>
       <button class="btn-save gold" onclick="financeExportPDF()" style="background:var(--red)">&#x1F5A8; PDF (Posting)</button>
       <div style="height:100%;width:1px;background:#e2e8f0;margin:0 4px"></div>
@@ -3659,8 +3665,6 @@ var _fbDB = null;
 })();
 </script>
 <script>
-// RS LaundryPro — bundle.js
-// Core: data, config, utilities
 // ── Safe storage wrappers ──────────────────────────────────────────
 // Falls back to in-memory when browser blocks file:// storage (Edge/Chrome local files)
 (function() {
@@ -4351,7 +4355,7 @@ var _moreMenuOpen    = false;
 var _reportsActive   = false;
 var _moreActive      = false;
 var _reportsTabs     = ['monthly','report','finance'];
-var _moreTabIds      = ['guide','benchmark','prices'];
+var _moreTabIds      = ['backup','guide'];
 
 function toggleReportsMenu() { _reportsMenuOpen ? closeReportsMenu() : openReportsMenu(); }
 function openReportsMenu() {
@@ -5929,7 +5933,7 @@ function precomputeAllMonths() {
     }
     // Compute getActiveDays (caches automatically)
     if (_activeDaysCache[ck] === undefined) getActiveDays(item.y, item.m);
-    setTimeout(computeNext, 5); // 5ms yield between months — faster warmup
+    setTimeout(computeNext, 15); // 15ms yield between months
   }
   computeNext();
 }
@@ -5939,23 +5943,11 @@ function schedulePrecompute() {
   // Run after 3s on login, then every 5 min
   _precomputeTimer = setTimeout(function() {
     precomputeAllMonths();
-    // Light refresh every 5 min: only current month
-    setInterval(function() {
-      var cm = new Date().getMonth() + 1;
-      invalidateMonthTotalsCache(CY, cm);
-      invalidateDayTotalsCache(CY, cm);
-      delete _activeDaysCache[CY + '_' + cm];
-      monthTotals(CY, cm);
-      getActiveDays(CY, cm);
-    }, 300000);
-    // Full refresh once per hour (not every 5 min)
     setInterval(function() {
       invalidateMonthTotalsCache();
       invalidateDayTotalsCache();
-      _activeDaysCache = {};
-      _targetCache = {};
       precomputeAllMonths();
-    }, 3600000);
+    }, 300000); // refresh every 5 minutes
   }, 3000);
 }
 
@@ -6262,10 +6254,10 @@ function refreshTab() {
   var now   = Date.now();
   var last  = _tabRenderTime[curTab] || 0;
   // Per-tab cache times: heavy calculation tabs get longer cache
-  var heavyTabs = { 'dashboard':15000, 'forecast':600000, 'analytics':600000, 'planning':600000, 'report':300000, 'benchmark':120000 }; // 10min/10min/5min/2min
+  var heavyTabs = { 'forecast':600000, 'analytics':600000, 'planning':600000, 'report':300000, 'benchmark':120000 }; // 10min/10min/5min/2min
   var cacheMs   = heavyTabs[curTab] || _TAB_CACHE_MS;
   var stale     = (now - last) > cacheMs;
-  var alwaysRender = ['entry','backup'];
+  var alwaysRender = ['entry','backup','dashboard'];
   if (alwaysRender.indexOf(curTab) === -1 && !stale) return;
   _tabRenderTime[curTab] = now;
   if (curTab === 'backup')    { renderBackupTab(); return; }
@@ -6343,11 +6335,111 @@ function rangeTotals(y, m, fromDay, toDay) {
   }
   return { qr: qr, kg: kg, pcs: pcs, activeDays: activeDays };
 }
+// ── Email Summary Functions ───────────────────────────────────
+function emailDashboard() {
+  var m  = parseInt(document.getElementById('dash-month')?.value || new Date().getMonth()+1);
+  var mn = MONTH_NAMES[m-1];
+  var hotel = _HOTEL_NAME || 'Pearl';
+  var mt = monthTotals(CY, m);
+  var qr = mt.qr || 0;
+  var kg = Math.ceil(mt.kg || 0);
+  var act = getActiveDays(CY, m);
+  var tgt = loadTarget(CY, m);
+  var tgtRev = tgt && tgt.revenue ? tgt.revenue : 0;
+  var pct = tgtRev > 0 ? (qr/tgtRev*100).toFixed(1)+'%' : 'N/A';
 
-// Render 1: Dashboard, Entry, Monthly, Report
+  var lines = [
+    hotel + ' Laundry - ' + mn + ' ' + CY + ' Dashboard Summary',
+    '================================',
+    'Monthly Revenue:  QR ' + fmtMoney(qr),
+    'Target:           QR ' + (tgtRev > 0 ? fmtMoney(tgtRev) : 'Not set'),
+    'vs Target:        ' + pct,
+    'Total KG Washed:  ' + kg + ' kg',
+    'Active Days:      ' + act + ' days',
+    'Avg Daily Rev:    QR ' + (act > 0 ? fmtMoney(qr/act) : '0.00'),
+    '================================',
+    'Generated: ' + new Date().toLocaleString()
+  ];
+  var subj = encodeURIComponent(hotel + ' Laundry - ' + mn + ' ' + CY + ' Dashboard');
+  var body = encodeURIComponent(lines.join('\n'));
+  window.location.href = 'mailto:?subject=' + subj + '&body=' + body;
+}
+
+function emailMonthly() {
+  var m    = parseInt(document.getElementById('mon-month')?.value || new Date().getMonth()+1);
+  var mn   = MONTH_NAMES[m-1];
+  var hotel = _HOTEL_NAME || 'Pearl';
+  var dsel = document.getElementById('mon-dept')?.value || 'ALL';
+  var mt   = monthTotals(CY, m);
+  var qr   = mt.qr || 0;
+  var kg   = Math.ceil(mt.kg || 0);
+  var nd   = dim(CY, m);
+  var mpr  = hasMonthlyPrices(CY, m) ? loadPRM(CY, m) : PRICES;
+
+  var lines = [
+    hotel + ' Laundry - ' + mn + ' ' + CY + ' Monthly Report',
+    dsel !== 'ALL' ? ('Department: ' + dsel) : '',
+    '================================',
+    'Total Revenue: QR ' + fmtMoney(qr),
+    'Total KG:      ' + kg + ' kg',
+    '',
+    'Department Breakdown:'
+  ].filter(function(l){ return l !== null; });
+
+  var deptsToShow = dsel === 'ALL' ? DEPT_KEYS : [dsel];
+  deptsToShow.forEach(function(d) {
+    var dqr = 0, dkg = 0;
+    MASTER[d].forEach(function(_, i) {
+      for (var day = 1; day <= nd; day++) {
+        var v = getVal(CY, m, d, i, day-1);
+        if (v > 0) {
+          dqr += v * ((mpr[d] && mpr[d][i] ? mpr[d][i][1] : null) || MASTER[d][i][1]);
+          dkg += v * (MASTER[d][i][2] || 0);
+        }
+      }
+    });
+    if (dqr > 0) lines.push('  ' + d + ': QR ' + fmtMoney(dqr) + ' / ' + Math.ceil(dkg) + ' kg');
+  });
+
+  lines.push('================================');
+  lines.push('Generated: ' + new Date().toLocaleString());
+
+  var subj = encodeURIComponent(hotel + ' Laundry - ' + mn + ' ' + CY + ' Monthly Report');
+  var body = encodeURIComponent(lines.join('\n'));
+  window.location.href = 'mailto:?subject=' + subj + '&body=' + body;
+}
+
+function emailFinance() {
+  var m    = parseInt(document.getElementById('fin-month')?.value || new Date().getMonth()+1);
+  var mn   = MONTH_NAMES[m-1];
+  var hotel = _HOTEL_NAME || 'Pearl';
+  var mt   = monthTotals(CY, m);
+  var qr   = mt.qr || 0;
+  var prevCarry = 0;
+  try { prevCarry = parseFloat(localStorage.getItem('pearl_carry_' + CY + '_' + m) || '0') || 0; } catch(e) {}
+  var total = prevCarry + qr;
+
+  var lines = [
+    hotel + ' Laundry - ' + mn + ' ' + CY + ' Finance Posting',
+    '================================',
+    'Carry Forward:      QR ' + fmtMoney(prevCarry),
+    'Month Revenue:      QR ' + fmtMoney(qr),
+    '--------------------------------',
+    'TOTAL FOR POSTING:  QR ' + fmtMoney(total),
+    '================================',
+    'Generated: ' + new Date().toLocaleString()
+  ];
+  var subj = encodeURIComponent(hotel + ' Laundry - ' + mn + ' ' + CY + ' Finance Posting');
+  var body = encodeURIComponent(lines.join('\n'));
+  window.location.href = 'mailto:?subject=' + subj + '&body=' + body;
+}
+
+
 function renderDash() {
+  // Invalidate caches for current month only when needed
   var _dm = parseInt(document.getElementById('dash-month')?.value || new Date().getMonth()+1);
-  // Do NOT clear cache here — setVal/Firebase listener handle cache invalidation
+  // Only clear if data might have changed (not on cached tab re-renders)
+  invalidateMonthTotalsCache(CY, _dm);
   // Show/hide end-of-month checklist
   var _eomInfo = shouldShowEomChecklist();
   var _eomContainer = document.getElementById('eom-checklist-container');
@@ -11320,8 +11412,6 @@ function renderYoY() {
   html += '</tbody></table></div>';
   wrap.innerHTML = html;
 }
-
-// Render 2: Analytics, Benchmark, Finance
 function renderTrends() {
   var months = parseInt(document.getElementById('trend-months')?.value || 6);
   var wrap = document.getElementById('trend-wrap');
@@ -12216,7 +12306,7 @@ var _moreMenuOpen    = false;
 var _reportsActive   = false;
 var _moreActive      = false;
 var _reportsTabs     = ['monthly','report','finance'];
-var _moreTabIds      = ['guide','benchmark','prices'];
+var _moreTabIds      = ['backup','guide'];
 
 function toggleReportsMenu() { _reportsMenuOpen ? closeReportsMenu() : openReportsMenu(); }
 function openReportsMenu() {
@@ -13722,8 +13812,6 @@ function renderWhatIfHTML(y, m) {
   var wrap = document.getElementById('planning-wrap');
   if (wrap) renderWhatIf(y, m);
 }
-
-// Render 3: Forecast, Planning, Items, Settings
 function renderForecast() {
   var wrap = document.getElementById('forecast-wrap');
   if (!wrap) return;
@@ -16580,44 +16668,41 @@ function saveCloudBackup() {
   }
   var backup = getFullBackupObject();
   showBackupMsg('backup-cloud-msg', '⏳ Saving to cloud...', 'info');
+  // Save latest + create versioned snapshot
+  window._fbSaveKey('pearl/backup/latest', backup);
 
-  var ts     = new Date().toISOString();
-  var verId  = ts.replace(/[:.]/g, '-');
-  var user   = (_SESSION ? _SESSION.getItem('ph_user') : null) || 'Admin';
-  var years  = backup.data ? Object.keys(backup.data).length : 0;
-  var size   = JSON.stringify(backup).length;
+  var ts      = new Date().toISOString();
+  var verId   = ts.replace(/[:.]/g, '-');
+  var user    = (_SESSION ? _SESSION.getItem('ph_user') : null) || 'Admin';
+  var years   = backup.data ? Object.keys(backup.data).length : 0;
+  var size    = JSON.stringify(backup).length;
   var verMeta = { id: verId, savedAt: ts, savedBy: user, years: years, size: size };
 
-  // Build updated index from cache (no Firebase read needed)
-  var index = [];
-  try { index = JSON.parse(_STORE.getItem('pearl_backup_index') || '[]'); } catch(e) {}
-  if (!Array.isArray(index)) index = [];
-  index.unshift(verMeta);
-  if (index.length > _MAX_BACKUP_VERSIONS) {
-    var removed = index.splice(_MAX_BACKUP_VERSIONS);
-    // Remove old versions from Firebase in background (non-blocking)
-    removed.forEach(function(old) {
-      if (window._fbDB) window._fbDB.ref('pearl/backup/versions/' + old.id).remove();
+  // Load index → add new → trim to 10 → save
+  (window._fbLoadKey ? window._fbLoadKey('pearl/backup/index') : Promise.resolve(null))
+  .then(function(idx) {
+    var index = Array.isArray(idx) ? idx : [];
+    index.unshift(verMeta);
+    if (index.length > _MAX_BACKUP_VERSIONS) {
+      var removed = index.splice(_MAX_BACKUP_VERSIONS);
+      removed.forEach(function(old) {
+        if (window._fbDB) window._fbDB.ref('pearl/backup/versions/' + old.id).remove();
+      });
+    }
+    return Promise.all([
+      window._fbSaveKey('pearl/backup/versions/' + verId, backup),
+      window._fbSaveKey('pearl/backup/index', index)
+    ]).then(function() {
+      try { _STORE.setItem('pearl_backup_index', JSON.stringify(index)); } catch(e) {}
+      var ts2 = new Date().toLocaleString();
+      _STORE.setItem('pearl_last_cloud_backup', ts2);
+      showBackupMsg('backup-cloud-msg', '✅ Cloud backup saved at ' + ts2 + ' — version ' + index.length + ' of ' + _MAX_BACKUP_VERSIONS + ' kept', 'ok');
+      toast('☁️ Backup saved — version ' + index.length + ' stored', 'ok');
+      // Render directly with the new index — no Firebase reload needed
+      _renderBackupIndexDirect(index);
     });
-  }
-
-  // Save to localStorage immediately so UI updates instantly
-  try { _STORE.setItem('pearl_backup_index', JSON.stringify(index)); } catch(e) {}
-  var ts2 = new Date().toLocaleString();
-  _STORE.setItem('pearl_last_cloud_backup', ts2);
-
-  // Show success and update UI immediately — don't wait for Firebase
-  showBackupMsg('backup-cloud-msg', '✅ Cloud backup saved at ' + ts2 + ' — version ' + index.length + ' of ' + _MAX_BACKUP_VERSIONS + ' kept', 'ok');
-  toast('☁️ Backup saved — version ' + index.length + ' stored', 'ok');
-  _renderBackupIndexDirect(index);
-
-  // Save to Firebase in background (single write — versioned snapshot only)
-  // No need to save to /latest separately — versions have full data
-  Promise.all([
-    window._fbSaveKey('pearl/backup/versions/' + verId, backup),
-    window._fbSaveKey('pearl/backup/index', index)
-  ]).catch(function(err) {
-    showBackupMsg('backup-cloud-msg', '⚠️ Saved locally but cloud sync failed: ' + (err.message || err), 'err');
+  }).catch(function(err) {
+    showBackupMsg('backup-cloud-msg', '❌ Cloud save failed: ' + (err.message || err), 'err');
   });
 }
 
@@ -17384,46 +17469,31 @@ function renderBackupTab() {
     summary.innerHTML = html;
   }
 
-  // Cloud backup status — read from index for accurate timestamp
+  // Cloud backup status
   var statusEl = document.getElementById('backup-cloud-status');
   if (statusEl) {
-    // Show cached immediately
-    var cachedIdx = null;
-    try { cachedIdx = JSON.parse(_STORE.getItem('pearl_backup_index') || 'null'); } catch(e) {}
-    function _showBackupStatus(index) {
-      if (!statusEl) return;
-      if (index && index.length > 0) {
-        var latest = index[0];
-        var d = new Date(latest.savedAt);
-        statusEl.innerHTML = '✅ Last cloud backup: <strong>' + d.toLocaleString() + '</strong>' +
-          ' · Saved by: ' + (latest.savedBy || 'Admin') +
-          ' · ' + (latest.years || 2) + ' year(s) backed up';
-        statusEl.style.cssText = 'background:#f0fdf4;border:1.5px solid #86efac;border-radius:8px;padding:10px 14px;font-size:13px;font-weight:600;color:#15803d';
-      } else {
-        statusEl.innerHTML = '⚠️ No cloud backup yet. Click <strong>Save Cloud Backup Now</strong>.';
-        statusEl.style.cssText = 'background:#fffbeb;border:1.5px solid #fde68a;border-radius:8px;padding:10px 14px;font-size:13px;font-weight:600;color:#92400e';
-      }
-    }
-    // Show from cache instantly
-    if (cachedIdx) _showBackupStatus(cachedIdx);
-    else statusEl.innerHTML = '⏳ Checking...';
-    // Then refresh from Firebase in background
+    var lastLocal = _STORE.getItem('pearl_last_cloud_backup');
     if (window._fbLoadKey) {
-      window._fbLoadKey('pearl/backup/index').then(function(idx) {
-        var result = [];
-        if (Array.isArray(idx)) result = idx;
-        else if (idx && typeof idx === 'object') result = Object.values(idx);
-        result.sort(function(a,b){ return (b.savedAt||'').localeCompare(a.savedAt||''); });
-        if (result.length > 0) {
-          try { _STORE.setItem('pearl_backup_index', JSON.stringify(result)); } catch(e) {}
-          _showBackupStatus(result);
+      window._fbLoadKey('pearl/backup/latest').then(function(bk) {
+        if (bk && bk.exportedAt) {
+          var d = new Date(bk.exportedAt);
+          statusEl.innerHTML = '✅ Last cloud backup: <strong>' + d.toLocaleString() + '</strong> · Exported by: ' + (bk.exportedBy || 'Admin') +
+            ' · ' + Object.keys(bk.data || {}).length + ' year(s) backed up';
+          statusEl.style.background = '#f0fdf4';
+          statusEl.style.borderColor = '#86efac';
+          statusEl.style.color = '#15803d';
+        } else {
+          statusEl.innerHTML = '⚠️ No cloud backup found yet. Click <strong>Save Cloud Backup Now</strong> to create one.';
+          statusEl.style.background = '#fffbeb';
+          statusEl.style.borderColor = '#fde68a';
+          statusEl.style.color = '#92400e';
         }
       }).catch(function() {
-        if (!cachedIdx) {
-          statusEl.innerHTML = '🔴 Cannot reach Firebase.';
-          statusEl.style.color = '#dc2626';
-        }
+        statusEl.innerHTML = '🔴 Cannot reach Firebase. Check internet connection.';
+        statusEl.style.color = '#dc2626';
       });
+    } else {
+      statusEl.innerHTML = lastLocal ? '✅ Last backup: ' + lastLocal : '⚠️ Firebase not connected.';
     }
   }
 }
@@ -19233,8 +19303,6 @@ function deleteDept(dept) {
 }
 
 // Wire renderItemsDeptList into showTab
-
-// App: login, canvas, boot
 // ── Login page canvas background animation ── DEEP SPACE ──
 (function() {
   function initLoginCanvas() {
@@ -20425,8 +20493,8 @@ if ('serviceWorker' in navigator) {
   var swUrl = URL.createObjectURL(blob);
   navigator.serviceWorker.register(swUrl).catch(function(e){ console.log('SW reg failed:', e); });
 }
-
-// Guide: loaded lazily
+</script>
+<script type="text/x-template" id="guide-tpl">
 function _renderGuideContent() {
 
   var badge = function(txt, bg, col, border) {
@@ -22375,7 +22443,6 @@ var _mobTab = 'dashboard';
 var _MOB_APP_HTML = ''; // stored on first load
 var _mobEntDept = '';
 var _mobDayClip = null;
-
 </script>
 </body>
 </html>
