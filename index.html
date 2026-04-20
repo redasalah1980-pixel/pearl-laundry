@@ -5919,7 +5919,7 @@ function precomputeAllMonths() {
     }
     // Compute getActiveDays (caches automatically)
     if (_activeDaysCache[ck] === undefined) getActiveDays(item.y, item.m);
-    setTimeout(computeNext, 15); // 15ms yield between months
+    setTimeout(computeNext, 5); // 5ms yield between months — faster warmup
   }
   computeNext();
 }
@@ -5929,11 +5929,23 @@ function schedulePrecompute() {
   // Run after 3s on login, then every 5 min
   _precomputeTimer = setTimeout(function() {
     precomputeAllMonths();
+    // Light refresh every 5 min: only current month
+    setInterval(function() {
+      var cm = new Date().getMonth() + 1;
+      invalidateMonthTotalsCache(CY, cm);
+      invalidateDayTotalsCache(CY, cm);
+      delete _activeDaysCache[CY + '_' + cm];
+      monthTotals(CY, cm);
+      getActiveDays(CY, cm);
+    }, 300000);
+    // Full refresh once per hour (not every 5 min)
     setInterval(function() {
       invalidateMonthTotalsCache();
       invalidateDayTotalsCache();
+      _activeDaysCache = {};
+      _targetCache = {};
       precomputeAllMonths();
-    }, 300000); // refresh every 5 minutes
+    }, 3600000);
   }, 3000);
 }
 
@@ -6240,10 +6252,10 @@ function refreshTab() {
   var now   = Date.now();
   var last  = _tabRenderTime[curTab] || 0;
   // Per-tab cache times: heavy calculation tabs get longer cache
-  var heavyTabs = { 'forecast':600000, 'analytics':600000, 'planning':600000, 'report':300000, 'benchmark':120000 }; // 10min/10min/5min/2min
+  var heavyTabs = { 'dashboard':15000, 'forecast':600000, 'analytics':600000, 'planning':600000, 'report':300000, 'benchmark':120000 }; // 10min/10min/5min/2min
   var cacheMs   = heavyTabs[curTab] || _TAB_CACHE_MS;
   var stale     = (now - last) > cacheMs;
-  var alwaysRender = ['entry','backup','dashboard'];
+  var alwaysRender = ['entry','backup'];
   if (alwaysRender.indexOf(curTab) === -1 && !stale) return;
   _tabRenderTime[curTab] = now;
   if (curTab === 'backup')    { renderBackupTab(); return; }
@@ -6324,10 +6336,8 @@ function rangeTotals(y, m, fromDay, toDay) {
 
 // Render 1: Dashboard, Entry, Monthly, Report
 function renderDash() {
-  // Invalidate caches for current month only when needed
   var _dm = parseInt(document.getElementById('dash-month')?.value || new Date().getMonth()+1);
-  // Only clear if data might have changed (not on cached tab re-renders)
-  invalidateMonthTotalsCache(CY, _dm);
+  // Do NOT clear cache here — setVal/Firebase listener handle cache invalidation
   // Show/hide end-of-month checklist
   var _eomInfo = shouldShowEomChecklist();
   var _eomContainer = document.getElementById('eom-checklist-container');
