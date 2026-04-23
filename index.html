@@ -836,31 +836,8 @@ function _ensureXLSX(cb) {
       <div class="tn-tab" id="nav-planning" onclick="showTab('planning')">🎯 Planning</div>
       <div class="tn-tab" id="nav-backup"   onclick="showTab('backup')">🛡️ Backup</div>
 
-      <!-- More dropdown -->
-      <div id="nav-more-wrap" style="position:relative;display:flex;align-items:stretch">
-        <div id="nav-more-btn" onclick="toggleMoreMenu()"
-          style="display:flex;align-items:center;gap:5px;padding:0 12px;height:54px;cursor:pointer;
-                 font-size:12px;font-weight:600;color:rgba(255,255,255,.6);border-bottom:2px solid transparent;
-                 white-space:nowrap;user-select:none;transition:all .15s">
-          ⋯ More <span style="font-size:9px">▾</span>
-        </div>
-        <div id="nav-more-menu"
-          style="display:none;position:fixed;top:54px;left:0;background:#0d1b2e;
-                 border:1px solid rgba(201,168,76,.3);border-top:2px solid #c9a84c;
-                 border-radius:0 0 12px 12px;box-shadow:0 16px 48px rgba(0,0,0,.6);
-                 z-index:99999;min-width:160px;overflow:hidden">
-          <div style="padding:8px 16px 5px;font-size:9px;font-weight:800;color:rgba(201,168,76,.5);letter-spacing:1px">SETTINGS</div>
-          <div id="nav-benchmark" onclick="showTab('benchmark');closeMoreMenu()"
-            style="display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;color:rgba(255,255,255,.8);
-                   font-size:13px;font-weight:600;border-top:1px solid rgba(255,255,255,.06);transition:background .15s"
-            onmouseover="this.style.background='rgba(201,168,76,.12)'" onmouseout="this.style.background=''">
-            🎯 Benchmark
-          </div>
-          
-          <div style="padding:8px 16px 5px;font-size:9px;font-weight:800;color:rgba(201,168,76,.5);letter-spacing:1px">SYSTEM</div>
-          
-        </div>
-      </div>
+      <!-- Benchmark as direct tab (replaced More dropdown) -->
+      <div class="tn-tab" id="nav-benchmark" onclick="showTab('benchmark')">🎯 Benchmark</div>
         </div>
     <div class="tn-right">
       <select class="year-sel" id="year-sel" onchange="changeYear(this.value)"></select>
@@ -5229,8 +5206,7 @@ function _bootApp(user) {
   scheduleMissingDeptCheck();
   // New month lock reminder (runs 6s after login — days 1-7 of each month only)
   setTimeout(checkNewMonthLockReminder, 6000);
-  // FX rate update reminder (runs 8s after login)
-  setTimeout(checkFxRateReminder, 8000);
+  // FX rate reminder disabled — rates managed manually
   // End-of-month checklist reminder (runs 10s after login)
   setTimeout(checkEomReminder, 10000);
   // Silent startup validation — runs 3s after boot, never blocks UI
@@ -5429,7 +5405,7 @@ function closeMobMore() {
   if (m) m.style.display = 'none';
 }
 var _tabRenderTime = {}; // { tabName: timestamp }
-var _TAB_CACHE_MS  = 30000; // 30 seconds — re-render if stale
+var _TAB_CACHE_MS  = 300000; // 5 minutes default — re-render only when stale
 
 function refreshTab() {
   var now   = Date.now();
@@ -5438,7 +5414,7 @@ function refreshTab() {
   var heavyTabs = { 'forecast':600000, 'analytics':600000, 'planning':600000, 'report':300000, 'benchmark':120000 }; // 10min/10min/5min/2min
   var cacheMs   = heavyTabs[curTab] || _TAB_CACHE_MS;
   var stale     = (now - last) > cacheMs;
-  var alwaysRender = ['entry','backup','dashboard'];
+  var alwaysRender = ['backup']; // dashboard+entry have their own smart skip guards
   if (alwaysRender.indexOf(curTab) === -1 && !stale) return;
   _tabRenderTime[curTab] = now;
   if (curTab === 'backup')    { renderBackupTab(); return; }
@@ -5516,9 +5492,14 @@ function rangeTotals(y, m, fromDay, toDay) {
   }
   return { qr: qr, kg: kg, pcs: pcs, activeDays: activeDays };
 }
+var _dashLastHash = '';
 function renderDash() {
-  // Cache is only invalidated on actual data writes (setVal/saveDay) — not on every render
   var _dm = parseInt(document.getElementById('dash-month')?.value || new Date().getMonth()+1);
+  // Skip full re-render if nothing changed — fast hash of month totals
+  var _mt = _monthTotalsCache[CY + '_' + _dm];
+  var _hash = CY + '_' + _dm + '_' + (_mt ? _mt.qr : '?') + '_' + _dirty;
+  if (_hash === _dashLastHash) return;
+  _dashLastHash = _hash;
   // Show/hide end-of-month checklist
   var _eomInfo = shouldShowEomChecklist();
   var _eomContainer = document.getElementById('eom-checklist-container');
@@ -5914,10 +5895,15 @@ function setEntDept(dept) {
 }
 
 
+var _entryLastHash = '';
 function renderEntry() {
   const m = parseInt(document.getElementById('ent-month')?.value || 1);
   const day = parseInt(document.getElementById('ent-day')?.value || 1);
   entDept = document.getElementById('ent-dept')?.value || DEPT_KEYS[0];
+  // Skip if nothing changed
+  var _eh = CY + '_' + m + '_' + day + '_' + entDept + '_' + (_monthTotalsCache[CY+'_'+m]||{}).qr;
+  if (_eh === _entryLastHash) return;
+  _entryLastHash = _eh;
   renderEntryTable();
   updateEntStats(m, day);
   updateEntryPriceStatus(m);
@@ -6308,6 +6294,12 @@ function saveDayConfirmed(m, day, updatePrices) {
   stampTimestamps(CY, m, entDept, day);
   commitSave(CY);
   logAudit('SAVE_DAY', entDept + ' · Day ' + day + ' ' + MONTH_NAMES[m-1] + ' ' + CY + (updatePrices ? '' : ' · prices kept'));
+  // Invalidate render caches so next visit to dashboard/entry shows fresh data
+  _dashLastHash = '';
+  _entryLastHash = '';
+  _yearHealthCacheKey = '';
+  _reportDirty = true;
+  _analyticsDirty = true;
   invalidateTabCache('dashboard');
   toast('✔ Saved — ' + entDept + ' day ' + day + ' ' + MONTH_NAMES[m-1] + (updatePrices ? '' : ' · old prices kept'), 'ok');
   setTimeout(autoCloudBackup, 2000);
@@ -16997,10 +16989,14 @@ function toggleYearHealth() {
   if (!isOpen) renderYearHealth();
 }
 
+var _yearHealthCacheKey = '';
+var _yearHealthCacheHtml = '';
 function renderYearHealth() {
   var wrap = document.getElementById('year-health-wrap');
   if (!wrap) return;
-
+  // Cache: only re-render when data changed or day changed
+  var _ck = CY + '_' + new Date().toDateString() + '_' + Object.keys(_monthTotalsCache).length;
+  if (_ck === _yearHealthCacheKey && _yearHealthCacheHtml) { wrap.innerHTML = _yearHealthCacheHtml; return; }
   var today = new Date();
   var curM  = today.getMonth() + 1;
   var curY  = today.getFullYear();
@@ -17058,9 +17054,9 @@ function renderYearHealth() {
 
   html += '</div>';
   wrap.innerHTML = html;
+  _yearHealthCacheKey = _ck;
+  _yearHealthCacheHtml = html;
 }
-
-function openMonthChecklist(m) {
   var existing = document.getElementById('_month_checklist_modal');
   if (existing) existing.remove();
 
