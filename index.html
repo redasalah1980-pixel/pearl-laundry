@@ -3,13 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>RS LaundryPro</title>
+<!-- Prevent white flash: set dark background immediately before any CSS loads -->
+<style>html,body{background:#040a16!important}#pg-login,#pg-licence{background:#040a16}</style>
+<!-- Fonts: preconnect + async load so they never block render -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap"></noscript>
 <style>
 /* ═══════════════════════════════════════════════════════════
    RS PEARL LAUNDRY — REDESIGNED UI  v2.0
    Performance-optimised + visual overhaul
    All CSS variable names preserved for JS compatibility
 ═══════════════════════════════════════════════════════════ */
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+/* fonts loaded via <link> in <head> for non-blocking render */
 
 :root{
   --navy:#0D1B2E;--navy2:#152238;--navy3:#1E3A5F;
@@ -3785,9 +3792,8 @@ document.addEventListener('click', function(e) {
 });
 
 window.addEventListener('DOMContentLoaded', function() {
-  // All pages start hidden in CSS — bootWithLicenceCheck decides which to show
-  // Small delay lets Firebase SDK initialise first
-  setTimeout(bootWithLicenceCheck, 300);
+  // Show login immediately — no delay needed
+  bootWithLicenceCheck();
   // Safety net: force login if nothing shows within 4 seconds
   setTimeout(function() {
     var login = document.getElementById('pg-login');
@@ -5113,6 +5119,9 @@ function schedulePrecompute() {
 function _bootApp(user) {
   document.getElementById('pg-login').style.display = 'none';
   document.getElementById('pg-app').style.display = 'flex';
+  // Restore app background (overrides the dark flash-prevention style)
+  document.body.style.background = '';
+  document.documentElement.style.background = '';
   if (window._stopLoginCanvas) window._stopLoginCanvas();
   document.getElementById('tn-name').textContent = user;
   // Apply hotel name + total rooms NOW that DOM is visible
@@ -17057,6 +17066,8 @@ function renderYearHealth() {
   _yearHealthCacheKey = _ck;
   _yearHealthCacheHtml = html;
 }
+
+function openMonthChecklist(m) {
   var existing = document.getElementById('_month_checklist_modal');
   if (existing) existing.remove();
 
