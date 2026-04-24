@@ -5001,8 +5001,10 @@ document.addEventListener('keydown', e => {
 let curTab = 'dashboard', entDept = DEPT_KEYS[0], priceDept = DEPT_KEYS[0];
 
 function bootApp(user) {
-  // Sync settings from Firebase first, then boot
-  syncSettingsFromFirebase(function() { _bootApp(user); });
+  // For session-based boot: start immediately, sync in background
+  _bootApp(user);
+  // Then sync settings silently in background
+  syncSettingsFromFirebase(function() {});
 }
 // ── Background pre-computation ────────────────────────────────
 // Pre-compute all months so Forecast/Analytics are instant
@@ -14304,20 +14306,15 @@ function _showActivationSuccess(holder) {
 
 function proceedToLogin() {
   document.getElementById('pg-licence').style.display = 'none';
-  // Sync credentials from Firebase BEFORE showing login
-  // so user always logs in with the latest stored credentials
+  // Show login immediately — no Firebase wait
+  document.getElementById('pg-login').style.display = 'flex';
+  // Sync credentials in background silently
   if (window._fbLoadKey) {
     window._fbLoadKey('pearl/settings/credentials').then(function(v) {
       if (v && v.user && v.pass) {
         try { _STORE.setItem('pearl_credentials', JSON.stringify({user:v.user, pass:v.pass})); } catch(e) {}
       }
-    }).catch(function(){}).then(function() {
-      document.getElementById('pg-login').style.display = 'flex';
-    }, function() {
-      document.getElementById('pg-login').style.display = 'flex';
-    });
-  } else {
-    document.getElementById('pg-login').style.display = 'flex';
+    }).catch(function(){});
   }
 }
 
@@ -17740,22 +17737,22 @@ function deleteDept(dept) {
   }
 
   // Init when login page is visible
-  document.addEventListener('DOMContentLoaded', function() {
-    initLoginCanvas();
-    // Start boot sequence
-    setTimeout(_startBoot, 300);
-    // Safety net
-    setTimeout(function() {
-      var anyVisible = ['pg-login','pg-app','pg-licence'].some(function(id) {
-        var el = document.getElementById(id);
-        return el && el.style.display !== 'none' && el.style.display !== '';
-      });
-      if (!anyVisible) {
-        var login = document.getElementById('pg-login');
-        if (login) login.style.display = 'flex';
-      }
-    }, 6000);
-  });
+  // DOMContentLoaded has already fired by the time this IIFE runs (script is at end of file)
+  // so we call directly instead of addEventListener
+  initLoginCanvas();
+  // Start boot sequence
+  setTimeout(_startBoot, 300);
+  // Safety net — if nothing shows within 4s, force login screen
+  setTimeout(function() {
+    var anyVisible = ['pg-login','pg-app','pg-licence'].some(function(id) {
+      var el = document.getElementById(id);
+      return el && el.style.display !== 'none' && el.style.display !== '';
+    });
+    if (!anyVisible) {
+      var login = document.getElementById('pg-login');
+      if (login) login.style.display = 'flex';
+    }
+  }, 4000);
 })();
 
 
