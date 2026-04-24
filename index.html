@@ -17757,6 +17757,18 @@ function deleteDept(dept) {
   // Init when login page is visible
   document.addEventListener('DOMContentLoaded', function() {
     initLoginCanvas();
+    // Boot the application
+    setTimeout(bootWithLicenceCheck, 400);
+    // Safety net: force login if nothing shows in 5s
+    setTimeout(function() {
+      var login = document.getElementById('pg-login');
+      var app   = document.getElementById('pg-app');
+      var lic   = document.getElementById('pg-licence');
+      var shown = (login && login.style.display === 'flex') ||
+                  (app   && app.style.display   !== 'none' && app.style.display !== '') ||
+                  (lic   && lic.style.display   === 'flex');
+      if (!shown && login) { login.style.display = 'flex'; }
+    }, 5000);
   });
 })();
 
