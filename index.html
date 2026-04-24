@@ -799,7 +799,8 @@ table.price-t tr:hover td{background:var(--grey3)}
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
   <!-- PWA Manifest --></head>
-<body style="visibility:hidden"><script>document.body.style.visibility=""</script>
+<body style="visibility:hidden">
+<script>document.body.style.visibility=""</script>
 
 <!-- LOGIN -->
 <!-- ══ LICENCE PAGE ══════════════════════════════════════════ -->
@@ -1086,7 +1087,7 @@ table.price-t tr:hover td{background:var(--grey3)}
   </div>
 
   <!-- DASHBOARD -->
-  <div class="pg on" id="tab-dashboard">
+  <div class="pg" id="tab-dashboard">
     <!-- ── Compact top bar ── -->
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
       <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:200px">
@@ -3526,13 +3527,10 @@ function _onFbReady() {
   setTimeout(pushLocalDataToFirebase, 2000);
   setTimeout(migrateLockedPrices, 3000);
 }
-// If fb-ready already fired (Firebase IIFE runs before this line), call now
-// Otherwise wait for the event
-if (window._fbReady) {
-  _onFbReady();
-} else {
-  window.addEventListener('fb-ready', _onFbReady);
-}
+// Firebase IIFE fires fb-ready BEFORE this listener registers (script order issue)
+// So check the flag immediately - if already ready, call now; else wait for event
+if (window._fbReady) { _onFbReady(); }
+else { window.addEventListener('fb-ready', _onFbReady); }
 
 // ── Licence check on page load ──
 // ══════════════════════════════════════════════════════════════
@@ -5057,27 +5055,16 @@ function schedulePrecompute() {
 function _bootApp(user) {
   document.getElementById('pg-login').style.display = 'none';
   document.getElementById('pg-app').style.display = 'flex';
-  // Show loading overlay so content area is never visibly blank
+  if (window._stopLoginCanvas) window._stopLoginCanvas();
+  // Show loading overlay so blank nav never flashes
   (function() {
-    var existing = document.getElementById('_boot_overlay');
-    if (existing) return;
     var ov = document.createElement('div');
     ov.id = '_boot_overlay';
     ov.style.cssText = 'position:fixed;inset:0;top:54px;background:#f0f4f8;z-index:9000;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px';
-    ov.innerHTML = '<div style="width:48px;height:48px;background:#0d1b2e;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:Georgia,serif;font-style:italic;font-weight:900;font-size:16px;color:#c9a84c">RS</div>' +
-      '<div style="font-size:14px;font-weight:700;color:#0d1b2e;letter-spacing:.3px">Loading your data…</div>' +
-      '<div style="width:160px;height:3px;background:#e2e8f0;border-radius:4px;overflow:hidden">' +
-        '<div id="_boot_bar" style="height:100%;width:0%;background:#c9a84c;border-radius:4px;transition:width 1.8s ease"></div>' +
-      '</div>';
+    ov.innerHTML = '<div style="width:48px;height:48px;background:#0d1b2e;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:Georgia,serif;font-style:italic;font-weight:900;font-size:16px;color:#c9a84c">RS</div><div style="font-size:14px;font-weight:700;color:#0d1b2e">Loading data…</div><div style="width:160px;height:3px;background:#e2e8f0;border-radius:4px;overflow:hidden"><div id=\"_boot_bar\" style=\"height:100%;width:0%;background:#c9a84c;border-radius:4px;transition:width 1.5s ease\"></div></div>';
     document.body.appendChild(ov);
-    setTimeout(function() { var b = document.getElementById('_boot_bar'); if(b) b.style.width='85%'; }, 50);
-    // Remove overlay once first render completes (max 3s)
-    setTimeout(function() {
-      var o = document.getElementById('_boot_overlay');
-      if (o) { o.style.opacity='0'; o.style.transition='opacity .3s'; setTimeout(function(){ if(o.parentNode) o.parentNode.removeChild(o); }, 300); }
-    }, 2000);
+    setTimeout(function(){ var b=document.getElementById('_boot_bar'); if(b) b.style.width='90%'; }, 50);
   })();
-  if (window._stopLoginCanvas) window._stopLoginCanvas();
   document.getElementById('tn-name').textContent = user;
   // Apply hotel name + total rooms NOW that DOM is visible
   // Read from localStorage directly (fastest, no Firebase needed)
@@ -5150,9 +5137,9 @@ function _bootApp(user) {
     var _m = parseInt(document.getElementById('dash-month')?.value || new Date().getMonth()+1);
     invalidateMonthTotalsCache(CY, _m);
     if (typeof renderDash === 'function') renderDash();
-    // Remove boot overlay — data is now rendered
-    var o = document.getElementById('_boot_overlay');
-    if (o) { o.style.opacity='0'; o.style.transition='opacity .25s'; setTimeout(function(){ if(o.parentNode) o.parentNode.removeChild(o); }, 260); }
+    // Remove loading overlay once data renders
+    var ov = document.getElementById('_boot_overlay');
+    if (ov) { ov.style.transition='opacity .3s'; ov.style.opacity='0'; setTimeout(function(){ if(ov.parentNode) ov.parentNode.removeChild(ov); }, 320); }
   }, 1500);
   // Sync targets staggered — don't fire 12 Firebase calls simultaneously
   (function() {
@@ -17762,13 +17749,11 @@ function deleteDept(dept) {
     draw();
   }
 
-  // Init when login page is visible
-  // DOMContentLoaded has already fired by the time this IIFE runs (script is at end of file)
-  // so we call directly instead of addEventListener
+  // DOMContentLoaded already fired by the time this IIFE runs (18000+ line file)
+  // Call directly instead of addEventListener
   initLoginCanvas();
-  // Start boot sequence
   setTimeout(_startBoot, 300);
-  // Safety net — if nothing shows within 4s, force login screen
+  // Safety net: force login visible after 4s if nothing showed
   setTimeout(function() {
     var anyVisible = ['pg-login','pg-app','pg-licence'].some(function(id) {
       var el = document.getElementById(id);
@@ -17776,7 +17761,7 @@ function deleteDept(dept) {
     });
     if (!anyVisible) {
       var login = document.getElementById('pg-login');
-      if (login) login.style.display = 'flex';
+      if (login) { login.style.display = 'flex'; }
     }
   }, 4000);
 })();
@@ -18462,14 +18447,12 @@ function emailFinance() {
 <script type="text/x-template" id="guide-tpl">
 function _renderGuideContent(){}>
 <script>
-// Reset all page sections to hidden on unload
-// This ensures the browser tab thumbnail always shows a blank state, never a stale app state
 window.addEventListener('beforeunload', function() {
-  var ids = ['pg-app', 'pg-login', 'pg-licence'];
-  ids.forEach(function(id) {
+  ['pg-app','pg-login','pg-licence'].forEach(function(id) {
     var el = document.getElementById(id);
     if (el) el.style.display = 'none';
   });
+  document.body.style.visibility = 'hidden';
 });
 </script>
 </body>
