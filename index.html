@@ -799,11 +799,11 @@ table.price-t tr:hover td{background:var(--grey3)}
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
   <!-- PWA Manifest --></head>
-<body>
+<body style="visibility:hidden"><script>document.body.style.visibility=""</script>
 
 <!-- LOGIN -->
 <!-- ══ LICENCE PAGE ══════════════════════════════════════════ -->
-<div id="pg-licence">
+<div id="pg-licence" style="display:none">
   <div class="licence-card">
 
     <!-- Lock icon — generic -->
@@ -856,7 +856,7 @@ table.price-t tr:hover td{background:var(--grey3)}
   </div>
 </div>
 
-<div id="pg-login">
+<div id="pg-login" style="display:none">
   <canvas id="login-canvas"></canvas>
   <div class="login-card">
     <div class="l-logo" style="width:100px;height:100px;margin:0 auto;display:flex;align-items:center;justify-content:center;background:rgba(201,168,76,.15);border:2px solid rgba(201,168,76,.4);border-radius:50%">
@@ -901,7 +901,7 @@ table.price-t tr:hover td{background:var(--grey3)}
 <!-- APP -->
 
 <!-- APP -->
-<div id="pg-app">
+<div id="pg-app" style="display:none">
   <nav class="topnav">
     <a class="tn-brand" onclick="showAbout()" title="About · RS LaundryPro" style="cursor:pointer">
       <div style="width:28px;height:28px;background:#c9a84c;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:Georgia,serif;font-style:italic;font-weight:900;font-size:11px;color:#0d1b2e;flex-shrink:0">RS</div>
@@ -2387,7 +2387,7 @@ table.price-t tr:hover td{background:var(--grey3)}
 
 
 <!-- FULL MONTH IMPORT MODAL -->
-<div class="modal-overlay hidden" id="fmi-modal">
+<div class="modal-overlay hidden" id="fmi-modal" style="display:none">
   <div class="modal-box" style="width:680px;max-width:96vw">
     <div style="background:linear-gradient(135deg,#4c1d95,#6d28d9);margin:-28px -32px 24px;padding:20px 28px;border-radius:14px 14px 0 0;display:flex;align-items:center;justify-content:space-between">
       <div>
@@ -2434,7 +2434,7 @@ table.price-t tr:hover td{background:var(--grey3)}
 </div>
 
 <!-- IMPORT EXCEL MODAL -->
-<div class="modal-overlay hidden" id="xl-modal">
+<div class="modal-overlay hidden" id="xl-modal" style="display:none">
   <div class="modal-box" style="width:720px;max-width:96vw">
     <div style="background:#1b5e20;margin:-28px -32px 24px;padding:20px 28px;border-radius:14px 14px 0 0;display:flex;align-items:center;justify-content:space-between">
       <div>
@@ -2485,7 +2485,7 @@ table.price-t tr:hover td{background:var(--grey3)}
 
 
 
-<div class="modal-overlay hidden" id="bulk-modal">
+<div class="modal-overlay hidden" id="bulk-modal" style="display:none">
   <div class="modal-box" style="width:800px;max-width:96vw">
     <div style="background:var(--navy);margin:-28px -32px 24px;padding:20px 28px;border-radius:14px 14px 0 0;display:flex;align-items:center;justify-content:space-between">
       <div>
@@ -2540,7 +2540,7 @@ table.price-t tr:hover td{background:var(--grey3)}
 
 
 <!-- CLEAR DATA MODAL -->
-<div class="modal-overlay hidden" id="clear-modal">
+<div class="modal-overlay hidden" id="clear-modal" style="display:none">
   <div class="modal-box" style="width:480px;max-width:96vw">
     <div id="clear-modal-header" style="background:#dc2626;margin:-28px -32px 24px;padding:20px 28px;border-radius:14px 14px 0 0;display:flex;align-items:center;justify-content:space-between">
       <div>
@@ -2637,7 +2637,7 @@ table.price-t tr:hover td{background:var(--grey3)}
 </div>
 
 <!-- ADD ITEM MODAL -->
-<div class="modal-overlay hidden" id="add-item-modal">
+<div class="modal-overlay hidden" id="add-item-modal" style="display:none">
   <div class="modal-box" style="width:480px;max-width:96vw">
     <div style="background:#1d4ed8;margin:-28px -32px 24px;padding:20px 28px;border-radius:14px 14px 0 0;display:flex;align-items:center;justify-content:space-between">
       <div>
@@ -2683,7 +2683,7 @@ table.price-t tr:hover td{background:var(--grey3)}
 </div>
 
 <!-- ADD DEPARTMENT MODAL -->
-<div class="modal-overlay hidden" id="add-dept-modal">
+<div class="modal-overlay hidden" id="add-dept-modal" style="display:none">
   <div class="modal-box" style="width:560px;max-width:96vw">
     <div style="background:#7e22ce;margin:-28px -32px 24px;padding:20px 28px;border-radius:14px 14px 0 0;display:flex;align-items:center;justify-content:space-between">
       <div>
@@ -2728,7 +2728,7 @@ table.price-t tr:hover td{background:var(--grey3)}
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" style="display:none"></div>
 <!-- Error capture badge — shows in corner when silent JS errors occur -->
 <div id="err-badge" style="display:none;position:fixed;bottom:20px;left:20px;z-index:10000;
   background:#991b1b;color:#fff;padding:9px 14px;border-radius:10px;font-size:12px;font-weight:700;
@@ -3513,7 +3513,7 @@ window.addEventListener('resize', function() {
   else if (!isMobile() && mobV) { mob.style.display='none'; desk.style.display='flex'; }
 });
 
-window.addEventListener('fb-ready', function() {
+function _onFbReady() {
   attachFbListener(CY);
   loadPriceSchedule();
   loadAuditLog();
@@ -3521,15 +3521,18 @@ window.addEventListener('fb-ready', function() {
   loadFxRates();
   loadHotelSettings();
   syncAllTargetsFromFB();
-  // Auto-sync all occupancy data from Firebase on startup
   autoSyncOccupancyFromFB();
-  // Daily auto-backup
   checkAndRunDailyAutoBackup();
-  // Auto-push any existing local data up to Firebase
   setTimeout(pushLocalDataToFirebase, 2000);
-  // One-time migration: stamp locked prices on existing data
   setTimeout(migrateLockedPrices, 3000);
-});
+}
+// If fb-ready already fired (Firebase IIFE runs before this line), call now
+// Otherwise wait for the event
+if (window._fbReady) {
+  _onFbReady();
+} else {
+  window.addEventListener('fb-ready', _onFbReady);
+}
 
 // ── Licence check on page load ──
 // ══════════════════════════════════════════════════════════════
@@ -5054,6 +5057,26 @@ function schedulePrecompute() {
 function _bootApp(user) {
   document.getElementById('pg-login').style.display = 'none';
   document.getElementById('pg-app').style.display = 'flex';
+  // Show loading overlay so content area is never visibly blank
+  (function() {
+    var existing = document.getElementById('_boot_overlay');
+    if (existing) return;
+    var ov = document.createElement('div');
+    ov.id = '_boot_overlay';
+    ov.style.cssText = 'position:fixed;inset:0;top:54px;background:#f0f4f8;z-index:9000;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px';
+    ov.innerHTML = '<div style="width:48px;height:48px;background:#0d1b2e;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:Georgia,serif;font-style:italic;font-weight:900;font-size:16px;color:#c9a84c">RS</div>' +
+      '<div style="font-size:14px;font-weight:700;color:#0d1b2e;letter-spacing:.3px">Loading your data…</div>' +
+      '<div style="width:160px;height:3px;background:#e2e8f0;border-radius:4px;overflow:hidden">' +
+        '<div id="_boot_bar" style="height:100%;width:0%;background:#c9a84c;border-radius:4px;transition:width 1.8s ease"></div>' +
+      '</div>';
+    document.body.appendChild(ov);
+    setTimeout(function() { var b = document.getElementById('_boot_bar'); if(b) b.style.width='85%'; }, 50);
+    // Remove overlay once first render completes (max 3s)
+    setTimeout(function() {
+      var o = document.getElementById('_boot_overlay');
+      if (o) { o.style.opacity='0'; o.style.transition='opacity .3s'; setTimeout(function(){ if(o.parentNode) o.parentNode.removeChild(o); }, 300); }
+    }, 2000);
+  })();
   if (window._stopLoginCanvas) window._stopLoginCanvas();
   document.getElementById('tn-name').textContent = user;
   // Apply hotel name + total rooms NOW that DOM is visible
@@ -5127,6 +5150,9 @@ function _bootApp(user) {
     var _m = parseInt(document.getElementById('dash-month')?.value || new Date().getMonth()+1);
     invalidateMonthTotalsCache(CY, _m);
     if (typeof renderDash === 'function') renderDash();
+    // Remove boot overlay — data is now rendered
+    var o = document.getElementById('_boot_overlay');
+    if (o) { o.style.opacity='0'; o.style.transition='opacity .25s'; setTimeout(function(){ if(o.parentNode) o.parentNode.removeChild(o); }, 260); }
   }, 1500);
   // Sync targets staggered — don't fire 12 Firebase calls simultaneously
   (function() {
@@ -18435,5 +18461,16 @@ function emailFinance() {
 </script>
 <script type="text/x-template" id="guide-tpl">
 function _renderGuideContent(){}>
+<script>
+// Reset all page sections to hidden on unload
+// This ensures the browser tab thumbnail always shows a blank state, never a stale app state
+window.addEventListener('beforeunload', function() {
+  var ids = ['pg-app', 'pg-login', 'pg-licence'];
+  ids.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+});
+</script>
 </body>
 </html>
