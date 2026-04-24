@@ -4307,8 +4307,13 @@ function getTabAccess() {
 // ── Pull settings from Firebase so ALL devices share same config ──
 function syncSettingsFromFirebase(callback) {
   if (!window._fbLoadKey) { if(callback) callback(); return; }
-  var done = 0;
-  function check() { done++; if (done === 3 && callback) callback(); }
+  var done = 0; var fired = false;
+  function check() {
+    done++;
+    if ((done === 3 || fired) && !fired) { fired = true; if(callback) callback(); }
+  }
+  // Safety: always boot within 3 seconds regardless of Firebase
+  setTimeout(function() { if (!fired) { fired = true; if(callback) callback(); } }, 3000);
   window._fbLoadKey('pearl/settings/credentials').then(function(v) {
     if (v && v.user && v.pass) { try { _STORE.setItem(CREDS_KEY, JSON.stringify(v)); } catch(e) {} }
     check();
