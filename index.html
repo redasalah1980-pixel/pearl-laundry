@@ -800,7 +800,6 @@ table.price-t tr:hover td{background:var(--grey3)}
 
   <!-- PWA Manifest --></head>
 <body style="visibility:hidden">
-<script>document.body.style.visibility=""</script>
 
 <!-- LOGIN -->
 <!-- ══ LICENCE PAGE ══════════════════════════════════════════ -->
@@ -5055,6 +5054,7 @@ function schedulePrecompute() {
 function _bootApp(user) {
   document.getElementById('pg-login').style.display = 'none';
   document.getElementById('pg-app').style.display = 'flex';
+  document.body.style.visibility = '';
   if (window._stopLoginCanvas) window._stopLoginCanvas();
   // Show loading overlay so blank nav never flashes
   (function() {
@@ -14191,6 +14191,7 @@ function _updateLastChecked(cached) {
 // ── Show the licence activation screen ──
 function _showLicenceScreen(errMsg) {
   document.getElementById('pg-licence').style.display = 'flex';
+  document.body.style.visibility = '';
   document.getElementById('pg-login').style.display   = 'none';
   var appEl = document.getElementById('pg-app');
   if (appEl) appEl.style.display = 'none';
@@ -14319,6 +14320,7 @@ function _showActivationSuccess(holder) {
 
 function proceedToLogin() {
   document.getElementById('pg-licence').style.display = 'none';
+  document.body.style.visibility = '';
   // Show login immediately — no Firebase wait
   document.getElementById('pg-login').style.display = 'flex';
   // Sync credentials in background silently
@@ -17759,6 +17761,7 @@ function deleteDept(dept) {
       var el = document.getElementById(id);
       return el && el.style.display !== 'none' && el.style.display !== '';
     });
+    document.body.style.visibility = '';
     if (!anyVisible) {
       var login = document.getElementById('pg-login');
       if (login) { login.style.display = 'flex'; }
