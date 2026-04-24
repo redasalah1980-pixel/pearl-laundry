@@ -2385,7 +2385,7 @@ table.price-t tr:hover td{background:var(--grey3)}
 
 
 <!-- FULL MONTH IMPORT MODAL -->
-<div class="modal-overlay hidden" id="fmi-modal" style="display:none">
+<div class="modal-overlay hidden" id="fmi-modal">
   <div class="modal-box" style="width:680px;max-width:96vw">
     <div style="background:linear-gradient(135deg,#4c1d95,#6d28d9);margin:-28px -32px 24px;padding:20px 28px;border-radius:14px 14px 0 0;display:flex;align-items:center;justify-content:space-between">
       <div>
@@ -2432,7 +2432,7 @@ table.price-t tr:hover td{background:var(--grey3)}
 </div>
 
 <!-- IMPORT EXCEL MODAL -->
-<div class="modal-overlay hidden" id="xl-modal" style="display:none">
+<div class="modal-overlay hidden" id="xl-modal">
   <div class="modal-box" style="width:720px;max-width:96vw">
     <div style="background:#1b5e20;margin:-28px -32px 24px;padding:20px 28px;border-radius:14px 14px 0 0;display:flex;align-items:center;justify-content:space-between">
       <div>
@@ -2483,7 +2483,7 @@ table.price-t tr:hover td{background:var(--grey3)}
 
 
 
-<div class="modal-overlay hidden" id="bulk-modal" style="display:none">
+<div class="modal-overlay hidden" id="bulk-modal">
   <div class="modal-box" style="width:800px;max-width:96vw">
     <div style="background:var(--navy);margin:-28px -32px 24px;padding:20px 28px;border-radius:14px 14px 0 0;display:flex;align-items:center;justify-content:space-between">
       <div>
@@ -2538,7 +2538,7 @@ table.price-t tr:hover td{background:var(--grey3)}
 
 
 <!-- CLEAR DATA MODAL -->
-<div class="modal-overlay hidden" id="clear-modal" style="display:none">
+<div class="modal-overlay hidden" id="clear-modal">
   <div class="modal-box" style="width:480px;max-width:96vw">
     <div id="clear-modal-header" style="background:#dc2626;margin:-28px -32px 24px;padding:20px 28px;border-radius:14px 14px 0 0;display:flex;align-items:center;justify-content:space-between">
       <div>
@@ -2635,7 +2635,7 @@ table.price-t tr:hover td{background:var(--grey3)}
 </div>
 
 <!-- ADD ITEM MODAL -->
-<div class="modal-overlay hidden" id="add-item-modal" style="display:none">
+<div class="modal-overlay hidden" id="add-item-modal">
   <div class="modal-box" style="width:480px;max-width:96vw">
     <div style="background:#1d4ed8;margin:-28px -32px 24px;padding:20px 28px;border-radius:14px 14px 0 0;display:flex;align-items:center;justify-content:space-between">
       <div>
@@ -2681,7 +2681,7 @@ table.price-t tr:hover td{background:var(--grey3)}
 </div>
 
 <!-- ADD DEPARTMENT MODAL -->
-<div class="modal-overlay hidden" id="add-dept-modal" style="display:none">
+<div class="modal-overlay hidden" id="add-dept-modal">
   <div class="modal-box" style="width:560px;max-width:96vw">
     <div style="background:#7e22ce;margin:-28px -32px 24px;padding:20px 28px;border-radius:14px 14px 0 0;display:flex;align-items:center;justify-content:space-between">
       <div>
@@ -3524,8 +3524,22 @@ function _onFbReady() {
   setTimeout(pushLocalDataToFirebase, 2000);
   setTimeout(migrateLockedPrices, 3000);
 }
-if (window._fbReady) { _onFbReady(); }
-else { window.addEventListener('fb-ready', _onFbReady); }
+// fb-ready fires during Firebase IIFE (line ~2847) BEFORE this listener registers
+// Check flag immediately — if already fired, call now
+if (window._fbReady) {
+  _onFbReady();
+} else {
+  window.addEventListener('fb-ready', function() {
+    _onFbReady();
+    // Data just loaded — refresh whatever tab is visible
+    setTimeout(function() {
+      if (typeof refreshTab === 'function') {
+        _tabRenderTime = {}; // clear cache so refresh is forced
+        refreshTab();
+      }
+    }, 500);
+  });
+}
 
 // ── Licence check on page load ──
 // ══════════════════════════════════════════════════════════════
@@ -5118,12 +5132,13 @@ function _bootApp(user) {
   } catch(e) {}
   showTab(firstTab);
   schedulePrecompute(); // pre-compute all months in background
-  // Re-render dashboard after short delay — Firebase data may not be ready yet on first render
-  setTimeout(function() {
-    var _m = parseInt(document.getElementById('dash-month')?.value || new Date().getMonth()+1);
-    invalidateMonthTotalsCache(CY, _m);
-    if (typeof renderDash === 'function') renderDash();
-  }, 1500);
+  // Render at 1s, 2.5s and 5s to catch Firebase data arriving at different speeds
+  [1000, 2500, 5000].forEach(function(ms) {
+    setTimeout(function() {
+      _tabRenderTime = {}; // force re-render regardless of cache
+      if (typeof refreshTab === 'function') refreshTab();
+    }, ms);
+  });
   // Sync targets staggered — don't fire 12 Firebase calls simultaneously
   (function() {
     var _tm = 1;
@@ -14113,7 +14128,7 @@ function _reVerifyLicence(cached) {
   var _timer = setTimeout(function() {
     if (_done) return; _done = true;
     if (_licenceWithinGrace(cached)) { proceedToLogin(); }
-    else { _showLicenceScreen('Cannot connect — check internet.'); }
+    else { _showLicenceScreen('Connection timeout.'); }
   }, 3000);
   window._fbDB.ref('pearl/licences/' + keyClean).once('value').then(function(snap) {
     if (_done) return; _done = true; clearTimeout(_timer);
@@ -14154,7 +14169,7 @@ function _reVerifyLicence(cached) {
   }).catch(function(e) {
     if (_done) return; _done = true; clearTimeout(_timer);
     if (_licenceWithinGrace(cached)) { proceedToLogin(); }
-    else { _showLicenceScreen('Cannot verify licence. Check internet.'); }
+    else { _showLicenceScreen('Cannot verify licence.'); }
   });
 }
 
@@ -17735,9 +17750,8 @@ function deleteDept(dept) {
     draw();
   }
 
-  // DOMContentLoaded already fired — call directly (script is at line 17000+)
+  // DOMContentLoaded already fired by the time this IIFE runs
   initLoginCanvas();
-  // Start boot: check session/licence, may hide login and show app
   setTimeout(_startBoot, 300);
 })();
 
