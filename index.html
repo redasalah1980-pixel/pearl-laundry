@@ -14982,7 +14982,7 @@ function showToast(msg, type) { toast(msg, type || ''); }
 
 // ════════════════════════════════════════════════════════════════
 // Auto-login + pre-sync credentials from Firebase before login
-(function() {
+function _runAutoLogin() {
   const u = _SESSION.getItem('ph_user');
   if (u) { bootApp(u); return; }
   // Pre-sync credentials from Firebase so login works on any device
@@ -15015,7 +15015,13 @@ function showToast(msg, type) { toast(msg, type || ''); }
 
 window.addEventListener('fb-ready', function() { preSyncCreds(function(){}); });
   }
-})();
+}
+// Run after DOM ready so pg-app exists and Firebase has time to init
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', function() { setTimeout(_runAutoLogin, 200); });
+} else {
+  setTimeout(_runAutoLogin, 200);
+}
 
 
 // ════════════════════════════════════════════════════════════════
@@ -17762,18 +17768,7 @@ function deleteDept(dept) {
   // Init when login page is visible
   document.addEventListener('DOMContentLoaded', function() {
     initLoginCanvas();
-    // Boot the application
-    setTimeout(bootWithLicenceCheck, 400);
-    // Safety net: force login if nothing shows in 5s
-    setTimeout(function() {
-      var login = document.getElementById('pg-login');
-      var app   = document.getElementById('pg-app');
-      var lic   = document.getElementById('pg-licence');
-      var shown = (login && login.style.display === 'flex') ||
-                  (app   && app.style.display   !== 'none' && app.style.display !== '') ||
-                  (lic   && lic.style.display   === 'flex');
-      if (!shown && login) { login.style.display = 'flex'; }
-    }, 5000);
+    // Boot handled by _runAutoLogin below
   });
 })();
 
