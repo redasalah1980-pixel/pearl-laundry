@@ -3806,7 +3806,7 @@ window.addEventListener('DOMContentLoaded', function() {
       login.style.display = 'flex';
       if (typeof initLoginCanvas === 'function') initLoginCanvas();
     }
-  }, 4000);
+  }, 2000); // Safety net: 2s max dark screen
 });
 
 // ── Monthly export menu toggle ────────────────────────────────
@@ -14193,8 +14193,23 @@ function _reVerifyLicence(cached) {
     return;
   }
 
+  // Timeout: if Firebase doesn't respond in 2.5s (e.g. file:// or offline), fall back gracefully
+  var _reVerifyDone = false;
+  var _reVerifyTimer = setTimeout(function() {
+    if (_reVerifyDone) return;
+    _reVerifyDone = true;
+    if (_licenceWithinGrace(cached)) {
+      proceedToLogin();
+    } else {
+      _showLicenceScreen('Cannot verify your licence — connection timeout. Please check your internet.');
+    }
+  }, 2500);
+
   var keyClean = cached.key.replace(/-/g, '');
   window._fbDB.ref('pearl/licences/' + keyClean).once('value').then(function(snap) {
+    if (_reVerifyDone) return; // already handled by timeout
+    _reVerifyDone = true;
+    clearTimeout(_reVerifyTimer);
     var data = snap.val();
 
     // Master key — always valid
