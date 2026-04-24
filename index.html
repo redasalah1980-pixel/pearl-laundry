@@ -14980,48 +14980,22 @@ function showToast(msg, type) { toast(msg, type || ''); }
 
 
 
-// ════════════════════════════════════════════════════════════════
-// Auto-login + pre-sync credentials from Firebase before login
-function _runAutoLogin() {
-  const u = _SESSION.getItem('ph_user');
-  if (u) { bootApp(u); return; }
-  // Pre-sync credentials from Firebase so login works on any device
-  function preSyncCreds(callback) {
-    if (!window._fbLoadKey) { callback(); return; }
-    var done = 0;
-    function check() { if (++done === 2 && callback) callback(); }
-    window._fbLoadKey('pearl/settings/credentials').then(function(v) {
-      if (v && v.user && v.pass) { try { _STORE.setItem(CREDS_KEY, JSON.stringify(v)); } catch(e) {} }
-      check();
-    }).catch(check);
-    window._fbLoadKey('pearl/settings/team_accounts').then(function(v) {
-      if (v && Array.isArray(v)) { try { _STORE.setItem('pearl_team_accounts', JSON.stringify(v)); } catch(e) {} }
-      check();
-    }).catch(check);
-  }
-  if (window._fbReady) {
-    preSyncCreds(function(){});
-  } else {
-    window.addEventListener('resize', function() {
-  var mob = document.getElementById('mob-app');
-  var desk = document.getElementById('pg-app');
-  if (!mob || !desk) return;
-  var mobV = mob.style.display === 'flex';
-  var deskV = desk.style.display === 'flex';
-  if (!mobV && !deskV) return;
-  if (isMobile() && deskV) { desk.style.display='none'; mob.style.display='flex'; initMobileApp(); }
-  else if (!isMobile() && mobV) { mob.style.display='none'; desk.style.display='flex'; }
-});
 
-window.addEventListener('fb-ready', function() { preSyncCreds(function(){}); });
+// ════════════════════════════════════════════════════════════════
+// BOOT SEQUENCE — single entry point
+// ════════════════════════════════════════════════════════════════
+function _startBoot() {
+  // If user already logged in this session, restore directly
+  var u = _SESSION.getItem('ph_user');
+  if (u) {
+    bootApp(u);
+    return;
   }
+  // Otherwise go through licence check → login screen
+  bootWithLicenceCheck();
 }
-// Run after DOM ready so pg-app exists and Firebase has time to init
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', function() { setTimeout(_runAutoLogin, 200); });
-} else {
-  setTimeout(_runAutoLogin, 200);
-}
+
+
 
 
 // ════════════════════════════════════════════════════════════════
@@ -17768,7 +17742,19 @@ function deleteDept(dept) {
   // Init when login page is visible
   document.addEventListener('DOMContentLoaded', function() {
     initLoginCanvas();
-    // Boot handled by _runAutoLogin below
+    // Start boot sequence
+    setTimeout(_startBoot, 300);
+    // Safety net
+    setTimeout(function() {
+      var anyVisible = ['pg-login','pg-app','pg-licence'].some(function(id) {
+        var el = document.getElementById(id);
+        return el && el.style.display !== 'none' && el.style.display !== '';
+      });
+      if (!anyVisible) {
+        var login = document.getElementById('pg-login');
+        if (login) login.style.display = 'flex';
+      }
+    }, 6000);
   });
 })();
 
