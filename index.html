@@ -2385,7 +2385,7 @@ table.price-t tr:hover td{background:var(--grey3)}
 
 
 <!-- FULL MONTH IMPORT MODAL -->
-<div class="modal-overlay hidden" id="fmi-modal">
+<div class="modal-overlay hidden" id="fmi-modal" style="display:none">
   <div class="modal-box" style="width:680px;max-width:96vw">
     <div style="background:linear-gradient(135deg,#4c1d95,#6d28d9);margin:-28px -32px 24px;padding:20px 28px;border-radius:14px 14px 0 0;display:flex;align-items:center;justify-content:space-between">
       <div>
@@ -2432,7 +2432,7 @@ table.price-t tr:hover td{background:var(--grey3)}
 </div>
 
 <!-- IMPORT EXCEL MODAL -->
-<div class="modal-overlay hidden" id="xl-modal">
+<div class="modal-overlay hidden" id="xl-modal" style="display:none">
   <div class="modal-box" style="width:720px;max-width:96vw">
     <div style="background:#1b5e20;margin:-28px -32px 24px;padding:20px 28px;border-radius:14px 14px 0 0;display:flex;align-items:center;justify-content:space-between">
       <div>
@@ -2483,7 +2483,7 @@ table.price-t tr:hover td{background:var(--grey3)}
 
 
 
-<div class="modal-overlay hidden" id="bulk-modal">
+<div class="modal-overlay hidden" id="bulk-modal" style="display:none">
   <div class="modal-box" style="width:800px;max-width:96vw">
     <div style="background:var(--navy);margin:-28px -32px 24px;padding:20px 28px;border-radius:14px 14px 0 0;display:flex;align-items:center;justify-content:space-between">
       <div>
@@ -2538,7 +2538,7 @@ table.price-t tr:hover td{background:var(--grey3)}
 
 
 <!-- CLEAR DATA MODAL -->
-<div class="modal-overlay hidden" id="clear-modal">
+<div class="modal-overlay hidden" id="clear-modal" style="display:none">
   <div class="modal-box" style="width:480px;max-width:96vw">
     <div id="clear-modal-header" style="background:#dc2626;margin:-28px -32px 24px;padding:20px 28px;border-radius:14px 14px 0 0;display:flex;align-items:center;justify-content:space-between">
       <div>
@@ -2635,7 +2635,7 @@ table.price-t tr:hover td{background:var(--grey3)}
 </div>
 
 <!-- ADD ITEM MODAL -->
-<div class="modal-overlay hidden" id="add-item-modal">
+<div class="modal-overlay hidden" id="add-item-modal" style="display:none">
   <div class="modal-box" style="width:480px;max-width:96vw">
     <div style="background:#1d4ed8;margin:-28px -32px 24px;padding:20px 28px;border-radius:14px 14px 0 0;display:flex;align-items:center;justify-content:space-between">
       <div>
@@ -2681,7 +2681,7 @@ table.price-t tr:hover td{background:var(--grey3)}
 </div>
 
 <!-- ADD DEPARTMENT MODAL -->
-<div class="modal-overlay hidden" id="add-dept-modal">
+<div class="modal-overlay hidden" id="add-dept-modal" style="display:none">
   <div class="modal-box" style="width:560px;max-width:96vw">
     <div style="background:#7e22ce;margin:-28px -32px 24px;padding:20px 28px;border-radius:14px 14px 0 0;display:flex;align-items:center;justify-content:space-between">
       <div>
@@ -3519,27 +3519,17 @@ function _onFbReady() {
   loadFxRates();
   loadHotelSettings();
   syncAllTargetsFromFB();
+  // Auto-sync all occupancy data from Firebase on startup
   autoSyncOccupancyFromFB();
+  // Daily auto-backup
   checkAndRunDailyAutoBackup();
+  // Auto-push any existing local data up to Firebase
   setTimeout(pushLocalDataToFirebase, 2000);
+  // One-time migration: stamp locked prices on existing data
   setTimeout(migrateLockedPrices, 3000);
 }
-// fb-ready fires during Firebase IIFE (line ~2847) BEFORE this listener registers
-// Check flag immediately — if already fired, call now
-if (window._fbReady) {
-  _onFbReady();
-} else {
-  window.addEventListener('fb-ready', function() {
-    _onFbReady();
-    // Data just loaded — refresh whatever tab is visible
-    setTimeout(function() {
-      if (typeof refreshTab === 'function') {
-        _tabRenderTime = {}; // clear cache so refresh is forced
-        refreshTab();
-      }
-    }, 500);
-  });
-}
+if (window._fbReady) { _onFbReady(); }
+else { window.addEventListener('fb-ready', function(){ _onFbReady(); setTimeout(function(){ _tabRenderTime={}; if(typeof refreshTab==='function') refreshTab(); }, 600); }); }
 
 // ── Licence check on page load ──
 // ══════════════════════════════════════════════════════════════
@@ -5132,12 +5122,12 @@ function _bootApp(user) {
   } catch(e) {}
   showTab(firstTab);
   schedulePrecompute(); // pre-compute all months in background
-  // Render at 1s, 2.5s and 5s to catch Firebase data arriving at different speeds
-  [1000, 2500, 5000].forEach(function(ms) {
-    setTimeout(function() {
-      _tabRenderTime = {}; // force re-render regardless of cache
-      if (typeof refreshTab === 'function') refreshTab();
-    }, ms);
+  // Re-render at 1s/2.5s/5s to catch Firebase data at any connection speed
+  [1000,2500,5000].forEach(function(ms){
+    setTimeout(function(){
+      _tabRenderTime={};
+      if(typeof refreshTab==='function') refreshTab();
+    },ms);
   });
   // Sync targets staggered — don't fire 12 Firebase calls simultaneously
   (function() {
@@ -14124,14 +14114,9 @@ function _reVerifyLicence(cached) {
   }
 
   var keyClean = cached.key.replace(/-/g, '');
-  var _done = false;
-  var _timer = setTimeout(function() {
-    if (_done) return; _done = true;
-    if (_licenceWithinGrace(cached)) { proceedToLogin(); }
-    else { _showLicenceScreen('Connection timeout.'); }
-  }, 3000);
+  var _rvDone=false,_rvTimer=setTimeout(function(){if(_rvDone)return;_rvDone=true;if(_licenceWithinGrace(cached)){proceedToLogin();}else{_showLicenceScreen('Timeout - check internet.');}},3000);
   window._fbDB.ref('pearl/licences/' + keyClean).once('value').then(function(snap) {
-    if (_done) return; _done = true; clearTimeout(_timer);
+    if(_rvDone)return;_rvDone=true;clearTimeout(_rvTimer);
     var data = snap.val();
 
     // Master key — always valid
@@ -14167,9 +14152,13 @@ function _reVerifyLicence(cached) {
     proceedToLogin();
 
   }).catch(function(e) {
-    if (_done) return; _done = true; clearTimeout(_timer);
-    if (_licenceWithinGrace(cached)) { proceedToLogin(); }
-    else { _showLicenceScreen('Cannot verify licence.'); }
+    // Firebase error — allow if within grace period
+    if (_licenceWithinGrace(cached)) {
+      console.warn('[Licence] Firebase check failed, using grace period:', e.message);
+      proceedToLogin();
+    } else {
+      _showLicenceScreen('Cannot verify your licence. Please check your internet connection.');
+    }
   });
 }
 
@@ -17750,7 +17739,8 @@ function deleteDept(dept) {
     draw();
   }
 
-  // DOMContentLoaded already fired by the time this IIFE runs
+  // Init when login page is visible
+  // DOM ready - call directly (script at line 17000+, DOMContentLoaded already fired)
   initLoginCanvas();
   setTimeout(_startBoot, 300);
 })();
