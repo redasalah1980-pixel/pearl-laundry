@@ -3512,26 +3512,21 @@ window.addEventListener('resize', function() {
 });
 
 function _onFbReady() {
-  try { attachFbListener(CY); } catch(e) {}
-  try { loadPriceSchedule(); } catch(e) {}
-  try { loadAuditLog(); } catch(e) {}
-  try { loadCurrency(); } catch(e) {}
-  try { loadFxRates(); } catch(e) {}
-  try { loadHotelSettings(); } catch(e) {}
-  try { if(typeof syncAllTargetsFromFB==='function') syncAllTargetsFromFB(); } catch(e) {}
-  try { autoSyncOccupancyFromFB(); } catch(e) {}
-  try { checkAndRunDailyAutoBackup(); } catch(e) {}
-  setTimeout(function(){ try{pushLocalDataToFirebase();}catch(e){} }, 2000);
-  setTimeout(function(){ try{migrateLockedPrices();}catch(e){} }, 3000);
-  // Force re-render after data loads
-  setTimeout(function(){
-    try{ _tabRenderTime={}; if(typeof refreshTab==='function') refreshTab(); }catch(e){}
-  }, 800);
+  try{attachFbListener(CY);}catch(e){}
+  try{loadPriceSchedule();}catch(e){}
+  try{loadAuditLog();}catch(e){}
+  try{loadCurrency();}catch(e){}
+  try{loadFxRates();}catch(e){}
+  try{loadHotelSettings();}catch(e){}
+  try{if(typeof syncAllTargetsFromFB==='function')syncAllTargetsFromFB();}catch(e){}
+  try{autoSyncOccupancyFromFB();}catch(e){}
+  try{checkAndRunDailyAutoBackup();}catch(e){}
+  setTimeout(function(){try{pushLocalDataToFirebase();}catch(e){}},2000);
+  setTimeout(function(){try{migrateLockedPrices();}catch(e){}},3000);
+  setTimeout(function(){try{_tabRenderTime={};refreshTab();}catch(e){}},800);
 }
-// fb-ready fires during Firebase init (line ~2847) BEFORE this code runs
-// Check flag immediately so we never miss it
-if (window._fbReady) { setTimeout(_onFbReady, 0); }
-else { window.addEventListener('fb-ready', _onFbReady); }
+if(window._fbReady){setTimeout(_onFbReady,0);}
+else{window.addEventListener('fb-ready',_onFbReady);}
 
 // ── Licence check on page load ──
 // ══════════════════════════════════════════════════════════════
@@ -5124,12 +5119,7 @@ function _bootApp(user) {
   } catch(e) {}
   showTab(firstTab);
   schedulePrecompute(); // pre-compute all months in background
-  // Re-render at 1s/2.5s/5s — catches Firebase data at any connection speed
-  [1000,2500,5000].forEach(function(ms){
-    setTimeout(function(){
-      try{_tabRenderTime={};if(typeof refreshTab==='function')refreshTab();}catch(e){}
-    },ms);
-  });
+  [1000,2500,5000].forEach(function(ms){setTimeout(function(){try{_tabRenderTime={};refreshTab();}catch(e){}},ms);});
   // Sync targets staggered — don't fire 12 Firebase calls simultaneously
   (function() {
     var _tm = 1;
@@ -14018,6 +14008,13 @@ function _licChecksum(obj) {
   return Math.abs(h).toString(36);
 }
 
+// ── Licence constants (required by licence system) ──
+var _LIC_STORE_KEY   = 'pearl_licence_v2';
+var _MASTER_KEY      = '5FVE-77LT-8MSV-JY9A';
+var _LIC_GRACE_DAYS  = 7;
+var _LIC_RECHECK_DAYS = 3;
+var _errorLog        = [];
+
 function getLicenceFromStorage() {
   try {
     var raw = localStorage.getItem(_LIC_STORE_KEY);
@@ -14152,9 +14149,9 @@ function _reVerifyLicence(cached) {
     window._fbDB.ref('pearl/licences/' + keyClean + '/lastSeen').set(new Date().toISOString()).catch(function(){});
     proceedToLogin();
 
-  }).catch(function(e) {
+  }).catch(function(e){
     if(_rvDone)return;_rvDone=true;clearTimeout(_rvTimer);
-    if(_licenceWithinGrace(cached)){proceedToLogin();}else{_showLicenceScreen('Cannot verify licence.');}
+    if(_licenceWithinGrace(cached)){proceedToLogin();}else{_showLicenceScreen('Cannot verify.');}
   });
 }
 
@@ -17736,7 +17733,6 @@ function deleteDept(dept) {
   }
 
   // Init when login page is visible
-  // DOM already ready — call directly
   initLoginCanvas();
   setTimeout(_startBoot, 300);
 })();
@@ -18337,8 +18333,8 @@ function deptHasData(y, m, dept, day) {
 
 // Returns array of {dept, day, label} for missing required dept/day combos
 
-// ── Service Worker for offline support ──
-if ('serviceWorker' in navigator) {
+// ── Service Worker disabled on file:// (requires HTTPS) ──
+if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   var swCode = `
     const CACHE = 'rs-laundrypro-v1';
     const URLS = ['./', './index.html'];
