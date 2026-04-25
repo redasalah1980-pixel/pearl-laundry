@@ -56,7 +56,7 @@ input,select,textarea{font-family:inherit;outline:none;border:none}
 }
 
 /* ── LOGIN PAGE — Full Immersive Dark Background ─────────────── */
-#pg-login{min-height:100vh;display:flex;align-items:center;justify-content:center;
+#pg-login{min-height:100vh;display:none;align-items:center;justify-content:center;
   background:#020810;position:relative;overflow:hidden;}
 #pg-login::before{display:none}
 #login-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:0;}
@@ -793,6 +793,8 @@ table.price-t tr:hover td{background:var(--grey3)}
     .mob-more-item:active { background:rgba(255,255,255,.15); }
     .mob-pg { display:none; }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
@@ -1084,7 +1086,7 @@ table.price-t tr:hover td{background:var(--grey3)}
   </div>
 
   <!-- DASHBOARD -->
-  <div class="pg" id="tab-dashboard">
+  <div class="pg on" id="tab-dashboard">
     <!-- ── Compact top bar ── -->
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
       <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:200px">
@@ -3076,7 +3078,7 @@ function loadDB(y) {
             return !fbData[k] || (localNow[k] !== undefined && localNow['_ts_' + k] > (fbData['_ts_' + k] || 0));
           });
           if (needsPush && window._fbSaveKey) window._fbSaveKey(fbDataPath(y), merged2);
-          if (y == CY) { try { renderDash(); } catch(e){} try { renderEntry(); } catch(e){} }
+          // Data updated silently — let user trigger re-render naturally
         } else if (!fbData) {
           var localNow2 = _DB[y] || {};
           if (Object.keys(localNow2).length > 0 && window._fbSaveKey) {
@@ -3511,22 +3513,23 @@ window.addEventListener('resize', function() {
   else if (!isMobile() && mobV) { mob.style.display='none'; desk.style.display='flex'; }
 });
 
-function _onFbReady() {
-  try{attachFbListener(CY);}catch(e){}
-  try{loadPriceSchedule();}catch(e){}
-  try{loadAuditLog();}catch(e){}
-  try{loadCurrency();}catch(e){}
-  try{loadFxRates();}catch(e){}
-  try{loadHotelSettings();}catch(e){}
-  try{if(typeof syncAllTargetsFromFB==='function')syncAllTargetsFromFB();}catch(e){}
-  try{autoSyncOccupancyFromFB();}catch(e){}
-  try{checkAndRunDailyAutoBackup();}catch(e){}
-  setTimeout(function(){try{pushLocalDataToFirebase();}catch(e){}},2000);
-  setTimeout(function(){try{migrateLockedPrices();}catch(e){}},3000);
-  setTimeout(function(){try{_tabRenderTime={};refreshTab();}catch(e){}},800);
-}
-if(window._fbReady){setTimeout(_onFbReady,0);}
-else{window.addEventListener('fb-ready',_onFbReady);}
+window.addEventListener('fb-ready', function() {
+  attachFbListener(CY);
+  loadPriceSchedule();
+  loadAuditLog();
+  loadCurrency();
+  loadFxRates();
+  loadHotelSettings();
+  syncAllTargetsFromFB();
+  // Auto-sync all occupancy data from Firebase on startup
+  autoSyncOccupancyFromFB();
+  // Daily auto-backup
+  checkAndRunDailyAutoBackup();
+  // Auto-push any existing local data up to Firebase
+  setTimeout(pushLocalDataToFirebase, 2000);
+  // One-time migration: stamp locked prices on existing data
+  setTimeout(migrateLockedPrices, 3000);
+});
 
 // ── Licence check on page load ──
 // ══════════════════════════════════════════════════════════════
@@ -5039,11 +5042,21 @@ function schedulePrecompute() {
   // Run after 3s on login, then every 5 min
   _precomputeTimer = setTimeout(function() {
     precomputeAllMonths();
+    // Light refresh every 5min — current month only
+    setInterval(function() {
+      var cm = new Date().getMonth() + 1;
+      invalidateMonthTotalsCache(CY, cm);
+      invalidateDayTotalsCache(CY, cm);
+      delete _activeDaysCache[CY + '_' + cm];
+      monthTotals(CY, cm);
+    }, 300000);
+    // Full refresh every 30 minutes
     setInterval(function() {
       invalidateMonthTotalsCache();
       invalidateDayTotalsCache();
+      _activeDaysCache = {};
       precomputeAllMonths();
-    }, 300000); // refresh every 5 minutes
+    }, 1800000);
   }, 3000);
 }
 
@@ -5086,7 +5099,7 @@ function _bootApp(user) {
   // Per-account tab access: use the logged-in team account's own tabs
   var allowed;
   if (role === 'admin') {
-    allowed = (ALL_TABS||[]).map(function(t){ return t.id; });
+    allowed = ALL_TABS.map(function(t){ return t.id; });
   } else {
     var teamId = _SESSION.getItem('ph_team_id');
     var allAccounts = getAllTeamAccounts();
@@ -5119,7 +5132,12 @@ function _bootApp(user) {
   } catch(e) {}
   showTab(firstTab);
   schedulePrecompute(); // pre-compute all months in background
-  [1000,2500,5000].forEach(function(ms){setTimeout(function(){try{_tabRenderTime={};refreshTab();}catch(e){}},ms);});
+  // Re-render dashboard after short delay — Firebase data may not be ready yet on first render
+  setTimeout(function() {
+    var _m = parseInt(document.getElementById('dash-month')?.value || new Date().getMonth()+1);
+    invalidateMonthTotalsCache(CY, _m);
+    if (typeof renderDash === 'function') renderDash();
+  }, 1500);
   // Sync targets staggered — don't fire 12 Firebase calls simultaneously
   (function() {
     var _tm = 1;
@@ -5345,10 +5363,10 @@ function refreshTab() {
   var now   = Date.now();
   var last  = _tabRenderTime[curTab] || 0;
   // Per-tab cache times: heavy calculation tabs get longer cache
-  var heavyTabs = { 'forecast':600000, 'analytics':600000, 'planning':600000, 'report':300000, 'benchmark':120000 }; // 10min/10min/5min/2min
+  var heavyTabs = { 'dashboard':15000, 'forecast':600000, 'analytics':600000, 'planning':600000, 'report':300000, 'benchmark':120000 }; // 10min/10min/5min/2min
   var cacheMs   = heavyTabs[curTab] || _TAB_CACHE_MS;
   var stale     = (now - last) > cacheMs;
-  var alwaysRender = ['entry','backup','dashboard'];
+  var alwaysRender = ['entry','backup']; // dashboard uses 15s cache
   if (alwaysRender.indexOf(curTab) === -1 && !stale) return;
   _tabRenderTime[curTab] = now;
   if (curTab === 'backup')    { renderBackupTab(); return; }
@@ -5427,10 +5445,7 @@ function rangeTotals(y, m, fromDay, toDay) {
   return { qr: qr, kg: kg, pcs: pcs, activeDays: activeDays };
 }
 function renderDash() {
-  // Invalidate caches for current month only when needed
   var _dm = parseInt(document.getElementById('dash-month')?.value || new Date().getMonth()+1);
-  // Only clear if data might have changed (not on cached tab re-renders)
-  invalidateMonthTotalsCache(CY, _dm);
   // Show/hide end-of-month checklist
   var _eomInfo = shouldShowEomChecklist();
   var _eomContainer = document.getElementById('eom-checklist-container');
@@ -14008,13 +14023,6 @@ function _licChecksum(obj) {
   return Math.abs(h).toString(36);
 }
 
-// ── Licence constants (required by licence system) ──
-var _LIC_STORE_KEY   = 'pearl_licence_v2';
-var _MASTER_KEY      = '5FVE-77LT-8MSV-JY9A';
-var _LIC_GRACE_DAYS  = 7;
-var _LIC_RECHECK_DAYS = 3;
-var _errorLog        = [];
-
 function getLicenceFromStorage() {
   try {
     var raw = localStorage.getItem(_LIC_STORE_KEY);
@@ -14112,9 +14120,7 @@ function _reVerifyLicence(cached) {
   }
 
   var keyClean = cached.key.replace(/-/g, '');
-  var _rvDone=false,_rvTimer=setTimeout(function(){if(_rvDone)return;_rvDone=true;if(_licenceWithinGrace(cached)){proceedToLogin();}else{_showLicenceScreen('Timeout.');}},3000);
   window._fbDB.ref('pearl/licences/' + keyClean).once('value').then(function(snap) {
-    if(_rvDone)return;_rvDone=true;clearTimeout(_rvTimer);
     var data = snap.val();
 
     // Master key — always valid
@@ -14149,9 +14155,14 @@ function _reVerifyLicence(cached) {
     window._fbDB.ref('pearl/licences/' + keyClean + '/lastSeen').set(new Date().toISOString()).catch(function(){});
     proceedToLogin();
 
-  }).catch(function(e){
-    if(_rvDone)return;_rvDone=true;clearTimeout(_rvTimer);
-    if(_licenceWithinGrace(cached)){proceedToLogin();}else{_showLicenceScreen('Cannot verify.');}
+  }).catch(function(e) {
+    // Firebase error — allow if within grace period
+    if (_licenceWithinGrace(cached)) {
+      console.warn('[Licence] Firebase check failed, using grace period:', e.message);
+      proceedToLogin();
+    } else {
+      _showLicenceScreen('Cannot verify your licence. Please check your internet connection.');
+    }
   });
 }
 
@@ -17733,8 +17744,22 @@ function deleteDept(dept) {
   }
 
   // Init when login page is visible
-  initLoginCanvas();
-  setTimeout(_startBoot, 300);
+  document.addEventListener('DOMContentLoaded', function() {
+    initLoginCanvas();
+    // Start boot sequence
+    setTimeout(_startBoot, 300);
+    // Safety net
+    setTimeout(function() {
+      var anyVisible = ['pg-login','pg-app','pg-licence'].some(function(id) {
+        var el = document.getElementById(id);
+        return el && el.style.display !== 'none' && el.style.display !== '';
+      });
+      if (!anyVisible) {
+        var login = document.getElementById('pg-login');
+        if (login) login.style.display = 'flex';
+      }
+    }, 6000);
+  });
 })();
 
 
@@ -18333,8 +18358,8 @@ function deptHasData(y, m, dept, day) {
 
 // Returns array of {dept, day, label} for missing required dept/day combos
 
-// ── Service Worker disabled on file:// (requires HTTPS) ──
-if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+// ── Service Worker for offline support ──
+if ('serviceWorker' in navigator) {
   var swCode = `
     const CACHE = 'rs-laundrypro-v1';
     const URLS = ['./', './index.html'];
@@ -18417,7 +18442,5 @@ function emailFinance() {
 </script>
 <script type="text/x-template" id="guide-tpl">
 function _renderGuideContent(){}>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" defer></script>
 </body>
 </html>
